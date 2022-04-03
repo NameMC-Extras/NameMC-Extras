@@ -1,8 +1,8 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
 (function() {
-    document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>');
+    document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
 
-    document.querySelector('head').innerHTML = '<title>NameMC</title>';
+    document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
 
     var addThemeRange = document.createRange();
     var addThemeHTML = addThemeRange.createContextualFragment(`<iframe name="add_theme" srcdoc='<script>
