@@ -14,4 +14,4 @@ Same installation as NameMC+
 - Go to wherever you downloaded the extension onto and press on it and press Select Folder
 - You should be done if you need any help create a issue here or contact me on discord, Faav#6320.
 
-Rewrite of NameMC+ currently only adds account types and creation dates.
+Rewrite of NameMC+ currently only adds account types and creation dates and removes ads.
