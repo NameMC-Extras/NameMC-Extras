@@ -1,10 +1,11 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
 (function() {
-    var nmc_page = window.open('', '_self'); // replace page
+    document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>');
 
-    nmc_page.document.write(`<!-- By Faav#6320 | github.com/bribes -->`);
-    nmc_page.document.write(`<title>NameMC</title>`);
-    nmc_page.document.write(`<iframe name="add_theme" srcdoc='<script>
+    document.querySelector('head').innerHTML = '<title>NameMC</title>';
+
+    var addThemeRange = document.createRange();
+    var addThemeHTML = addThemeRange.createContextualFragment(`<iframe name="add_theme" srcdoc='<script>
   /* grabs cookie to get theme */
   function getCookie(name) {
     let cookies = Object.fromEntries(window.parent.document.cookie.split(";").map(e => e.split("=").map(e => decodeURIComponent(e.trim()))));
@@ -26,9 +27,10 @@
       window.parent.document.body.style.color = "#363642";
   }
 </script>' style='display:none;'></iframe>`);
-    nmc_page.document.write(`
-<body style="margin: 0;width:100%;height:100%;overflow:hidden;">
-<iframe id="loader_if" srcdoc='<html style="height:100%;"><head>
+    document.body.appendChild(addThemeHTML);
+
+    var loaderRange = document.createRange();
+    var loaderHTML = loaderRange.createContextualFragment(`<iframe id="loader_if" srcdoc='<html style="height:100%;"><head>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 </head>
 <body style="height: 100%;width: 100%;display: flex;align-items: center;justify-content: center;align-content: center;">
@@ -59,15 +61,18 @@
 </script>
 </body>
 </html>' style="width: 100%;height: 100%;border: none;"></iframe>`);
+    document.body.appendChild(loaderHTML);
 
     (async function() {
         /* loads namemc iframe */
-        nmc_page.document.write(`<iframe id="namemc_if" src="${document.URL}" style="width: 100%;height: 100%;border: none;display:none;"></iframe>
+        var mainRange = document.createRange();
+        var mainHTML = mainRange.createContextualFragment(`<iframe id="namemc_if" src="${document.URL}" style="width: 100%;height: 100%;border: none;display:none;"></iframe>
 
     <iframe style="display:none;" name="inject_namemc_if" srcdoc="<script>
       var namemc_if_iframe = window.parent.document.querySelector('#namemc_if');
 
       namemc_if_iframe.onload = async function() {
+        if (window.parent.document.querySelector('script[type=\\'text/javascript\\']')) window.parent.document.querySelector('script[type=\\'text/javascript\\']').remove();
         var namemc_if_html = namemc_if_iframe.contentDocument.documentElement;
         window.parent.document.querySelector('title').innerText = namemc_if_html.querySelector('title').innerText;
 
@@ -89,7 +94,7 @@
 
         namemc_if_html.lastElementChild.after(styleEl);
 
-        namemc_if_html.querySelectorAll('div:empty').forEach(div => {
+        namemc_if_html.querySelectorAll('div').forEach(div => {
           if (div.id.startsWith('nn') === true) div.remove();
         }); // remove more ads
 
@@ -200,7 +205,7 @@
         window.parent.stop();
       };
     </script>"></iframe>
-    </body>
   `);
+        document.body.appendChild(mainHTML);
     })();
 })();
