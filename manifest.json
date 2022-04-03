@@ -1,0 +1,11 @@
+{
+  "name": "NameMC Extras",
+  "description": "By Faav#6320",
+  "manifest_version": 3,
+  "version": "2.0",
+   "content_scripts": [ {
+      "js": [ "js/namemc-inject.js" ],
+      "matches": [ "*://namemc.com/*" ],
+      "run_at": "document_start"
+   } ]
+}
