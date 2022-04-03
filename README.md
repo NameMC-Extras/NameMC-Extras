@@ -1,1 +1,2 @@
-# NameMC-Extras
+# NameMC Extras (Beta)
+Same installation as NameMC+
