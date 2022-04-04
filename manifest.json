@@ -14,7 +14,7 @@
         "js/namemc-inject.js"
       ],
       "matches": [
-        "*://namemc.com/*"
+        "*://*.namemc.com/*"
       ],
       "run_at": "document_start"
     }
