@@ -1,9 +1,9 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
 (function() {
-    document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
-
-    document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
-    document.body.style.margin = 0;
+    if (document.body == null) document.body = document.createElement('body');
+    document.documentElement.style = 'height: 100%;width: 100%;display: flex;align-items: center;justify-content: center;align-content: center;';
+    document.body.innerHTML = '';
+    document.body.style = 'height: 100%;width: 100%;display: flex;align-items: center;justify-content: center;align-content: center;margin: 0;';
 
     var addThemeRange = document.createRange();
     var addThemeHTML = addThemeRange.createContextualFragment(`<iframe name="add_theme" srcdoc='<script>
@@ -85,7 +85,7 @@
             }
           } else if (aTag.onclick.toString().includes('lang')) {
             var langChange = aTag.getAttribute('onclick');
-            aTag.onclick = function() {
+            aTag.onclick = function(event) {
               event.preventDefault();
               eval('window.parent.namemc_if.contentWindow.' + langChange);
               window.parent.location.href = this.href;
