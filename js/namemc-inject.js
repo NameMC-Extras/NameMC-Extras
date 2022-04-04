@@ -3,6 +3,7 @@
     document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
 
     document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
+    document.body.style.margin = 0;
 
     var addThemeRange = document.createRange();
     var addThemeHTML = addThemeRange.createContextualFragment(`<iframe name="add_theme" srcdoc='<script>
@@ -81,6 +82,13 @@
             aTag.onclick = function() {
               var target = this.target ? this.target : '_self';
               window.parent.open(this.href, target);
+            }
+          } else if (aTag.onclick.toString().includes('lang')) {
+            var langChange = aTag.getAttribute('onclick');
+            aTag.onclick = function() {
+              event.preventDefault();
+              eval('window.parent.namemc_if.contentWindow.' + langChange);
+              window.parent.location.href = this.href;
             }
           }
         });
