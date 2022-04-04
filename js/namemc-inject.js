@@ -1,9 +1,9 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
 (function() {
-    if (document.body == null) document.body = document.createElement('body');
-    document.documentElement.style = 'height: 100%;width: 100%;display: flex;align-items: center;justify-content: center;align-content: center;';
-    document.body.innerHTML = '';
-    document.body.style = 'height: 100%;width: 100%;display: flex;align-items: center;justify-content: center;align-content: center;margin: 0;';
+    document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
+
+    document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
+    document.body.style.margin = 0;
 
     var addThemeRange = document.createRange();
     var addThemeHTML = addThemeRange.createContextualFragment(`<iframe name="add_theme" srcdoc='<script>
