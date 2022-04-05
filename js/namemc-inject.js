@@ -1,5 +1,5 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
-(function() {
+(function () {
   if (window.location.host !== 's.namemc.com') {
     document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
 
@@ -65,10 +65,10 @@
 </html>' style="width: 100%;height: 100%;border: none;"></iframe>`);
     document.body.appendChild(loaderHTML);
 
-    (async function() {
-        /* loads namemc iframe */
-        var mainRange = document.createRange();
-        var mainHTML = mainRange.createContextualFragment(`<iframe id="namemc_if" src="${document.URL}" style="width: 100%;height: 100%;border: none;display:none;"></iframe>
+    (async function () {
+      /* loads namemc iframe */
+      var mainRange = document.createRange();
+      var mainHTML = mainRange.createContextualFragment(`<iframe id="namemc_if" src="${document.URL}" style="width: 100%;height: 100%;border: none;display:none;"></iframe>
 
     <iframe style="display:none;" name="inject_namemc_if" srcdoc="<script>
       var namemc_if_iframe = window.parent.document.querySelector('#namemc_if');
@@ -242,7 +242,7 @@
       };
     </script>"></iframe>
   `);
-        document.body.appendChild(mainHTML);
+      document.body.appendChild(mainHTML);
     })();
   }
 })();
