@@ -1,6 +1,6 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
-(function () {
-  if (window.location.host !== 's.namemc.com') {
+(function() {
+  if (window.location.host !== 's.namemc.com' && window.location.host !== 'store.namemc.com') {
     document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
 
     document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
@@ -40,6 +40,9 @@
   <span class="visually-hidden">Loading...</span>
 </div>
 <script>
+  window.parent.onhashchange = function() { 
+    if (window.parent.location.hash !== "") window.parent.location.reload();
+  }
   /* grabs cookie to get theme */
   function getCookie(name) {
     let cookies = Object.fromEntries(window.parent.document.cookie.split(";").map(e => e.split("=").map(e => decodeURIComponent(e.trim()))));
@@ -65,17 +68,24 @@
 </html>' style="width: 100%;height: 100%;border: none;"></iframe>`);
     document.body.appendChild(loaderHTML);
 
-    (async function () {
-      /* loads namemc iframe */
-      var mainRange = document.createRange();
-      var mainHTML = mainRange.createContextualFragment(`<iframe id="namemc_if" src="${document.URL}" style="width: 100%;height: 100%;border: none;display:none;"></iframe>
+    (async function() {
+        /* loads namemc iframe */
+        var mainRange = document.createRange();
+        var mainHTML = mainRange.createContextualFragment(`<iframe id="namemc_if" src="${document.URL}" style="width: 100%;height: 100%;border: none;display:none;"></iframe>
 
     <iframe style="display:none;" name="inject_namemc_if" srcdoc="<script>
       var namemc_if_iframe = window.parent.document.querySelector('#namemc_if');
 
       namemc_if_iframe.onload = async function() {
+        var devMode = window.parent.location.hash.endsWith('#devMode');
         if (window.parent.document.querySelector('script[type=\\'text/javascript\\']')) window.parent.document.querySelector('script[type=\\'text/javascript\\']').remove();
         var namemc_if_html = namemc_if_iframe.contentDocument.documentElement;
+
+        var form = namemc_if_html.querySelector('form[action=\\'/search\\']');
+        form.onsubmit = function() {
+          window.parent.location.href = 'https://' + window.parent.location.host + '/search?' + namemc_if_iframe.contentWindow.$('form[action=\\'/search\\']').serialize() + window.parent.location.hash;
+        }
+
         window.parent.document.querySelector('title').innerText = namemc_if_html.querySelector('title').innerText;
 
         function finishLoad() {
@@ -83,14 +93,18 @@
             if (!aTag.onclick) {
               aTag.onclick = function() {
                 var target = this.target ? this.target : '_self';
-                window.parent.open(this.href, target);
+                var href = this.href;
+                if (window.parent.location.hash !== '') href = href.replace('#', '');
+                window.parent.open(href + window.parent.location.hash, target);
               }
             } else {
               var clickFunc = aTag.getAttribute('onclick');
               aTag.onclick = function(event) {
                 event.preventDefault();
                 eval('window.parent.namemc_if.contentWindow.' + clickFunc);
-                window.parent.location.href = this.href;
+                var href = this.href;
+                if (window.parent.location.hash !== '') href = href.replace('#', '');
+                window.parent.open(href + window.parent.location.hash, '_self');
               }
             }
           });
@@ -115,9 +129,10 @@
           if (div.id.startsWith('nn') === true) div.remove();
         }); // remove more ads
 
+      if (devMode === true) {
         namemc_if_html.querySelectorAll('svg').forEach(svg => {
         svg.outerHTML = \`
-        <svg viewBox='0 0 500 500' width='30' height='30'>
+          <svg viewBox='0 0 500 500' width='30' height='30'>
           <rect x='1.698' width='498.302' height='499.151' shape-rendering='crispEdges' style='stroke: rgb(0, 0, 0);'></rect>
           <rect x='137.787' y='108.12' width='39.511' height='326.366' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
           <rect x='178.16' y='68.295' width='144.446' height='39.875' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
@@ -139,32 +154,37 @@
         var isLoggedIn = namemc_if_html.querySelector('i.fa-sign-in') ? false : true;
         if (isLoggedIn === true) {
           // if user is logged in
-          /*
-          namemc_if_html.querySelector('.text-nowrap.pl-0 span').innerText = 'F';
-          namemc_if_html.querySelector('.text-nowrap.pl-0 img.skin-2d').src = 'https://s.namemc.com/2d/skin/face.png?id=990f115d096790d6&scale=4';
-          */
+          namemc_if_html.querySelector('.text-nowrap.pl-0 span').innerText = 'Developer';
         }
 
         var isHomeCustom = false;
         function customPage(page, name, callBack) {
           var isPage = new URLSearchParams(window.parent.location.search).get('page') == page;
+          var capeDropNav = namemc_if_html.querySelector('a.dropdown-item[href=\\'/capes\\']');
           var navBar = namemc_if_html.querySelector('nav ul');
+          var nameBarDropdown = namemc_if_html.querySelector('.dropdown-menu');
           var customNavRange = document.createRange();
-          var customNavHTML = customNavRange.createContextualFragment(\`<li class='nav-item'><a class='nav-link' href='https://\${window.parent.location.host}/?page=\${page}'><i class='fas fa-shopping-cart menu-icon d-none d-xl-inline-block'></i>\${name}</a></li>\`);
+          var customNavHTML = customNavRange.createContextualFragment(\`<li class='nav-item'><a class='nav-link' href='https://\${window.parent.location.host}/?page=\${page}'>\${name}</a></li>\`);
+          var customNavDropRange = document.createRange();
+          var customNavDropHTML = customNavDropRange.createContextualFragment(\`<a class='dropdown-item' id='\${page}' href='https://\${window.parent.location.host}/?page=\${page}' title='\${name}'>\${name}</a>\`);
           navBar.appendChild(customNavHTML);
+          capeDropNav.after(customNavDropHTML);
           if (isPage === true) {
             isHomeCustom = true;
+            namemc_if_html.querySelector('.dropdown-item.active').classList.remove('active');
+            namemc_if_html.querySelector('#' + page).classList.add('active');
             callBack();
           }
         }
 
-        /*customPage('test-page', 'Test Page', function() {
+        customPage('test-page', 'Test Page', function() {
           namemc_if_html.querySelector('main').innerHTML = '<p>test</p>';
         });
 
-        customPage('bruh', 'Bruh Page', function() {
+        customPage('skin-cape-tester', 'Skin & Cape Tester', function() {
           namemc_if_html.querySelector('main').innerHTML = '<p>bro wtf1</p>';
-        });*/
+        });
+      }
 
         var isHome = window.parent.location.pathname == '/';
         if (isHome === true && isHomeCustom === false) {
@@ -242,7 +262,7 @@
       };
     </script>"></iframe>
   `);
-      document.body.appendChild(mainHTML);
+        document.body.appendChild(mainHTML);
     })();
   }
 })();
