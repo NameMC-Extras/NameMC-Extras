@@ -1,5 +1,6 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
 (function() {
+  if (window.location.host !== 's.namemc.com') {
     document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
 
     document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
@@ -77,26 +78,35 @@
         var namemc_if_html = namemc_if_iframe.contentDocument.documentElement;
         window.parent.document.querySelector('title').innerText = namemc_if_html.querySelector('title').innerText;
 
-        namemc_if_html.querySelectorAll('a').forEach(aTag => {
-          if (!aTag.onclick) {
-            aTag.onclick = function() {
-              var target = this.target ? this.target : '_self';
-              window.parent.open(this.href, target);
+        function finishLoad() {
+          namemc_if_html.querySelectorAll('a').forEach(aTag => {
+            if (!aTag.onclick) {
+              aTag.onclick = function() {
+                event.preventDefault();
+                var target = this.target ? this.target : '_self';
+                window.parent.open(this.href, target);
+              }
+            } else if (aTag.onclick.toString().includes('lang')) {
+              var langChange = aTag.getAttribute('onclick');
+              aTag.onclick = function(event) {
+                event.preventDefault();
+                eval('window.parent.namemc_if.contentWindow.' + langChange);
+                window.parent.location.href = this.href;
+              }
             }
-          } else if (aTag.onclick.toString().includes('lang')) {
-            var langChange = aTag.getAttribute('onclick');
-            aTag.onclick = function(event) {
-              event.preventDefault();
-              eval('window.parent.namemc_if.contentWindow.' + langChange);
-              window.parent.location.href = this.href;
-            }
-          }
-        });
+          });
+          window.parent.loader_if.style.display = 'none';
+          window.parent.namemc_if.style.display = '';
+        }
 
         var styleEl = document.createElement('style');
         styleEl.innerHTML = \`
           .ad-container {
             display: none!important;
+          }
+          .nav-item {
+            display: flex;
+            align-items: center;
           }
         \`; // hide ads
 
@@ -106,25 +116,26 @@
           if (div.id.startsWith('nn') === true) div.remove();
         }); // remove more ads
 
-  namemc_if_html.querySelectorAll('svg').forEach(svg => {
-    svg.outerHTML = \`<svg viewBox='0 0 500 500' width='30' height='30'>
-  <rect x='1.698' width='498.302' height='499.151' shape-rendering='crispEdges' style='stroke: rgb(0, 0, 0);'></rect>
-  <rect x='137.787' y='108.12' width='39.511' height='326.366' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='178.16' y='68.295' width='144.446' height='39.875' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='239.889' y='191.201' width='43.896' height='51.441' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='401.879' y='191.11' width='43.896' height='51.441' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='283.1' y='148.708' width='119.343' height='42.524' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='284.35' y='241.989' width='119.343' height='42.524' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='176.8' y='393.148' width='49.643' height='40.652' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='275.46' y='392.758' width='48.089' height='40.652' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='227.854' y='348.88' width='47.313' height='44.538' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='322.988' y='278.38' width='39.511' height='154.868' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='322.626' y='107.723' width='39.511' height='41.259' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='55.947' y='216.274' width='39.511' height='97.163' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='97.002' y='174.674' width='44.766' height='41.991' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-  <rect x='96.276' y='313.224' width='45.615' height='41.991' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
-</svg>\`;
-  }); // replace namemc logo to among us for funni
+        namemc_if_html.querySelectorAll('svg').forEach(svg => {
+        svg.outerHTML = \`
+        <svg viewBox='0 0 500 500' width='30' height='30'>
+          <rect x='1.698' width='498.302' height='499.151' shape-rendering='crispEdges' style='stroke: rgb(0, 0, 0);'></rect>
+          <rect x='137.787' y='108.12' width='39.511' height='326.366' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='178.16' y='68.295' width='144.446' height='39.875' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='239.889' y='191.201' width='43.896' height='51.441' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='401.879' y='191.11' width='43.896' height='51.441' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='283.1' y='148.708' width='119.343' height='42.524' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='284.35' y='241.989' width='119.343' height='42.524' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='176.8' y='393.148' width='49.643' height='40.652' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='275.46' y='392.758' width='48.089' height='40.652' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='227.854' y='348.88' width='47.313' height='44.538' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='322.988' y='278.38' width='39.511' height='154.868' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='322.626' y='107.723' width='39.511' height='41.259' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='55.947' y='216.274' width='39.511' height='97.163' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='97.002' y='174.674' width='44.766' height='41.991' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+          <rect x='96.276' y='313.224' width='45.615' height='41.991' shape-rendering='crispEdges' style='stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);'></rect>
+        </svg>\`;
+        }); // replace namemc logo to among us for funni
 
         var isLoggedIn = namemc_if_html.querySelector('i.fa-sign-in') ? false : true;
         if (isLoggedIn === true) {
@@ -135,17 +146,38 @@
           */
         }
 
-        var isHomePage = window.parent.location.pathname == '/';
-        if (isHomePage === true) {
+        var isHomeCustom = false;
+        function customPage(page, name, callBack) {
+          var isPage = new URLSearchParams(window.parent.location.search).get('page') == page;
+          var navBar = namemc_if_html.querySelector('nav ul');
+          var customNavRange = document.createRange();
+          var customNavHTML = customNavRange.createContextualFragment(\`<li class='nav-item'><a class='nav-link' href='https://\${window.parent.location.host}/?page=\${page}'><i class='fas fa-shopping-cart menu-icon d-none d-xl-inline-block'></i>\${name}</a></li>\`);
+          navBar.appendChild(customNavHTML);
+          if (isPage === true) {
+            isHomeCustom = true;
+            callBack();
+          }
+        }
+
+        /*customPage('test-page', 'Test Page', function() {
+          namemc_if_html.querySelector('main').innerHTML = '<p>test</p>';
+        });
+
+        customPage('bruh', 'Bruh Page', function() {
+          namemc_if_html.querySelector('main').innerHTML = '<p>bro wtf1</p>';
+        });*/
+
+        var isHome = window.parent.location.pathname == '/';
+        if (isHome === true && isHomeCustom === false) {
           var faqHTML = namemc_if_html.querySelector('#faq dl');
           var extraFAQRange = document.createRange();
           var extraFAQHTML = extraFAQRange.createContextualFragment('<dt>How does <a href=\\'#\\'>NameMC Extras</a> get its data?</dt><dd>We get our data from the <a href=\\'https://api.gapple.pw/\\' target=\\'_blank\\'>Gapple API</a> and the <a href=\\'https://github.com/Electroid/mojang-api\\'>AshCon API</a>.</dd>');
           faqHTML.insertBefore(extraFAQHTML, namemc_if_html.querySelector('#faq dl dt'));
         }
 
-        var isProfilePage = window.parent.location.href.startsWith('https://namemc.com/profile/');
+        var isProfile = window.parent.location.pathname.startsWith('/profile/');
         /* adds account types */
-        if (isProfilePage === true) {
+        if (isProfile === true) {
           var dashlessUUIDDiv = namemc_if_html.querySelectorAll('div.row.no-gutters.align-items-center')[1];
           var uuid = dashlessUUIDDiv.lastElementChild.innerText;
           var ashConAPI = await fetch('https://api.ashcon.app/mojang/v2/user/' + uuid)
@@ -164,8 +196,6 @@
           }
 
           if (accountTypeAPI.status === 200) {
-            window.parent.loader_if.style.display = 'none';
-            window.parent.namemc_if.style.display = '';
             var acctype = accountTypeJSON.status;
             var accountType;
             var tooltip;
@@ -201,13 +231,12 @@
             var accountTypeHTML = typeRange.createContextualFragment('<div class=\\'row no-gutters\\'><div class=\\'col col-lg-4\\'><strong>Account Type</strong></div><div class=\\'col-auto\\' data-account-type=\\'' + tooltip + '\\'>' + accountType + '</div></div>');
             dashlessUUIDDiv.after(accountTypeHTML);
             window.parent.namemc_if.contentWindow.$('[data-account-type]').tooltip({'placement':'top','boundary':'viewport','title':tooltip});
+            finishLoad();
           } else {
-            window.parent.loader_if.style.display = 'none';
-            window.parent.namemc_if.style.display = '';
+            finishLoad();
           }
         } else {
-          window.parent.loader_if.style.display = 'none';
-          window.parent.namemc_if.style.display = '';
+          finishLoad();
         }
 
         window.parent.stop();
@@ -216,4 +245,5 @@
   `);
         document.body.appendChild(mainHTML);
     })();
+  }
 })();
