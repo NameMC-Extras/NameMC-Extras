@@ -82,15 +82,14 @@
           namemc_if_html.querySelectorAll('a').forEach(aTag => {
             if (!aTag.onclick) {
               aTag.onclick = function() {
-                event.preventDefault();
                 var target = this.target ? this.target : '_self';
                 window.parent.open(this.href, target);
               }
-            } else if (aTag.onclick.toString().includes('lang')) {
-              var langChange = aTag.getAttribute('onclick');
+            } else {
+              var clickFunc = aTag.getAttribute('onclick');
               aTag.onclick = function(event) {
                 event.preventDefault();
-                eval('window.parent.namemc_if.contentWindow.' + langChange);
+                eval('window.parent.namemc_if.contentWindow.' + clickFunc);
                 window.parent.location.href = this.href;
               }
             }
