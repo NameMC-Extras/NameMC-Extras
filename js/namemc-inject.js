@@ -78,6 +78,7 @@
 
       namemc_if_iframe.onload = async function() {
         var devMode = window.parent.location.hash.endsWith('#devMode');
+        var isHomeCustom = false;
         if (window.parent.document.querySelector('script[type=\\'text/javascript\\']')) window.parent.document.querySelector('script[type=\\'text/javascript\\']').remove();
         var namemc_if_html = namemc_if_iframe.contentDocument.documentElement;
 
@@ -157,7 +158,6 @@
           namemc_if_html.querySelector('.text-nowrap.pl-0 span').innerText = 'Developer';
         }
 
-        var isHomeCustom = false;
         function customPage(page, name, callBack) {
           var isPage = new URLSearchParams(window.parent.location.search).get('page') == page;
           var capeDropNav = namemc_if_html.querySelector('a.dropdown-item[href=\\'/capes\\']');
