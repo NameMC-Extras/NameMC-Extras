@@ -3,6 +3,8 @@ A Chromium Extension that adds many features to NameMC currently work in progres
 
 [Press here to go to the Firefox version.](https://github.com/bribes/NameMC-Extras/tree/firefox)
 
+Shouts out to M6, Orius, Swede
+
 Will release onto google soon.
 
 Same installation as NameMC+
