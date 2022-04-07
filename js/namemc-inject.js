@@ -105,7 +105,8 @@
                 eval('window.parent.namemc_if.contentWindow.' + clickFunc);
                 var href = this.href;
                 if (window.parent.location.hash !== '') href = href.replace('#', '');
-                window.parent.open(href + window.parent.location.hash, '_self');
+                if (href.startsWith('javascript:') == false) href += window.parent.location.hash;
+                window.parent.open(href, '_self');
               }
             }
           });
