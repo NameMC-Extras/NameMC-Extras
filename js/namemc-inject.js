@@ -33,6 +33,8 @@
 
     var loaderRange = document.createRange();
     var loaderHTML = loaderRange.createContextualFragment(`<iframe id="loader_if" srcdoc='<html style="height:100%;"><head>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@500&family=Roboto:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 </head>
 <body style="height: 100%;width: 100%;display: flex;align-items: center;justify-content: center;align-content: center;">
@@ -41,7 +43,7 @@
 </div>
 <script>
   window.parent.onhashchange = function() { 
-    if (window.parent.location.hash !== "") window.parent.location.reload();
+    if (window.parent.location.hash == "#devMode") window.parent.location.reload();
   }
   /* grabs cookie to get theme */
   function getCookie(name) {
@@ -92,11 +94,13 @@
         function finishLoad() {
           namemc_if_html.querySelectorAll('a').forEach(aTag => {
             if (!aTag.onclick) {
+              if (aTag.getAttribute('role') !== 'tab') {
               aTag.onclick = function() {
                 var target = this.target ? this.target : '_self';
                 var href = this.href;
                 if (window.parent.location.hash !== '') href = href.replace('#', '');
                 window.parent.open(href + window.parent.location.hash, target);
+              }
               }
             } else {
               var clickFunc = aTag.getAttribute('onclick');
@@ -195,7 +199,7 @@
           faqHTML.insertBefore(extraFAQHTML, namemc_if_html.querySelector('#faq dl dt'));
         }
 
-        var isProfile = window.parent.location.pathname.startsWith('/profile/');
+        var isProfile = namemc_if_html.querySelector('title').innerText.endsWith(' | Minecraft Profile | NameMC');
         /* adds account types */
         if (isProfile === true) {
           var dashlessUUIDDiv = namemc_if_html.querySelectorAll('div.row.no-gutters.align-items-center')[1];
