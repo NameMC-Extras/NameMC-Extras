@@ -95,12 +95,12 @@
           namemc_if_html.querySelectorAll('a').forEach(aTag => {
             if (!aTag.onclick) {
               if (aTag.getAttribute('role') !== 'tab') {
-              aTag.onclick = function() {
-                var target = this.target ? this.target : '_self';
-                var href = this.href;
-                if (window.parent.location.hash !== '') href = href.replace('#', '');
-                window.parent.open(href + window.parent.location.hash, target);
-              }
+                aTag.onclick = function() {
+                  var target = this.target ? this.target : '_self';
+                  var href = this.href;
+                  if (window.parent.location.hash !== '') href = href.replace('#', '');
+                  window.parent.open(href + window.parent.location.hash, target);
+                }
               }
             } else {
               var clickFunc = aTag.getAttribute('onclick');
