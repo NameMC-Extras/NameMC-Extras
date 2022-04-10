@@ -1,15 +1,13 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
-(async function () {
-  if (window.location.host !== 's.namemc.com' && window.location.host !== 'store.namemc.com') {
-    var checkCanFetch = await fetch(document.URL);
-    if (checkCanFetch.ok == true) {
-      document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
+(function() {
+  if (window.location.host !== 's.namemc.com' && window.location.host !== 'store.namemc.com' && window.location.pathname !== '/claim') {
+    document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
 
-      document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
-      document.body.style.margin = 0;
+    document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
+    document.body.style.margin = 0;
 
-      var addThemeRange = document.createRange();
-      var addThemeHTML = addThemeRange.createContextualFragment(`<iframe name="add_theme" srcdoc='<script>
+    var addThemeRange = document.createRange();
+    var addThemeHTML = addThemeRange.createContextualFragment(`<iframe name="add_theme" srcdoc='<script>
   /* grabs cookie to get theme */
   function getCookie(name) {
     let cookies = Object.fromEntries(window.parent.document.cookie.split(";").map(e => e.split("=").map(e => decodeURIComponent(e.trim()))));
@@ -31,10 +29,10 @@
       window.parent.document.body.style.color = "#363642";
   }
 </script>' style='display:none;'></iframe>`);
-      document.body.appendChild(addThemeHTML);
+    document.body.appendChild(addThemeHTML);
 
-      var loaderRange = document.createRange();
-      var loaderHTML = loaderRange.createContextualFragment(`<iframe id="loader_if" srcdoc='<html style="height:100%;"><head>
+    var loaderRange = document.createRange();
+    var loaderHTML = loaderRange.createContextualFragment(`<iframe id="loader_if" srcdoc='<html style="height:100%;"><head>
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@500&family=Roboto:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
@@ -70,24 +68,24 @@
 </script>
 </body>
 </html>' style="width: 100%;height: 100%;border: none;"></iframe>`);
-      document.body.appendChild(loaderHTML);
+    document.body.appendChild(loaderHTML);
 
-      /* loads namemc iframe */
-      var mainRange = document.createRange();
-      var mainHTML = mainRange.createContextualFragment(`<iframe id="namemc_if" src="${document.URL}" style="width: 100%;height: 100%;border: none;display:none;"></iframe>
+    (async function() {
+        /* loads namemc iframe */
+        var mainRange = document.createRange();
+        var mainHTML = mainRange.createContextualFragment(`<iframe id="namemc_if" src="${document.URL}" style="width: 100%;height: 100%;border: none;display:none;"></iframe>
 
     <iframe style="display:none;" name="inject_namemc_if" srcdoc="<script>
-      var namemc_if_iframe = window.parent.document.querySelector('#namemc_if');
-
-      namemc_if_iframe.onload = async function() {
+      var namemc_if = window.parent.document.querySelector('#namemc_if');
+      namemc_if.onload = async function() {
         var devMode = window.parent.location.hash.endsWith('#devMode');
         var isHomeCustom = false;
         if (window.parent.document.querySelector('script[type=\\'text/javascript\\']')) window.parent.document.querySelector('script[type=\\'text/javascript\\']').remove();
-        var namemc_if_html = namemc_if_iframe.contentDocument.documentElement;
+        var namemc_if_html = namemc_if.contentDocument.documentElement;
 
         var form = namemc_if_html.querySelector('form[action=\\'/search\\']');
         form.onsubmit = function() {
-          window.parent.location.href = 'https://' + window.parent.location.host + '/search?' + namemc_if_iframe.contentWindow.$('form[action=\\'/search\\']').serialize() + window.parent.location.hash;
+          window.parent.location.href = 'https://' + window.parent.location.host + '/search?' + namemc_if.contentWindow.$('form[action=\\'/search\\']').serialize() + window.parent.location.hash;
         }
 
         window.parent.document.querySelector('title').innerText = namemc_if_html.querySelector('title').innerText;
@@ -268,7 +266,7 @@
       };
     </script>"></iframe>
   `);
-      document.body.appendChild(mainHTML);
-    }
+        document.body.appendChild(mainHTML);
+    })();
   }
 })();
