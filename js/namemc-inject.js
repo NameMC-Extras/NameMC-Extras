@@ -232,6 +232,10 @@
                 accountType = 'Microsoft';
                 tooltip = 'Migrated from Mojang';
                 break;
+              case 'migrated_msa_from_legacy':
+                accountType = 'Microsoft';
+                tooltip = 'Migrated from Legacy';
+                break;
               case 'new_msa':
                 accountType = 'Microsoft';
                 tooltip = 'Newly Created';
