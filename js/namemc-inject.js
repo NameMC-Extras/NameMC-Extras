@@ -91,6 +91,14 @@ if (window.location.host !== 's.namemc.com' && window.location.host !== 'store.n
 
         function finishLoad() {
           namemc_if_html.querySelectorAll('a').forEach(aTag => {
+            var href = aTag.href;
+            if (devMode === true) {
+              if (window.parent.location.hash !== '') {
+                href = href.replace('#', '');
+                if (href.startsWith('javascript:') == false) href += window.parent.location.hash;
+              }
+            }
+            aTag.href = href;
             if (!aTag.target) aTag.target = '_top';
           });
 
