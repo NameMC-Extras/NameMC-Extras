@@ -1,5 +1,5 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
-if (window.location.host !== 's.namemc.com' && window.location.host !== 'store.namemc.com' && window.location.pathname !== '/claim') {
+if (document) {
   document.write('<!-- By Faav#6320 | github.com/bribes --><html></html>'); // override html
 
   document.querySelector('head').innerHTML = '<title>NameMC</title>'; // add placeholder title
@@ -91,27 +91,9 @@ if (window.location.host !== 's.namemc.com' && window.location.host !== 'store.n
 
         function finishLoad() {
           namemc_if_html.querySelectorAll('a').forEach(aTag => {
-            if (!aTag.onclick) {
-              if (aTag.getAttribute('role') !== 'tab') {
-                aTag.onclick = function() {
-                  var target = this.target ? this.target : '_self';
-                  var href = this.href;
-                  if (window.parent.location.hash !== '') href = href.replace('#', '');
-                  window.parent.open(href + window.parent.location.hash, target);
-                }
-              }
-            } else {
-              var clickFunc = aTag.getAttribute('onclick');
-              aTag.onclick = function(event) {
-                event.preventDefault();
-                eval('window.parent.namemc_if.contentWindow.' + clickFunc);
-                var href = this.href;
-                if (window.parent.location.hash !== '') href = href.replace('#', '');
-                if (href.startsWith('javascript:') == false) href += window.parent.location.hash;
-                window.parent.open(href, '_self');
-              }
-            }
+            if (!aTag.target) aTag.target = '_top';
           });
+
           window.parent.loader_if.style.display = 'none';
           window.parent.namemc_if.style.display = '';
         }
