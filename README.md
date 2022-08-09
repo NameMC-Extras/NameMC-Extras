@@ -23,3 +23,5 @@ Create a issue or message me on discord (Faav#6320) if you have any suggestions.
 Example Image:
 
 ![namemcextras](https://user-images.githubusercontent.com/52789876/162082751-b4ef9872-e00f-40d6-b917-8b26cbe376de.PNG)
+
+We are not made by or endorsed by NameMC.
