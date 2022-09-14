@@ -3,7 +3,7 @@ function endsWithNumber(str) {
   return /[0-9]+$/.test(str);
 }
 
-if (endsWithNumber(location.pathname)) {
+if (endsWithNumber(location.pathname) && location.pathname) {
   const waitForUUID = function (callback) {
     if (document.querySelector('.order-lg-2')) {
       callback();
@@ -15,10 +15,10 @@ if (endsWithNumber(location.pathname)) {
   };
 
   window.addEventListener("message", (json) => {
-    if (typeof json.data.at !== 'undefined') {
-      var creationDate = json.data.cd;
-      var accountType = json.data.at;
-      var tooltip = json.data.tt;
+    if (typeof json.data.accountType !== 'undefined') {
+      var creationDate = json.data.creationDate;
+      var accountType = json.data.accountType;
+      var tooltip = json.data.tooltip;
       acctype.innerHTML = accountType;
       $('#acctype').tooltip({"placement":"top","boundary":"viewport","title":tooltip});
       if (creationDate !== 'null') {
