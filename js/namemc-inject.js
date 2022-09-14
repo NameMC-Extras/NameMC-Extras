@@ -30,13 +30,7 @@ if (endsWithNumber(location.pathname)) {
 
   waitForUUID(async () => {
     var uuid = document.querySelector('.order-lg-2').innerText;
-    var colorRGB = window.getComputedStyle(document.body).getPropertyValue("background-color");
     var views = document.querySelector('.card-body > :nth-child(3)');
-    var color = '363642';
-
-    if (colorRGB == 'rgb(25, 25, 39)') {
-      color = 'd6d8e1';
-    }
 
     views.outerHTML += `
   <div class="row no-gutters">
@@ -50,7 +44,7 @@ if (endsWithNumber(location.pathname)) {
   `
 
     var gadgetIf = document.createElement('iframe');
-    gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}/${color}?url=${location.href}`;
+    gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';
 
     document.body.append(gadgetIf);
