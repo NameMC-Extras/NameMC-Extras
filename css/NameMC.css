@@ -1,0 +1,13 @@
+/* copyright 2022 | Faav#6320 | github.com/bribes */
+div > div.ad-container {
+    display: none!important;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+}
+
+#nmcIf {
+    display: none;
+}
