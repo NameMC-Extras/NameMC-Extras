@@ -57,6 +57,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     document.body.append(gadgetIf);
     
     // add legendarisk clown emoji
-    if (uuid == '55733f30-8907-4851-8af3-420f6f255856') document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
+    if (uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '7f384898-2bf0-40de-9947-ee95ab68fbc7') document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
   });
 }
