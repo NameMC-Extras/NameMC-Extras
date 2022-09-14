@@ -10,11 +10,16 @@
   "version": "6.9",
   "content_scripts": [
     {
-      "js": [
-        "js/injector.js"
-      ],
       "css": [
         "css/NameMC.css"
+      ],
+      "matches": [
+        "*://*.namemc.com/*"
+      ]
+    },
+    {
+      "js": [
+        "js/injector.js"
       ],
       "matches": [
         "*://*.namemc.com/profile/*"
