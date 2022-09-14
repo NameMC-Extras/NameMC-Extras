@@ -45,9 +45,8 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     <div id="cdate" class="col-auto">Loading... <i class="fal fa-spinner icon-spin"></i></div>
   </div>
   <div class="row no-gutters">
-    <div class="col order-lg-1 col-lg-4"><strong>mcuserna.me</strong></div>
-    <div class="col-auto order-lg-3 col-lg-auto text-nowrap text-right"><a class="copy-button" href="javascript:void(0)" data-clipboard-text="mcuserna.me/${uuid}" onclick="return false">Copy</a></div>
-    <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me/${username}</a></div>
+    <div class="col order-lg-1 col-lg-4"><strong>Links</strong></div>
+    <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/${uuid}" target="_blank">laby.net</a></div>
   </div>
   `
 
