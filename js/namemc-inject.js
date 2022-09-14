@@ -55,5 +55,8 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     gadgetIf.id = 'nmcIf';
 
     document.body.append(gadgetIf);
+    
+    // add legendarisk clown emoji
+    if (uuid == '55733f30-8907-4851-8af3-420f6f255856') document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
   });
 }
