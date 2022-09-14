@@ -47,7 +47,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
   <div class="row no-gutters">
     <div class="col order-lg-1 col-lg-4"><strong>mcuserna.me</strong></div>
     <div class="col-auto order-lg-3 col-lg-auto text-nowrap text-right"><a class="copy-button" href="javascript:void(0)" data-clipboard-text="mcuserna.me/${uuid}" onclick="return false">Copy</a></div>
-    <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" rel="nofollow">mcuserna.me/${username}</a></div>
+    <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me/${username}</a></div>
   </div>
   `
 
