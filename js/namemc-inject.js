@@ -46,7 +46,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
   </div>
   <div class="row no-gutters">
     <div class="col order-lg-1 col-lg-4"><strong>Links</strong></div>
-    <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/${uuid}" target="_blank">laby.net</a></div>
+    <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/${uuid}" target="_blank">LABY.net</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">LivzMC</a></div>
   </div>
   `
 
