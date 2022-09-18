@@ -1,5 +1,5 @@
 {
-  "name": "NameMC Extras",
+  "name": "NameMC Extras (Rewrite)",
   "description": "By Faav#6320",
   "icons": {
     "16": "icons/icon16.png",
@@ -7,16 +7,28 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "2.0",
+  "version": "6.9",
   "content_scripts": [
     {
-      "js": [
-        "js/namemc-inject.js"
+      "css": [
+        "css/NameMC.css"
       ],
       "matches": [
         "*://*.namemc.com/*"
+      ]
+    },
+    {
+      "js": [
+        "js/injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/profile/*"
       ],
       "run_at": "document_start"
     }
-  ]
+  ],
+  "web_accessible_resources": [{
+    "resources": ["js/namemc-inject.js"],
+    "matches": ["<all_urls>"]
+  }]
 }

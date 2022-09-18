@@ -1,0 +1,41 @@
+/* copyright 2022 | Faav#6320 | github.com/bribes */
+div > div.ad-container {
+    display: none!important
+}
+
+.nav-item {
+    display: flex;
+    align-items: center
+}
+
+#nmcIf {
+    display: none
+}
+
+.icon-spin {
+    -webkit-animation: icon-spin 2s linear infinite;
+    animation: icon-spin 2s linear infinite;
+    animation-duration: 2s;
+    animation-timing-function: linear;
+    animation-delay: 0s;
+    animation-iteration-count: infinite;
+    animation-direction: normal;
+    animation-fill-mode: none;
+    animation-play-state: running;
+    animation-name: icon-spin
+}
+
+@keyframes icon-spin{
+    0%{
+        -webkit-transform:rotate(0deg);
+        transform:rotate(0deg)
+    }
+    to{
+        -webkit-transform:rotate(359deg);
+        transform:rotate(359deg)
+    }
+}
+
+#warningcd {
+    cursor: pointer
+}
