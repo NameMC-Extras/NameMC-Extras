@@ -15,6 +15,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
   };
 
   window.addEventListener("message", (json) => {
+    if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
       var creationDate = json.data.creationDate;
       var accountType = json.data.accountType;
@@ -57,7 +58,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     document.body.append(gadgetIf);
     
     // add legendarisk clown emoji and remove verification
-    if (uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '7f384898-2bf0-40de-9947-ee95ab68fbc7') {
+    if (uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '0dd649c1-40c7-47f5-a839-0b98eaefedf2' || uuid == '70296d53-9fc3-4e53-97eb-269e97f14aad') {
       document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
       document.querySelectorAll('[title=Verified]').forEach(el => el.remove());
     }
