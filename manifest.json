@@ -1,6 +1,7 @@
 {
-  "name": "NameMC Extras (Rewrite)",
-  "description": "By Faav#6320",
+  "name": "NameMC Extras (Beta)",
+  "description": "A extension which adds extra features to NameMC!",
+  "author": "Faav",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
