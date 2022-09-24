@@ -6,7 +6,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "manifest_version": 3,
+  "manifest_version": 2,
   "version": "0.0.1",
   "content_scripts": [
     {
@@ -27,8 +27,5 @@
       "run_at": "document_start"
     }
   ],
-  "web_accessible_resources": [{
-    "resources": ["js/namemc-inject.js"],
-    "matches": ["<all_urls>"]
-  }]
+  "web_accessible_resources": ["js/namemc-inject.js"]
 }
