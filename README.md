@@ -22,6 +22,6 @@ Create a issue or message me on discord (Faav#6320) if you have any suggestions.
 
 Example Image:
 
-![namemcextras](https://user-images.githubusercontent.com/52789876/162082751-b4ef9872-e00f-40d6-b917-8b26cbe376de.PNG)
+![namemc-extras](https://user-images.githubusercontent.com/52789876/192075041-36a8cc6c-4860-4e9c-8c99-e3824c8f4706.gif)
 
 We are not affiliated nor endorsed by NameMC.
