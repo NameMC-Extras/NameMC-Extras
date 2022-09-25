@@ -244,24 +244,26 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         });
 
         // fix pause button
-        var pauseBtn = document.querySelector('#play-pause-btn');
-        var pauseIcon = pauseBtn.querySelector('i');
-        pauseIcon.classList.remove('fa-play');
-        pauseIcon.classList.add('fa-pause');
-        pauseBtn.setAttribute('onclick', '');
-        pauseBtn.onclick = () => {
-          if (paused == false) {
-            paused = true;
-            pauseIcon.classList.remove('fa-pause');
-            pauseIcon.classList.add('fa-play');
-          } else {
-            paused = false;
-            pauseIcon.classList.remove('fa-play');
-            pauseIcon.classList.add('fa-pause');
-          }
-          walk.paused = paused;
-        }    
-      }, skinHash)
+        setTimeout(() => {
+          var pauseBtn = document.querySelector('#play-pause-btn');
+          var pauseIcon = pauseBtn.querySelector('i');
+          pauseIcon.classList.remove('fa-play');
+          pauseIcon.classList.add('fa-pause');
+          pauseBtn.setAttribute('onclick', '');
+          pauseBtn.onclick = () => {
+            if (paused == false) {
+              paused = true;
+              pauseIcon.classList.remove('fa-pause');
+              pauseIcon.classList.add('fa-play');
+            } else {
+              paused = false;
+              pauseIcon.classList.remove('fa-play');
+              pauseIcon.classList.add('fa-pause');
+            }
+            walk.paused = paused;
+          }    
+        }, 1)
+      }, skinHash);
     });
   });
 }
