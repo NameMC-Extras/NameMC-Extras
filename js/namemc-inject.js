@@ -46,7 +46,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       }, 1);
     }
   };
-
+  
   // add elytra button
   const createElytraBtn = () => {
     waitForPauseBtn(() => {
@@ -83,6 +83,34 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     });
   }
 
+  // fix pause button
+  const fixPauseBtn = () => {
+    setTimeout(() => {
+      var pauseBtn = document.querySelector('#play-pause-btn');
+      var pauseIcon = pauseBtn.querySelector('i');
+      if (paused == true) {
+        pauseIcon.classList.remove('fa-pause');
+        pauseIcon.classList.add('fa-play');
+      } else {
+        pauseIcon.classList.remove('fa-play');
+        pauseIcon.classList.add('fa-pause');
+      }
+      pauseBtn.setAttribute('onclick', '');
+      pauseBtn.onclick = () => {
+        if (paused == false) {
+          paused = true;
+          pauseIcon.classList.remove('fa-pause');
+          pauseIcon.classList.add('fa-play');
+        } else {
+          paused = false;
+          pauseIcon.classList.remove('fa-play');
+          pauseIcon.classList.add('fa-pause');
+        }
+        walk.paused = paused;
+      }    
+    }, 1)
+  }
+
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
@@ -106,19 +134,19 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     var views = document.querySelector('.card-body > :nth-child(3)');
 
     views.outerHTML += `
-  <div class="row no-gutters">
-    <div class="col col-lg-4"><strong>Account Type</strong></div>
-    <div id="acctype" class="col-auto">Loading... <i class="fal fa-spinner icon-spin"></i></div>
-  </div>
-  <div class="row no-gutters">
-    <div class="col col-lg-4"><strong>Creation Date</strong></div>
-    <div id="cdate" class="col-auto">Loading... <i class="fal fa-spinner icon-spin"></i></div>
-  </div>
-  <div class="row no-gutters">
-    <div class="col order-lg-1 col-lg-4"><strong>Links</strong></div>
-    <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/${uuid}" target="_blank">LABY.net</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">LivzMC</a></div>
-  </div>
-  `
+      <div class="row no-gutters">
+        <div class="col col-lg-4"><strong>Account Type</strong></div>
+        <div id="acctype" class="col-auto">Loading... <i class="fal fa-spinner icon-spin"></i></div>
+      </div>
+      <div class="row no-gutters">
+        <div class="col col-lg-4"><strong>Creation Date</strong></div>
+        <div id="cdate" class="col-auto">Loading... <i class="fal fa-spinner icon-spin"></i></div>
+      </div>
+      <div class="row no-gutters">
+        <div class="col order-lg-1 col-lg-4"><strong>Links</strong></div>
+        <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/${uuid}" target="_blank">LABY.net</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">LivzMC</a></div>
+      </div>
+    `;
 
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
@@ -210,6 +238,9 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           skinViewer.zoom = 0.75; // zoom out
         }
 
+        // fix pause button
+        fixPauseBtn()
+
         // skins
         document.querySelectorAll('.skin-2d').forEach((el) => {
           el.onmouseover = () => {
@@ -240,29 +271,9 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               }
               createElytraBtn();
             }, el.getAttribute('data-cape'));
+            fixPauseBtn();
           }
         });
-
-        // fix pause button
-        setTimeout(() => {
-          var pauseBtn = document.querySelector('#play-pause-btn');
-          var pauseIcon = pauseBtn.querySelector('i');
-          pauseIcon.classList.remove('fa-play');
-          pauseIcon.classList.add('fa-pause');
-          pauseBtn.setAttribute('onclick', '');
-          pauseBtn.onclick = () => {
-            if (paused == false) {
-              paused = true;
-              pauseIcon.classList.remove('fa-pause');
-              pauseIcon.classList.add('fa-play');
-            } else {
-              paused = false;
-              pauseIcon.classList.remove('fa-play');
-              pauseIcon.classList.add('fa-pause');
-            }
-            walk.paused = paused;
-          }    
-        }, 1)
       }, skinHash);
     });
   });
