@@ -35,3 +35,7 @@ div > div.ad-container, #nmcIf {
 #warningcd {
     cursor: pointer
 }
+
+#skin_container {
+    cursor: move
+}
