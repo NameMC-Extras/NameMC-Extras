@@ -47,6 +47,42 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   };
 
+  // add elytra button
+  const createElytraBtn = () => {
+    waitForPauseBtn(() => {
+      var pauseBtn = document.querySelector('#play-pause-btn');
+      if (skinViewer.capeTexture !== null) {
+        var elytraBtn = document.createElement('button');
+        elytraBtn.id = 'elytra-btn';
+        elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 right-0 m-2 p-0')
+        elytraBtn.classList.add('p-0');
+        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
+        elytraIcon = document.createElement('i');
+        elytraIcon.classList.add('fas');
+        elytraIcon.classList.add('fa-dove');
+        elytraBtn.innerHTML = elytraIcon.outerHTML;
+        pauseBtn.outerHTML += elytraBtn.outerHTML;
+
+        document.querySelector('#elytra-btn').onclick = () => {
+          var pauseIconEl = document.querySelector('#elytra-btn').querySelector('i');
+          if (elytraOn == false) {
+            elytraOn = true;
+            pauseIconEl.classList.remove('fa-dove');
+            pauseIconEl.classList.add('fa-square');
+            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
+              backEquipment: "elytra"
+            });
+          } else {
+            elytraOn = false;
+            pauseIconEl.classList.remove('fa-square');
+            pauseIconEl.classList.add('fa-dove');
+            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+          }
+        }
+      } 
+    });
+  }
+
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
@@ -95,23 +131,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
       document.querySelectorAll('[title=Verified]').forEach(el => el.remove());
     }
-
-    // add elytra button
-    waitForPauseBtn(() => {
-      var pauseBtn = document.querySelector('#play-pause-btn');
-      if (document.querySelector('[data-cape]') !== null && document.querySelector('[data-cape]').getAttribute('data-cape') !== '') {
-        var elytraBtn = document.createElement('button');
-        elytraBtn.id = 'elytra-btn';
-        elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 right-0 m-2 p-0')
-        elytraBtn.classList.add('p-0');
-        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
-        elytraIcon = document.createElement('i');
-        elytraIcon.classList.add('fas');
-        elytraIcon.classList.add('fa-dove');
-        elytraBtn.innerHTML = elytraIcon.outerHTML;
-        pauseBtn.outerHTML += elytraBtn.outerHTML;
-      } 
-    });
 
     waitForViewer(async() => {
       const oldContainer = document.querySelector('.skin-3d');
@@ -175,7 +194,10 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         })
 
         // load cape
-        if (capeHash !== '') skinViewer.loadCape(window.namemc.images[capeHash].src);
+        if (capeHash !== '') {
+          skinViewer.loadCape(window.namemc.images[capeHash].src);
+          setTimeout(createElytraBtn, 1)
+        }
 
         // upside down gang
         if (username === "Dinnerbone" || username === "Grumm") {
@@ -216,6 +238,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               } else {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src);
               }
+              createElytraBtn();
             }, el.getAttribute('data-cape'));
           }
         });
@@ -238,25 +261,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           }
           walk.paused = paused;
         }    
-
-        if (document.querySelector('#elytra-btn') !== null) {
-          document.querySelector('#elytra-btn').onclick = () => {
-            var pauseIconEl = document.querySelector('#elytra-btn').querySelector('i');
-            if (elytraOn == false) {
-              elytraOn = true;
-              pauseIconEl.classList.remove('fa-dove');
-              pauseIconEl.classList.add('fa-square');
-              skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-                backEquipment: "elytra"
-              });
-            } else {
-              elytraOn = false;
-              pauseIconEl.classList.remove('fa-square');
-              pauseIconEl.classList.add('fa-dove');
-              skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
-            }
-          }
-        }
       }, skinHash)
     });
   });
