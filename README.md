@@ -7,7 +7,8 @@ Shouts out to M6, Orius, Swede
 
 Might release onto the Firefox web store soon.
 
-The installation is very annoying and restarts everytime you close browser so you should wait till it gets added to the Firefox web store.
+## Installation
+Install the extension in [here](https://addons.mozilla.org/en-US/firefox/addon/namemc-extras-beta/)!
 
 Rewrite of NameMC+ currently only adds account types and creation dates and removes ads.
 

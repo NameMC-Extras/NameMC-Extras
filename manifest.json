@@ -8,7 +8,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 2,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "content_scripts": [
     {
       "css": [
@@ -28,5 +28,8 @@
       "run_at": "document_start"
     }
   ],
-  "web_accessible_resources": ["js/namemc-inject.js"]
+  "web_accessible_resources": [
+    "js/namemc-inject.js",
+    "js/skinview3d.bundle.js"
+  ]
 }
