@@ -5,6 +5,7 @@ function endsWithNumber(str) {
 
 var paused = false;
 var elytraOn = false;
+var isHidden = true;
 
 if (endsWithNumber(location.pathname) && location.pathname) {
   const waitForUUID = function (callback) {
@@ -37,8 +38,18 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   };
 
+  const waitForHist = function (callback) {
+    if (document.querySelector('table')) {
+      callback();
+    } else {
+      setTimeout(function () {
+        waitForHist(callback);
+      }, 1);
+    }
+  };
+
   const waitForSkin = function (callback, skin) {
-    if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[skin] !== 'undefined') {
+    if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[skin] !== 'undefined' && window.namemc.images[skin].src) {
       callback();
     } else {
       setTimeout(function () {
@@ -111,6 +122,37 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }, 1)
   }
 
+  // hide element not delete
+  const hideElement = (el) => {
+    el.classList.add('d-none')
+  }
+
+  // hide hidden nh
+  const hideHidden = () => {
+    var nameElements = document.querySelectorAll('tr');
+    for (var i = 0; i < nameElements.length; i++) {
+      var historyEl = nameElements[i];
+      if (historyEl.classList.value == '' && historyEl.innerText.includes('—')) {
+        hideElement(nameElements[i]);
+        if (nameElements[i+1] && nameElements[i+1].classList.value !== '') {
+          hideElement(nameElements[i+1]);
+        }
+      }
+    }
+    var newHistory = document.querySelectorAll('tr:not(.d-none)');
+    newHistory[newHistory.length-1].classList.remove('border-bottom');
+  }
+
+  // show hidden nh
+  const showHidden = () => {
+    var newHistory = document.querySelectorAll('tr:not(.d-none)');
+    var hiddenHist = document.querySelectorAll('tr.d-none');
+    newHistory[newHistory.length-1].classList.add('border-bottom');
+    hiddenHist.forEach((el) => {
+      el.classList.remove('d-none');
+    })
+  }
+
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
@@ -158,6 +200,24 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     if (uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '0dd649c1-40c7-47f5-a839-0b98eaefedf2' || uuid == '70296d53-9fc3-4e53-97eb-269e97f14aad') {
       document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
       document.querySelectorAll('[title=Verified]').forEach(el => el.remove());
+    }
+
+    setTimeout(hideHidden, 1);
+
+    // add show hidden button
+    var historyTitle = document.querySelectorAll('.card-header')[1]
+    historyTitle.innerHTML += ' (<a href="javascript:void(0)" id="histBtn">show hidden</a>)';
+
+    histBtn.onclick = () => {
+      if (isHidden == true) {
+        showHidden();
+        isHidden = false;
+        histBtn.innerHTML = 'hide hidden';
+      } else {
+        hideHidden();
+        isHidden = true;
+        histBtn.innerHTML = 'show hidden';
+      }
     }
 
     waitForViewer(async() => {
