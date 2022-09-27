@@ -21,6 +21,7 @@ Features:
 - Creation Dates
 - Deadmau5 Ear Display
 - Elytra Button
+- Ability to hide dashed out names (hidden names)
 
 Create a issue or message me on discord (Faav#6320) if you have any suggestions.
 
