@@ -206,7 +206,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
     // add show hidden button
     var historyTitle = document.querySelectorAll('.card-header')[1]
-    historyTitle.innerHTML += ' (<a href="#hist" id="histBtn">show hidden</a>)';
+    historyTitle.innerHTML += ' (<a href="javascript:void(0)" id="histBtn">show hidden</a>)';
 
     histBtn.onclick = () => {
       if (isHidden == true) {
