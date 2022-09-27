@@ -9,7 +9,7 @@ Will might release onto the google store soon.
 
 Same installation as NameMC+
 
-- Press on the green Code button and press download ZIP or just click [here](https://github.com/bribes/NameMC-Extras/archive/refs/heads/skinViewer.zip)
+- Press on the green Code button and press download ZIP or just click [here](https://github.com/bribes/NameMC-Extras/archive/refs/heads/chromium.zip)
 - Unzip it and go to chrome://extensions, it should redirect to whatever browser your using
 - Turn on Developer mode on the top right corner
 - Press "Load unpacked"
