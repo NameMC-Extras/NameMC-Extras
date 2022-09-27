@@ -38,22 +38,12 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   };
 
-  const waitForHist = function (callback) {
-    if (document.querySelector('table')) {
+  const waitForImage = function (callback, hash) {
+    if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[hash] !== 'undefined' && window.namemc.images[hash].src) {
       callback();
     } else {
       setTimeout(function () {
-        waitForHist(callback);
-      }, 1);
-    }
-  };
-
-  const waitForSkin = function (callback, skin) {
-    if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[skin] !== 'undefined' && window.namemc.images[skin].src) {
-      callback();
-    } else {
-      setTimeout(function () {
-        waitForSkin(callback, skin);
+        waitForImage(callback, hash);
       }, 1);
     }
   };
@@ -271,7 +261,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
-      waitForSkin(async () => {
+      waitForImage(async () => {
         // has ears
         if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
 
@@ -283,8 +273,10 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
         // load cape
         if (capeHash !== '') {
-          skinViewer.loadCape(window.namemc.images[capeHash].src);
-          setTimeout(createElytraBtn, 1)
+          waitForImage(() => {
+            skinViewer.loadCape(window.namemc.images[capeHash].src);
+            setTimeout(createElytraBtn, 1);
+          }, capeHash);
         }
 
         // upside down gang
@@ -308,7 +300,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               el.classList.remove('skin-button-selected');
             });
             el.classList.add('skin-button-selected');
-            waitForSkin(async () => {
+            waitForImage(async () => {
               skinViewer.loadSkin(window.namemc.images[el.getAttribute('data-id')].src);
             }, el.getAttribute('data-id'));
           }
@@ -321,7 +313,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               el.classList.remove('skin-button-selected');
             });
             el.classList.add('skin-button-selected');
-            waitForSkin(async () => {
+            waitForImage(async () => {
               if (elytraOn == true) {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
                   backEquipment: "elytra"
