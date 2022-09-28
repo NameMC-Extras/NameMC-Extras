@@ -5,7 +5,7 @@ A Chromium Extension that adds many features to NameMC currently work in progres
 
 Shouts out to M6, Orius, Swede
 
-Will might release onto the google store soon.
+Will release onto the chrome web store soon.
 
 Same installation as NameMC+
 
