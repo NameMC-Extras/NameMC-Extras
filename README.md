@@ -5,17 +5,8 @@ A Chromium Extension that adds many features to NameMC currently work in progres
 
 Shouts out to M6, Orius, Swede
 
-Will release onto the chrome web store soon.
-
 ## Installation
-Same installation as NameMC+
-
-- Press on the green Code button and press download ZIP or just click [here](https://github.com/bribes/NameMC-Extras/archive/refs/heads/chromium.zip)
-- Unzip it and go to chrome://extensions, it should redirect to whatever browser your using
-- Turn on Developer mode on the top right corner
-- Press "Load unpacked"
-- Go to wherever you downloaded the extension onto and press on it and press Select Folder
-- You should be done if you need any help create a issue here or contact me on discord, Faav#6320.
+Install the Chromium extension [here](https://chrome.google.com/webstore/detail/namemc-extras-beta/cpphfojhgkppblcdhjbcploikanimgek)!
 
 ## Features:
 - Account Types
