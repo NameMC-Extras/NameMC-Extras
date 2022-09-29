@@ -48,6 +48,16 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   };
   
+  const waitForFunc = function (callback, func) {
+    if (window[func]) {
+      callback();
+    } else {
+      setTimeout(function () {
+        waitForFunc(callback, func);
+      }, 1);
+    }
+  };
+  
   // add elytra button
   const createElytraBtn = () => {
     waitForPauseBtn(() => {
@@ -143,6 +153,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     })
   }
 
+  // fix bug
+  waitForFunc(() => {
+    updateSkin = () => {}
+  }, "updateSkin")
+  
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
