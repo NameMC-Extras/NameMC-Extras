@@ -263,6 +263,9 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         preserveDrawingBuffer: true
       });
 
+      skinViewer.controls.enableRotate = true;
+      skinViewer.controls.enableZoom = false;
+      skinViewer.controls.enablePan = false;
 
       skinViewer.animation = new skinview3d.WalkingAnimation();
       skinViewer.animation.speed = 0.5;
@@ -272,9 +275,12 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       window.skinViewer = skinViewer;
 
       skinViewer.fov = 40;
-      skinViewer.camera.position.y = 22 * Math.cos(0.01);
-      skinViewer.playerWrapper.rotation.y = 0.52;
-      skinViewer.playerWrapper.rotation.y = 0.52;
+      skinViewer.camera.position.y = 22 * Math.cos(.01);
+      skinViewer.playerWrapper.rotation.y = .53;
+      skinViewer.globalLight.intensity = .65;
+      skinViewer.cameraLight.intensity = .38;
+      skinViewer.cameraLight.position.set(12, 25, 0);
+
 
       skinContainer.addEventListener(
         "contextmenu",
