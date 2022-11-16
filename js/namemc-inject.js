@@ -158,6 +158,10 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     updateSkin = () => {}
   }, "updateSkin")
 
+  waitForFunc(() => {
+    animateSkin = () => {}
+  }, "animateSkin")
+
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
@@ -189,20 +193,19 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     var views = document.querySelector('.card-body > :nth-child(3)');
 
     views.outerHTML += `
-        <div class="row no-gutters">
-          <div class="col col-lg-4"><strong>Account Type</strong></div>
-          <div id="acctype" class="col-auto">Loading... <i class="fal fa-spinner icon-spin"></i></div>
-        </div>
-        <div class="row no-gutters">
-          <div class="col col-lg-4"><strong>Creation Date</strong></div>
-          <div id="cdate" class="col-auto">Loading... <i class="fal fa-spinner icon-spin"></i></div>
-        </div>
-        <div class="row no-gutters">
-          <div class="col order-lg-1 col-lg-4"><strong>Links</strong></div>
-          <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/${uuid}" target="_blank">LABY.net</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">LivzMC</a></div>
-        </div>
-      `;
-
+      <div class="row no-gutters">
+        <div class="col col-lg-4"><strong>Account Type</strong></div>
+        <div id="acctype" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
+      </div>
+      <div class="row no-gutters">
+        <div class="col col-lg-4"><strong>Creation Date</strong></div>
+        <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
+      </div>
+      <div class="row no-gutters">
+        <div class="col order-lg-1 col-lg-4"><strong>Links</strong></div>
+        <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/${uuid}" target="_blank">LABY.net</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">LivzMC</a></div>
+      </div>
+    `;
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';
