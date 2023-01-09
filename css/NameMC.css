@@ -1,5 +1,5 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
-div > div.ad-container, #skin_wrapper, #nn_player1, #nmcIf {
+div:has(> [id^="nn_"]), #nmcIf {
     display: none!important
 }
 
