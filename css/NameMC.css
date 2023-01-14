@@ -1,5 +1,5 @@
 /* copyright 2022 | Faav#6320 | github.com/bribes */
-div:has(> [id^="nn_"]), #nmcIf {
+div:has(> [id^="nn_"]), .ad-container, #nmcIf {
     display: none!important
 }
 
