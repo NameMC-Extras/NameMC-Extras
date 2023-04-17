@@ -168,7 +168,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var creationDate = json.data.creationDate;
       var accountType = json.data.accountType;
       var tooltip = json.data.tooltip;
-      acctype.innerHTML = accountType;
+      acctype.innerHTML = `${accountType} <i id="warningacc" class="fas fa-exclamation-circle"></i>`;
       $('#acctype').tooltip({
         "placement": "top",
         "boundary": "viewport",
@@ -180,6 +180,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           "placement": "top",
           "boundary": "viewport",
           "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
+        });
+        $('#warningacc').tooltip({
+          "placement": "top",
+          "boundary": "viewport",
+          "title": "Due to the removal of the name history API this may be inaccurate."
         });
       } else {
         cdate.innerHTML = 'Not Found!';
@@ -194,11 +199,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
     views.outerHTML += `
       <div class="row no-gutters">
-        <div class="col col-lg-4"><strong>Account Type</strong></div>
+        <div class="col col-lg-4"><strong>Created As</strong></div>
         <div id="acctype" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>
       <div class="row no-gutters">
-        <div class="col col-lg-4"><strong>Creation Date</strong></div>
+        <div class="col col-lg-4"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>
       <div class="row no-gutters">
