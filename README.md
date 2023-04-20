@@ -9,7 +9,7 @@ Shouts out to M6, Orius, Swede
 Install the Chromium extension [here](https://chrome.google.com/webstore/detail/namemc-extras-beta/cpphfojhgkppblcdhjbcploikanimgek)!
 
 ## Features:
-- Account Types
+- Original Account Types
 - Creation Dates
 - Deadmau5 Ear Display
 - Elytra Button
