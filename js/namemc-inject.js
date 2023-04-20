@@ -174,17 +174,17 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         "boundary": "viewport",
         "title": tooltip
       });
+      $('#warningacc').tooltip({
+        "placement": "top",
+        "boundary": "viewport",
+        "title": "Due to the removal of the name history API this may be inaccurate."
+      });
       if (creationDate !== 'null') {
         cdate.innerHTML = `${new Date(creationDate).toLocaleDateString()} <i id="warningcd" class="fas fa-exclamation-circle"></i>`;
         $('#warningcd').tooltip({
           "placement": "top",
           "boundary": "viewport",
           "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
-        });
-        $('#warningacc').tooltip({
-          "placement": "top",
-          "boundary": "viewport",
-          "title": "Due to the removal of the name history API this may be inaccurate."
         });
       } else {
         cdate.innerHTML = 'Not Found!';
