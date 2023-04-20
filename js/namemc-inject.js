@@ -288,6 +288,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       skinViewer.globalLight.intensity = .65;
       skinViewer.cameraLight.intensity = .38;
       skinViewer.cameraLight.position.set(12, 25, 0);
+      skinViewer.playerObject.elytra.translateY(-2);
 
 
       skinContainer.addEventListener(
