@@ -6,6 +6,7 @@ function endsWithNumber(str) {
 var paused = false;
 var elytraOn = false;
 var isHidden = true;
+var skinArt = false;
 
 if (endsWithNumber(location.pathname) && location.pathname) {
   const waitForUUID = function (callback) {
@@ -24,6 +25,16 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     } else {
       setTimeout(function () {
         waitForViewer(callback);
+      });
+    }
+  };
+
+  const waitForSkins = function (callback) {
+    if (document.querySelector('.skin-2d.skin-button') && typeof window.skinview3d !== 'undefined') {
+      callback();
+    } else {
+      setTimeout(function () {
+        waitForSkins(callback);
       });
     }
   };
@@ -155,11 +166,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   // fix bug
   waitForFunc(() => {
-    updateSkin = () => {}
+    updateSkin = () => { }
   }, "updateSkin")
 
   waitForFunc(() => {
-    animateSkin = () => {}
+    animateSkin = () => { }
   }, "animateSkin")
 
   window.addEventListener("message", (json) => {
@@ -225,6 +236,35 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
       document.querySelectorAll('[title=Verified]').forEach(el => el.remove());
     }
+
+    waitForSkins(() => {
+      var hasMultipleSkins = document.querySelectorAll(".skin-2d.skin-button").length > 1;
+      if (hasMultipleSkins) {
+        const skinsContainer = document.querySelector('.skin-2d.skin-button').parentElement.parentElement;
+        var skinsTitle = skinsContainer.parentElement.parentElement.querySelector('.card-header');
+        skinsTitle.innerHTML += ' (<a href="javascript:void(0)" id="borderBtn">hide borders</a>)';
+
+        borderBtn.onclick = () => {
+          if (skinArt == false) {
+            skinsContainer.style.width = '312px'
+            skinsContainer.style.margin = '6px'
+            document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
+              skin.classList.add('skinart');
+            })
+            skinArt = true;
+            borderBtn.innerHTML = 'show borders';
+          } else {
+            skinsContainer.style.width = '324px';
+            skinsContainer.style.margin = '';
+            document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
+              skin.classList.remove('skinart');
+            })
+            skinArt = false;
+            borderBtn.innerHTML = 'hide borders';
+          }
+        }
+      }
+    })
 
     setTimeout(() => {
       var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
