@@ -42,3 +42,12 @@ div:has(> [id^="nn_"]), .ad-container, #nmcIf {
 .saving span:nth-child(3) {
     animation-delay: .4s;
 }
+
+.skin-button.skinart {
+    margin: 0 !important;
+}
+
+.skin-2d.skin-button.skinart {
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
