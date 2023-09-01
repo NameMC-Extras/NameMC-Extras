@@ -208,6 +208,8 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     var uuid = document.querySelector('.order-lg-2').innerText;
     var views = document.querySelector('.card-body > :nth-child(3)');
 
+    document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove()
+    
     views.outerHTML += `
       <div class="row no-gutters">
         <div class="col col-lg-4"><strong>Created As</strong></div>
