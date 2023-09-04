@@ -10,7 +10,7 @@ var skinArt = false;
 
 if (endsWithNumber(location.pathname) && location.pathname) {
   const waitForUUID = function (callback) {
-    if (document.querySelector('.order-lg-2')) {
+    if (document.querySelector('.order-xl-2')) {
       callback();
     } else {
       setTimeout(function () {
@@ -205,23 +205,23 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   waitForUUID(async () => {
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
-    var uuid = document.querySelector('.order-lg-2').innerText;
+    var uuid = document.querySelector('.order-xl-2').innerText;
     var views = document.querySelector('.card-body > :nth-child(3)');
 
     document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove()
     
     views.outerHTML += `
       <div class="row no-gutters">
-        <div class="col col-lg-4"><strong>Created As</strong></div>
+        <div class="col col-xl-4"><strong>Created As</strong></div>
         <div id="acctype" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>
       <div class="row no-gutters">
-        <div class="col col-lg-4"><strong>Created At</strong></div>
+        <div class="col col-xl-4"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>
       <div class="row no-gutters">
-        <div class="col order-lg-1 col-lg-4"><strong>Links</strong></div>
-        <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
+        <div class="col order-xl-1 col-xl-4"><strong>Links</strong></div>
+        <div class="col-12 order-xl-2 col-xl"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
       </div>
     `;
     var gadgetIf = document.createElement('iframe');
