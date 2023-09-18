@@ -3,7 +3,7 @@ A Chromium Extension that adds many features to NameMC currently work in progres
 
 [Press here to go to the Firefox version.](https://github.com/bribes/NameMC-Extras/tree/firefox)
 
-Shouts out to M6, Orius, Swede
+Shouts out to M6, Orius, Arky, Swede
 
 ## Installation
 Install the Chromium extension [here](https://chrome.google.com/webstore/detail/namemc-extras-beta/cpphfojhgkppblcdhjbcploikanimgek)!
