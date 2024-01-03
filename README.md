@@ -14,6 +14,10 @@ Install the Chromium extension [here](https://chrome.google.com/webstore/detail/
 - Deadmau5 Ear Display
 - Elytra Button
 - Ability to hide dashed out names (hidden names) from name history
+- Hide Borders for Skin Art
+- Hide Skin Layers
+- Skin & Cape Tester
+- Custom Badges
 
 Create a issue or message me on discord (Faav#6320) if you have any suggestions.
 
