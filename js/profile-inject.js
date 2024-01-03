@@ -1,4 +1,4 @@
-/* copyright 2022 | Faav#6320 | github.com/bribes */
+/* copyright 2024 | Faav#6320 | github.com/bribes */
 function endsWithNumber(str) {
   return /[0-9]+$/.test(str);
 }
@@ -7,44 +7,25 @@ var paused = false;
 var elytraOn = false;
 var isHidden = true;
 var skinArt = false;
+var layer = true;
 
 if (endsWithNumber(location.pathname) && location.pathname) {
-  const waitForUUID = function (callback) {
-    if (document.querySelector('.order-lg-2')) {
+  const waitForSelector = function (selector, callback) {
+    if (document.querySelector(selector)) {
       callback();
     } else {
       setTimeout(function () {
-        waitForUUID(callback);
+        waitForSelector(selector, callback);
       });
     }
   };
 
-  const waitForViewer = function (callback) {
-    if (document.querySelector('.skin-3d') && typeof window.skinview3d !== 'undefined') {
+  const waitForSVSelector = function (selector, callback) {
+    if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined') {
       callback();
     } else {
       setTimeout(function () {
-        waitForViewer(callback);
-      });
-    }
-  };
-
-  const waitForSkins = function (callback) {
-    if (document.querySelector('.skin-2d.skin-button') && typeof window.skinview3d !== 'undefined') {
-      callback();
-    } else {
-      setTimeout(function () {
-        waitForSkins(callback);
-      });
-    }
-  };
-
-  const waitForPauseBtn = function (callback) {
-    if (document.querySelector('#play-pause-btn')) {
-      callback();
-    } else {
-      setTimeout(function () {
-        waitForPauseBtn(callback);
+        waitForSelector(selector, callback);
       });
     }
   };
@@ -59,50 +40,34 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   };
 
-  const waitForFunc = function (callback, func) {
+  const waitForFunc = function (func, callback) {
     if (window[func]) {
       callback();
     } else {
       setTimeout(function () {
-        waitForFunc(callback, func);
+        waitForFunc(func, callback);
       });
     }
   };
 
-  // add elytra button
-  const createElytraBtn = () => {
-    waitForPauseBtn(() => {
-      var pauseBtn = document.querySelector('#play-pause-btn');
-      if (skinViewer.capeTexture !== null) {
-        var elytraBtn = document.createElement('button');
-        elytraBtn.id = 'elytra-btn';
-        elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-        elytraBtn.classList.add('p-0');
-        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
-        elytraIcon = document.createElement('i');
-        elytraIcon.classList.add('fas');
-        elytraIcon.classList.add('fa-dove');
-        elytraBtn.innerHTML = elytraIcon.outerHTML;
-        pauseBtn.outerHTML += elytraBtn.outerHTML;
-
-        document.querySelector('#elytra-btn').onclick = () => {
-          var pauseIconEl = document.querySelector('#elytra-btn').querySelector('i');
-          if (elytraOn == false) {
-            elytraOn = true;
-            pauseIconEl.classList.remove('fa-dove');
-            pauseIconEl.classList.add('fa-square');
-            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-              backEquipment: "elytra"
-            });
-          } else {
-            elytraOn = false;
-            pauseIconEl.classList.remove('fa-square');
-            pauseIconEl.classList.add('fa-dove');
-            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
-          }
-        }
-      }
-    });
+  // toggle skin layers
+  const toggleLayers = () => {
+    var layerIcon = document.querySelector("#layer-btn i");
+    if (layer === false) {
+      layer = true;
+      layerIcon.className = "fas fa-clone";
+      layerIcon.parentElement.title = "No Layers";
+    } else if (layer === true) {
+      layer = false;
+      layerIcon.className = "far fa-clone";
+      layerIcon.parentElement.title = "Layers";
+    }
+    skinViewer.playerObject.skin.head.outerLayer.visible = layer;
+    skinViewer.playerObject.skin.body.outerLayer.visible = layer;
+    skinViewer.playerObject.skin.rightArm.outerLayer.visible = layer;
+    skinViewer.playerObject.skin.leftArm.outerLayer.visible = layer;
+    skinViewer.playerObject.skin.rightLeg.outerLayer.visible = layer;
+    skinViewer.playerObject.skin.leftLeg.outerLayer.visible = layer;
   }
 
   // fix pause button
@@ -131,6 +96,63 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         skinViewer.animation.paused = paused;
       }
     })
+  }
+
+  // add elytra button
+  const createLayerBtn = () => {
+    waitForSelector('#play-pause-btn', () => {
+      var pauseBtn = document.querySelector('#play-pause-btn');
+        var layerBtn = document.createElement('button');
+        layerBtn.id = 'layer-btn';
+        layerBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+        layerBtn.classList.add('p-0');
+        layerBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
+        layerBtn.title = "No Layers";
+        layerIcon = document.createElement('i');
+        layerIcon.classList.add('fas');
+        layerIcon.classList.add('fa-clone');
+        layerBtn.innerHTML = layerIcon.outerHTML;
+        pauseBtn.outerHTML += layerBtn.outerHTML;
+    });
+  }
+
+  // add elytra button
+  const createElytraBtn = () => {
+    waitForSelector('#play-pause-btn', () => {
+      var pauseBtn = document.querySelector('#play-pause-btn');
+      if (skinViewer.capeTexture && !document.querySelector("#elytra-btn")) {
+        var elytraBtn = document.createElement('button');
+        elytraBtn.id = 'elytra-btn';
+        elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+        elytraBtn.classList.add('p-0');
+        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important;')
+        elytraBtn.title = "Elytra";
+        elytraIcon = document.createElement('i');
+        elytraIcon.classList.add('fas');
+        elytraIcon.classList.add('fa-dove');
+        elytraBtn.innerHTML = elytraIcon.outerHTML;
+        pauseBtn.outerHTML += elytraBtn.outerHTML;
+
+        document.querySelector('#elytra-btn').onclick = () => {
+          var elytraIconEl = document.querySelector('#elytra-btn i');
+          if (!elytraOn) {
+            elytraOn = true;
+            elytraIconEl.classList.remove('fa-dove');
+            elytraIconEl.classList.add('fa-square');
+            elytraIconEl.parentElement.title = "No Elytra"
+            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
+              backEquipment: "elytra"
+            });
+          } else {
+            elytraOn = false;
+            elytraIconEl.classList.remove('fa-square');
+            elytraIconEl.classList.add('fa-dove');
+            elytraIconEl.parentElement.title = "Elytra"
+            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+          }
+        }
+      }
+    });
   }
 
   // hide element not delete
@@ -165,13 +187,13 @@ if (endsWithNumber(location.pathname) && location.pathname) {
   }
 
   // fix bug
-  waitForFunc(() => {
+  waitForFunc("updateSkin", () => {
     updateSkin = () => { }
-  }, "updateSkin")
+  })
 
-  waitForFunc(() => {
+  waitForFunc("animateSkin", () => {
     animateSkin = () => { }
-  }, "animateSkin")
+  })
 
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
@@ -179,8 +201,8 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var creationDate = json.data.creationDate;
       var accountType = json.data.accountType;
       var tooltip = json.data.tooltip;
-      acctype.innerHTML = `${accountType} <i id="warningacc" class="fas fa-exclamation-circle"></i>`;
-      $('#acctype').tooltip({
+      acctype.innerHTML = `<tooltip>${accountType}</tooltip> <i id="warningacc" class="fas fa-exclamation-circle"></i>`;
+      $('#acctype tooltip').tooltip({
         "placement": "top",
         "boundary": "viewport",
         "title": tooltip
@@ -203,10 +225,13 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   });
 
-  waitForUUID(async () => {
+  waitForSelector('.order-lg-2', async () => {
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
     var uuid = document.querySelector('.order-lg-2').innerText;
     var views = document.querySelector('.card-body > :nth-child(3)');
+
+    // create layer button
+    createLayerBtn()
 
     document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove()
 
@@ -239,7 +264,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       document.querySelectorAll('[title=Verified]').forEach(el => el.remove());
     }
 
-    waitForSkins(() => {
+    waitForSVSelector('.skin-2d.skin-button', () => {
       var hasMultipleSkins = document.querySelectorAll(".skin-2d.skin-button").length > 1;
       if (hasMultipleSkins) {
         const skinsContainer = document.querySelector('.skin-2d.skin-button').parentElement.parentElement;
@@ -291,7 +316,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       }
     });
 
-    waitForViewer(async () => {
+    waitForSVSelector('.skin-3d', async () => {
       const oldContainer = document.querySelector('.skin-3d');
       oldContainer.classList.remove('skin-3d');
       const newContainer = document.createElement('canvas');
@@ -330,7 +355,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       skinViewer.globalLight.intensity = .65;
       skinViewer.cameraLight.intensity = .38;
       skinViewer.cameraLight.position.set(12, 25, 0);
-      skinViewer.playerObject.elytra.translateY(-2.25);
 
 
       skinContainer.addEventListener(
@@ -373,6 +397,9 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         } else {
           skinViewer.zoom = 0.86;
         }
+
+        // make layer button work
+        document.querySelector("#layer-btn").onclick = toggleLayers;
 
         // fix pause button
         fixPauseBtn()
