@@ -7,7 +7,7 @@ inject1.onload = function() {
 (document.head || document.documentElement).appendChild(inject1);
 
 var inject2 = document.createElement('script');
-inject2.src = chrome.runtime.getURL('js/namemc-inject.js');
+inject2.src = chrome.runtime.getURL('js/profile-inject.js');
 inject2.onload = function() {
     this.remove();
 };
