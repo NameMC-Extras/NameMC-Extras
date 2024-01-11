@@ -10,6 +10,13 @@ const waitForSelector = function (selector, callback) {
     }
 };
 
+// Credits
+waitForSelector("footer .row", (footer) => {
+    var creditsRange = document.createRange();
+    var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>NameMC Extras by <a class="text-nowrap" href="https://github.com/bribes" target="_blank">Faav</a></small></div>`);
+    footer?.insertBefore(creditsHTML, footer?.lastElementChild)
+});
+
 const customPage = (page, name, icon) => {
     waitForSelector('[href="/minecraft-skins"]', async () => {
         var isPage = new URLSearchParams(window.parent.location.search).get('page') == page;
