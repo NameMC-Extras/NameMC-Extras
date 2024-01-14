@@ -21,6 +21,56 @@ const waitForFunc = function (func, callback) {
   }
 };
 
+const fixPauseBtn = () => {
+  setTimeout(() => {
+    var pauseBtn = document.querySelector('#play-pause-btn');
+    var pauseIcon = pauseBtn.querySelector('i');
+    if (paused == true) {
+      pauseIcon.classList.remove('fa-pause');
+      pauseIcon.classList.add('fa-play');
+    } else {
+      pauseIcon.classList.remove('fa-play');
+      pauseIcon.classList.add('fa-pause');
+    }
+    pauseBtn.setAttribute('onclick', '');
+    pauseBtn.onclick = () => {
+      if (paused == false) {
+        paused = true;
+        pauseIcon.classList.remove('fa-pause');
+        pauseIcon.classList.add('fa-play');
+      } else {
+        paused = false;
+        pauseIcon.classList.remove('fa-play');
+        pauseIcon.classList.add('fa-pause');
+      }
+      skinViewer.animation.paused = paused;
+    }
+  })
+}
+
+const fixElytraBtn = () => {
+  setTimeout(() => {
+    document.querySelector('#elytra-btn').onclick = () => {
+      var elytraIconEl = document.querySelector('#elytra-btn i');
+      if (!elytraOn) {
+        elytraOn = true;
+        elytraIconEl.classList.remove('fa-dove');
+        elytraIconEl.classList.add('fa-square');
+        elytraIconEl.parentElement.title = "No Elytra"
+        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
+          backEquipment: "elytra"
+        });
+      } else {
+        elytraOn = false;
+        elytraIconEl.classList.remove('fa-square');
+        elytraIconEl.classList.add('fa-dove');
+        elytraIconEl.parentElement.title = "Elytra"
+        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+      }
+    }
+  })
+}
+
 
 /*
  * UNIVERSAL VARIABLES
@@ -28,6 +78,8 @@ const waitForFunc = function (func, callback) {
 
 const categoryId = location.href.split("/")[location.href.split("/").length - 2];
 const capeId = location.href.split("/")[location.href.split("/").length - 1];
+var paused = true;
+var elytraOn = false;
 
 /*
  * CLASSES
@@ -83,6 +135,9 @@ async function findCape(capeId) {
 
 async function loadPage(mainDiv) {
   console.log("Loading page!")
+
+  mainDiv.style["margin-top"] = "1rem"
+
   // get cape and update page title
   const cape = await findCape(capeId);
   if (!cape) return;
@@ -98,9 +153,12 @@ async function loadPage(mainDiv) {
       <div class="col-md-6">
         <div class="card mb-3">
           <div class="card-body position-relative text-center p-0 checkered animation-paused">
-            <canvas class="skin-3d drop-shadow auto-size align-top" width="300" height="400" style="cursor:move;width:300px" data-id="12b92a9206470fe2" data-cape="aa02d4b62762ff22" data-theta="210"></canvas>
-            <button id="play-pause-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;" onclick="animateSkin(true)">
+            <canvas class="skin-3d drop-shadow auto-size align-top" width="300" height="400" style="cursor:move;width:300px"></canvas>
+            <button id="play-pause-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;">
               <i class="fas fa-play"></i>
+            </button>
+            <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;margin-top:50px!important;" title="Elytra">
+              <i class="fas fa-dove"></i>
             </button>
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${cape.users.length}★</h5>
           </div>
@@ -155,8 +213,9 @@ async function loadPage(mainDiv) {
     window.skinViewer = skinViewer;
 
     skinViewer.fov = 40;
-    skinViewer.camera.position.y = 22 * Math.cos(.01);
-    skinViewer.playerWrapper.rotation.y = -90.53;
+    skinViewer.zoom = 0.86
+    skinViewer.camera.position.y = 21
+    skinViewer.playerWrapper.rotation.y = -90.56;
     skinViewer.globalLight.intensity = .65;
     skinViewer.cameraLight.intensity = .38;
     skinViewer.cameraLight.position.set(12, 25, 0);
@@ -167,6 +226,9 @@ async function loadPage(mainDiv) {
       (event) => event.stopImmediatePropagation(),
       true
     );
+
+    fixPauseBtn()
+    fixElytraBtn()
   })
 }
 
