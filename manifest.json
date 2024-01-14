@@ -35,6 +35,31 @@
         "*://*.namemc.com/*"
       ],
       "run_at": "document_start"
+    },
+    {
+      "js": [
+        "js/capes-page-inject.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/capes/*"
+      ]
+    },
+    {
+      "js": [
+        "pages/custom-cape-page.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/cape/*/*"
+      ]
+    },
+    {
+      "js": [
+        "js/custom-cape-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/cape/*/*"
+      ],
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [{
