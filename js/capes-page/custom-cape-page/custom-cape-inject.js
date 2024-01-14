@@ -105,16 +105,23 @@ async function loadPage(mainDiv) {
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${cape.users.length}★</h5>
           </div>
         </div>
-          <div class="ad-container mobile-mpu-container bg-body-tertiary d-flex d-md-none mb-3">
-            <div id="nn_mobile_mpu1"></div>
+        <div class="card mb-3">
+          <div class="d-flex flex-column" style="max-height: 25rem">
+            <div class="card-header py-1">
+              <strong>Description</strong>
+            </div>
+            <div class="card-body py-2">
+              ${cape.description ?? "Awarded for being a prominent member of the OptiFine community."}
+            </div>
           </div>
+        </div>
       </div>
         <div class="col-md-6">
           <div class="card mb-3">
             <div class="d-flex flex-column" style="max-height: 25rem">
               <div class="card-header py-1"><strong>Profiles (${cape.users.length})</strong></div>
               <div class="card-body player-list py-2">
-                  ${cape.users.map(u => `<a translate="no" href="/profile/${u}">${u}</a>`).join("")}
+                  ${cape.users.map(u => `<div><a translate="no" href="/profile/${u.uuid}">${u.uuid}</a>${u.note ? ` ${u.note}` : ""}`).join("")}</div>
               </div>
             </div>
           </div>
@@ -140,9 +147,7 @@ async function loadPage(mainDiv) {
     skinViewer.controls.enableZoom = false;
     skinViewer.controls.enablePan = false;
 
-    skinViewer.animation = new skinview3d.WalkingAnimation({
-      progress: 3.3
-    });
+    skinViewer.animation = new skinview3d.WalkingAnimation();
     skinViewer.animation.speed = 0.5;
     skinViewer.animation.paused = true;
     skinViewer.animation.headBobbing = false;

@@ -1,84 +1,129 @@
 window.custom_capes = {
   "optifine": [
     {
-      "name": "EskiMojo14",
+      "name": "Gray BDcraft",
       "description": "For testing HD capes.",
       "users": [
-        "02d0b97bb79f4056bb4342f7de3fe88d"
+        {
+          "uuid": "02d0b97bb79f4056bb4342f7de3fe88d",
+          "note": null
+        }
       ]
     },
     {
       "name": "Orange Heart",
       "description": "For moderating the OptiFine Discord. Has since been revoked for being sold.",
       "users": [
-        "12fb8bfb99274e099fd9e32e5e44f5b3",
-        "d398fb2e4fbf46e798ee51ea4ebc7cf2"
+        {
+          "uuid": "12fb8bfb99274e099fd9e32e5e44f5b3",
+          "note": "(revoked)"
+        },
+        {
+          "uuid": "d398fb2e4fbf46e798ee51ea4ebc7cf2",
+          "note": null
+        }
       ]
     },
     {
-      "name": "filefolder3",
+      "name": "Graph",
       "description": "For compiling graphs and statistics about OptiFine releases.",
       "users": [
-        "aaf11ef0e29e4ecf950bb078083f56b8"
+        {
+          "uuid": "aaf11ef0e29e4ecf950bb078083f56b8",
+          "note": null
+        }
       ]
     },
     {
-      "name": "jckt",
+      "name": "Code",
       "description": "For moderating & managing the OptiFine Discord. Also for creating the OptiFine Discord bot.",
       "users": [
-        "891d59a8e0184030944b3345342a0189"
+        {
+          "uuid": "891d59a8e0184030944b3345342a0189",
+          "note": null
+        }
       ]
     },
     {
-      "name": "Jiingy",
+      "name": "Snow",
       "description": "For moderating & managing the OptiFine Discord.",
       "users": [
-        "4264384088824a0f8d2ef7cf48e9c347"
+        {
+          "uuid": "4264384088824a0f8d2ef7cf48e9c347",
+          "note": null
+        }
       ]
     },
     {
-      "name": "ZenW",
+      "name": "Purple Postmaster",
       "description": "For working on support e-mail.",
       "users": [
-        "10710270427749379a89bf317dd15f4d"
+        {
+          "uuid": "10710270427749379a89bf317dd15f4d",
+          "note": null
+        }
       ]
     },
     {
       "name": "Blue Postmaster",
       "description": "For working on support e-mail.",
       "users": [
-        "a6eb249173654649a7952f032c9919f0",
-        "1f08d3f357654fdbb6acaf4be2ea241c",
-        "3ae8069572004bcc97ff453e1494c81d",
-        "4264384088824a0f8d2ef7cf48e9c347"
+        {
+          "uuid": "a6eb249173654649a7952f032c9919f0",
+          "note": null
+        },
+        {
+          "uuid": "1f08d3f357654fdbb6acaf4be2ea241c",
+          "note": null
+        },
+        {
+          "uuid": "3ae8069572004bcc97ff453e1494c81d",
+          "note": null
+        },
+        {
+          "uuid": "4264384088824a0f8d2ef7cf48e9c347",
+          "note": null
+        }
       ]
     },
     {
-      "name": "KaiAF",
-      "description": "",
+      "name": "Rainbow",
+      "description": "For being a prominent member of the OptiFine community.",
       "users": [
-        "a6eb249173654649a7952f032c9919f0"
+        {
+          "uuid": "a6eb249173654649a7952f032c9919f0",
+          "note": null
+        }
       ]
     },
     {
-      "name": "KyriaBirb",
+      "name": "Transgender",
       "description": "For moderation of OptiFine Discord.",
       "users": [
-        "2a7f7951369449f597e1417365177ce2"
+        {
+          "uuid": "2a7f7951369449f597e1417365177ce2",
+          "note": null
+        }
       ]
     },
     {
-      "name": "MrCheeze445",
+      "name": "Lego",
       "description": "For moderating & managing the OptiFine Discord.",
       "users": [
-        "25b54bf7b2504d938988a73e9610a1d6"
+        {
+          "uuid": "25b54bf7b2504d938988a73e9610a1d6",
+          "note": null
+        }
       ]
     },
     {
-      "name": "therealokin",
-      "description": "",
+      "name": "Orange BDcraft",
+      "description": "For unknown reasons.",
       "users": [
-        "fdce1893fb694db3a7f4adc3891779b4"
+        {
+          "uuid": "fdce1893fb694db3a7f4adc3891779b4",
+          "note": null
+        }
       ]
     },
   ]
