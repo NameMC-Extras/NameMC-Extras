@@ -157,7 +157,7 @@ async function loadPage(mainDiv) {
             <button id="play-pause-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;">
               <i class="fas fa-play"></i>
             </button>
-            <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;margin-top:50px!important;" title="Elytra">
+            <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:50px!important;" title="Elytra">
               <i class="fas fa-dove"></i>
             </button>
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${cape.users.length}★</h5>
