@@ -140,9 +140,7 @@ async function loadPage(mainDiv) {
     skinViewer.controls.enableZoom = false;
     skinViewer.controls.enablePan = false;
 
-    skinViewer.animation = new skinview3d.WalkingAnimation({
-      progress: 3.3
-    });
+    skinViewer.animation = new skinview3d.WalkingAnimation();
     skinViewer.animation.speed = 0.5;
     skinViewer.animation.paused = true;
     skinViewer.animation.headBobbing = false;
