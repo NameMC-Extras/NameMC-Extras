@@ -217,8 +217,8 @@ async function loadPage(mainDiv) {
 
     window.skinViewer = skinViewer;
 
-    skinViewer.fov = 30;
-    skinViewer.camera.position.y = 21
+    skinViewer.fov = 40;
+    skinViewer.camera.position.y = 22 * Math.cos(.01);
     skinViewer.playerWrapper.rotation.y = -90.58;
     skinViewer.globalLight.intensity = .65;
     skinViewer.cameraLight.intensity = .38;
