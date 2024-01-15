@@ -28,7 +28,7 @@ const waitForFunc = function (func, callback) {
 };
 
 const waitForJQuery = function (callback) {
-  if (typeof $ != 'undefined') {
+  if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
     callback();
   } else {
     setTimeout(function () {
@@ -93,8 +93,8 @@ const fixElytraBtn = () => {
  * UNIVERSAL VARIABLES
  */
 
-const categoryId = location.href.split("/")[location.href.split("/").length - 2];
-const capeId = location.href.split("/")[location.href.split("/").length - 1];
+const categoryId = location.pathname.split("/")[2];
+const capeId = location.pathname.split("/")[3];
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
 
