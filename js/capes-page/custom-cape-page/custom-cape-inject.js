@@ -1,5 +1,11 @@
 console.log("Creating custom cape page...");
 
+// only use for getting animate cookie
+function getCookie(name) {
+  let cookies = Object.fromEntries(document.cookie.split(';').map(e=>e.split('=').map(e=>decodeURIComponent(e.trim()))));
+  return cookies[name];
+}
+
 const waitForSelector = function (selector, callback) {
   query = document.querySelector(selector)
   if (query) {
@@ -17,6 +23,16 @@ const waitForFunc = function (func, callback) {
   } else {
     setTimeout(function () {
       waitForFunc(func, callback);
+    });
+  }
+};
+
+const waitForJQuery = function (callback) {
+  if (typeof $ != 'undefined') {
+    callback();
+  } else {
+    setTimeout(function () {
+      waitForFunc(callback);
     });
   }
 };
@@ -43,6 +59,7 @@ const fixPauseBtn = () => {
         pauseIcon.classList.remove('fa-play');
         pauseIcon.classList.add('fa-pause');
       }
+      setCookie("animate", !paused);
       skinViewer.animation.paused = paused;
     }
   })
@@ -78,7 +95,7 @@ const fixElytraBtn = () => {
 
 const categoryId = location.href.split("/")[location.href.split("/").length - 2];
 const capeId = location.href.split("/")[location.href.split("/").length - 1];
-var paused = true;
+var paused = (getCookie("animate") === "false");
 var elytraOn = false;
 
 /*
@@ -187,10 +204,6 @@ async function loadPage(mainDiv) {
     </div>
   `;
 
-  waitForFunc("jQuery", () => jQuery(function($) {
-    $("[data-note]").tooltip()
-  }))
-  
   // create skin viewer
   waitForFunc("skinview3d", () => {
     const skinContainer = document.getElementsByTagName("canvas").item(0);
@@ -212,7 +225,7 @@ async function loadPage(mainDiv) {
 
     skinViewer.animation = new skinview3d.WalkingAnimation();
     skinViewer.animation.speed = 0.5;
-    skinViewer.animation.paused = true;
+    skinViewer.animation.paused = paused
     skinViewer.animation.headBobbing = false;
 
     window.skinViewer = skinViewer;
@@ -225,6 +238,14 @@ async function loadPage(mainDiv) {
     skinViewer.cameraLight.position.set(12, 25, 0);
     skinViewer.zoom = 0.86
 
+    if (paused) {
+      skinViewer.playerObject.skin.leftArm.rotation.x = 0.33
+      skinViewer.playerObject.skin.rightArm.rotation.x = -0.33
+
+      skinViewer.playerObject.skin.leftLeg.rotation.x = -0.33
+      skinViewer.playerObject.skin.rightLeg.rotation.x = 0.33
+    }
+
 
     skinContainer.addEventListener(
       "contextmenu",
@@ -235,6 +256,8 @@ async function loadPage(mainDiv) {
     fixPauseBtn()
     fixElytraBtn()
   })
+
+  waitForJQuery(() => $("[data-note]").tooltip())
 }
 
 
