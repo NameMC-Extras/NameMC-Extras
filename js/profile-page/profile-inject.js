@@ -1,4 +1,11 @@
 /* copyright 2024 | Faav#6320 | github.com/bribes */
+
+// only use for getting animate cookie
+function getCookie(name) {
+  let cookies = Object.fromEntries(document.cookie.split(';').map(e=>e.split('=').map(e=>decodeURIComponent(e.trim()))));
+  return cookies[name];
+}
+
 function endsWithNumber(str) {
   return /[0-9]+$/.test(str);
 }
@@ -6,7 +13,7 @@ function endsWithNumber(str) {
 const rows = 9
 const columns = 3
 const size = 32
-var paused = false;
+var paused = (getCookie("animate") === "false");
 var elytraOn = false;
 var isHidden = true;
 var skinArt = false;
@@ -58,7 +65,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     a.href = skinArtImage.toDataURL();
     a.setAttribute("download", "skinart");
     a.click();
-}
+  }
 
   // toggle skin layers
   const toggleLayers = () => {
@@ -103,6 +110,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           pauseIcon.classList.remove('fa-play');
           pauseIcon.classList.add('fa-pause');
         }
+        setCookie("animate", !paused);
         skinViewer.animation.paused = paused;
       }
     })
@@ -283,7 +291,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         skinsTitle.querySelector("strong").innerHTML += ' (<a href="javascript:void(0)" id="borderBtn">hide borders</a>)';
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
         skinsTitle.innerHTML += '<a href="javascript:void(0)" id="skinArtBtn" style="color:white"><i class="fas fa-arrow-alt-to-bottom"></i></a>';
-        
+
         waitForImage(() => {
           var skinArtCanvas = document.createElement("canvas");
           skinArtCanvas.id = "skinArtImage";
@@ -296,32 +304,32 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           var ctx = skinArtImage.getContext("2d");
           var images = []
 
-            skins.forEach((skin) => {
-              var img = new Image();
-              img.onload = () => {
-                images.push(img)
+          skins.forEach((skin) => {
+            var img = new Image();
+            img.onload = () => {
+              images.push(img)
 
-                if (images.length == skins.length) {
-                  for (let i = 0; i < images.length; i += rows) {
-                    const chunk = images.slice(i, i + rows);
-                    console.log(i)
-                    console.log(chunk)
-                    chunk.forEach((image, j, array) => {
-                      if (array.length == rows) {
-                        ctx.drawImage(image, size * j, size * (i / rows))
-                      } else {
-                        var padding = ((rows - array.length) / 2) * size
-                        ctx.drawImage(image, padding + (size * j), size * (i / rows))
-                      }
-                    })
-                  }
+              if (images.length == skins.length) {
+                for (let i = 0; i < images.length; i += rows) {
+                  const chunk = images.slice(i, i + rows);
+                  console.log(i)
+                  console.log(chunk)
+                  chunk.forEach((image, j, array) => {
+                    if (array.length == rows) {
+                      ctx.drawImage(image, size * j, size * (i / rows))
+                    } else {
+                      var padding = ((rows - array.length) / 2) * size
+                      ctx.drawImage(image, padding + (size * j), size * (i / rows))
+                    }
+                  })
                 }
-              };
+              }
+            };
 
-              img.src = skin.toDataURL();
-            })
-            
-            skinArtBtn.onclick = downloadSkinArt;
+            img.src = skin.toDataURL();
+          })
+
+          skinArtBtn.onclick = downloadSkinArt;
         }, skins.at(-1).getAttribute("data-id"))
 
         borderBtn.onclick = () => {
@@ -397,7 +405,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
       skinViewer.animation = new skinview3d.WalkingAnimation();
       skinViewer.animation.speed = 0.5;
-      skinViewer.animation.paused = false;
+      skinViewer.animation.paused = paused;
       skinViewer.animation.headBobbing = false;
 
       window.skinViewer = skinViewer;
@@ -409,6 +417,13 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       skinViewer.cameraLight.intensity = .38;
       skinViewer.cameraLight.position.set(12, 25, 0);
 
+      if (paused) {
+        skinViewer.playerObject.skin.leftArm.rotation.x = 0.33
+        skinViewer.playerObject.skin.rightArm.rotation.x = -0.33
+  
+        skinViewer.playerObject.skin.leftLeg.rotation.x = -0.33
+        skinViewer.playerObject.skin.rightLeg.rotation.x = 0.33
+      }
 
       skinContainer.addEventListener(
         "contextmenu",
