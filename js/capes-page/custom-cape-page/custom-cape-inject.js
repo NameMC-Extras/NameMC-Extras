@@ -179,13 +179,18 @@ async function loadPage(mainDiv) {
             <div class="d-flex flex-column" style="max-height: 25rem">
               <div class="card-header py-1"><strong>Profiles (${cape.users.length})</strong></div>
               <div class="card-body player-list py-2">
-                  ${cape.users.map(u => `<div><a translate="no" href="/profile/${u.uuid}">${u.uuid}</a>${u.note ? ` ${u.note}` : ""}`).join("")}</div>
+                  ${cape.users.map(u => `<a translate="no" href="/profile/${u.uuid}" ${u.note ? `title="${u.note}" data-note` : ''}>${u.uuid}</a>`).join("")}
               </div>
             </div>
           </div>
         </div>
     </div>
   `;
+
+  waitForFunc("jQuery", () => jQuery(function($) {
+    $("[data-note]").tooltip()
+  }))
+  
   // create skin viewer
   waitForFunc("skinview3d", () => {
     const skinContainer = document.getElementsByTagName("canvas").item(0);
@@ -212,13 +217,13 @@ async function loadPage(mainDiv) {
 
     window.skinViewer = skinViewer;
 
-    skinViewer.fov = 40;
-    skinViewer.zoom = 0.86
+    skinViewer.fov = 30;
     skinViewer.camera.position.y = 21
-    skinViewer.playerWrapper.rotation.y = -90.56;
+    skinViewer.playerWrapper.rotation.y = -90.58;
     skinViewer.globalLight.intensity = .65;
     skinViewer.cameraLight.intensity = .38;
     skinViewer.cameraLight.position.set(12, 25, 0);
+    skinViewer.zoom = 0.86
 
 
     skinContainer.addEventListener(
