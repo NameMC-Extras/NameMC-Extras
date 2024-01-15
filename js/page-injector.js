@@ -10,7 +10,7 @@ const waitForSelector = function (selector, callback) {
     }
 };
 
-const customPage = (page, name, icon) => {
+const customPage = (page, name, title, icon) => {
     waitForSelector('[href="/minecraft-skins"]', async () => {
         var isPage = location.pathname ==  "/extras/"+page;
         var capeDropNav = document.querySelector('a.dropdown-item[href="/capes"]');
@@ -23,6 +23,8 @@ const customPage = (page, name, icon) => {
         capeDropNav.after(customNavDropHTML);
         
         if (isPage === true) {
+            document.title = title + " | NameMC Extras";
+
             var inject1 = document.createElement('script');
             inject1.src = chrome.runtime.getURL(`pages/${page}.js`);
             inject1.onload = function () {
@@ -49,7 +51,7 @@ const customPage = (page, name, icon) => {
 
 // INJECTING PAGES
 
-customPage('skin-cape-test', 'Tester', 'fas fa-rectangle-portrait menu-icon')
+customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait menu-icon')
 
 // Credits
 waitForSelector("footer .row", (footer) => {
