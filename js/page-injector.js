@@ -55,6 +55,6 @@ customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-p
 // Credits
 waitForSelector("footer .row", (footer) => {
     var creditsRange = document.createRange();
-    var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>NameMC Extras by <a class="text-nowrap" href="https://github.com/bribes" target="_blank">Faav</a></small></div>`);
+    var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://chromewebstore.google.com/detail/cpphfojhgkppblcdhjbcploikanimgek" target="_blank">NameMC Extras</a></small></div>`);
     footer?.insertBefore(creditsHTML, footer?.lastElementChild)
 });
