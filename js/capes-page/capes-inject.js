@@ -73,7 +73,7 @@ class Cape {
  */
 async function getOptifineCapes() {
   // TODO: replace this with an API call to get updated capes
-  const optifineCapes = custom_capes.optifine.map(v => new Cape(v.name, `/cape/optifine/${v.name.toLowerCase().replace(" ", "-")}`, `https://assets.faav.top/capes/${v.name.toLowerCase().split(" ").join("_")}_render.png`, v.users.length));
+  const optifineCapes = custom_capes.optifine.map(v => new Cape(v.name, `/cape/optifine/${v.name.toLowerCase().replace(" ", "-")}`, `https://assets.faav.top/renders/${v.name.toLowerCase().replace(/ /g, "")}.png`, v.users.length));
   let finalString = '';
   optifineCapes.forEach(cape => {
     finalString += cape.getCardHTML();
