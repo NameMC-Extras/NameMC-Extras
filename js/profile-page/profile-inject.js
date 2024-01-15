@@ -53,18 +53,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   };
 
-  const waitForSkinCanvas = function (canvas, callback) {
-    var blankCanvasData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAa9JREFUWEelV1kWAyEIw/sf2j7XUQib7d8oS4AAthARlVKIKlEtRKVWokLju13u3zy8zpryPGjKVJdqP5Qn0txUV4xzZxDPRjBuI6YOmaUtAz0NJY0uY0E1KdZPItosQ64KEBjlv4sN05hLyJQ2EK2rwmum6rjhIcKEgHTqc8pLLi261kKV9QfmKkc8/HBX7XT0HO+Qp4jzRhoF+u+DoHvWbnyseinCHPCdWENDv2NzALsRbemkIgq2yfUStPRHlT5BhTvJREASShuGMxd5q7LSN917bsJoPaPE7aBrAAx8wuhcmmhsRJIGQYZIiDbwvXiThd/iLXwjrFB2PA74VeDLUyNcwBJfaosxhupuQzWJXoRoJYM18I3ae/Z+bciUcPqHUBKT+WrYbfif0dtHxtbMhz5o9o0zfmXPiiULUYpl1KUOZ/DFxLeu2YU3cv6lAgBvlOQUHKhg4q4Ajzcholi0nudSu98XKowBMOrADGelK2GMA36dpb7emW7ASz8DIqpEmD48to6f2WwpnvtOzOr91zKA9V3EylmHdxIi9Tx7x3Qs5IyR7DREttdkm5X5Ac1ksifJi2P0AAAAAElFTkSuQmCC";
-        
-    if (canvas.toDataURL() != blankCanvasData) {
-      callback();
-    } else {
-      setTimeout(function () {
-        waitForSkinCanvas(canvas, callback);
-      });
-    }
-  };
-
   const downloadSkinArt = () => {
     var a = document.createElement("a");
     a.href = skinArtImage.toDataURL();
@@ -296,9 +284,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
         skinsTitle.innerHTML += '<a href="javascript:void(0)" id="skinArtBtn" style="color:white"><i class="fas fa-arrow-alt-to-bottom"></i></a>';
         
-        waitForSkinCanvas(skins[0], () => {
-          console.log(skins[0].toDataURL())
-          console.log(1)
+        waitForImage(() => {
           var skinArtCanvas = document.createElement("canvas");
           skinArtCanvas.id = "skinArtImage";
           skinArtCanvas.width = rows * size;
@@ -336,7 +322,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
             })
             
             skinArtBtn.onclick = downloadSkinArt;
-        })
+        }, skins.at(-1).getAttribute("data-id"))
 
         borderBtn.onclick = () => {
           if (skinArt == false) {
