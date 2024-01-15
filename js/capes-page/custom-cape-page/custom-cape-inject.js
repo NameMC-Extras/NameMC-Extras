@@ -141,7 +141,7 @@ async function loadPage(mainDiv) {
   // get cape and update page title
   const cape = await findCape(capeId);
   if (!cape) return;
-  document.title = `${cape.name} | ${getCapeType(categoryId)} Cape | NameMC`
+  document.title = `${cape.name} | ${getCapeType(categoryId)} Cape | NameMC Extras`
   // update page
   mainDiv.innerHTML = `
     <h1 class="text-center" translate="no">
