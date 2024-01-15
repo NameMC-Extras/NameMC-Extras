@@ -32,7 +32,7 @@ const waitForJQuery = function (callback) {
     callback();
   } else {
     setTimeout(function () {
-      waitForFunc(callback);
+      waitForJQuery(callback);
     });
   }
 };
