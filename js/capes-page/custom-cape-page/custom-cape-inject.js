@@ -212,8 +212,8 @@ async function loadPage(mainDiv) {
 
     let skinViewer = new skinview3d.SkinViewer({
       canvas: skinContainer,
-      width: 256,
-      height: 256,
+      width: 300,
+      height: 400,
       skin: steveDataURL,
       cape: capeURL,
       preserveDrawingBuffer: true
