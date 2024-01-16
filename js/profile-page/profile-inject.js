@@ -297,21 +297,21 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           skinArtCanvas.id = "skinArtImage";
           skinArtCanvas.width = rows * size;
           skinArtCanvas.height = columns * size;
-          skinArtCanvas.style.cssText = `width:${rows * size}px;display:none`;
+          skinArtCanvas.style.display = "none";
 
           document.body.append(skinArtCanvas)
 
           var ctx = skinArtImage.getContext("2d");
-          var images = []
+          var skinArtImages = []
 
           skins.forEach((skin) => {
             var img = new Image();
             img.onload = () => {
-              images.push(img)
+              skinArtImages.push(img)
 
-              if (images.length == skins.length) {
-                for (let i = 0; i < images.length; i += rows) {
-                  const chunk = images.slice(i, i + rows);
+              if (skinArtImages.length == skins.length) {
+                for (let i = 0; i < skinArtImages.length; i += rows) {
+                  const chunk = skinArtImages.slice(i, i + rows);
                   console.log(i)
                   console.log(chunk)
                   chunk.forEach((image, j, array) => {
