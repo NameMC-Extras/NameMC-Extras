@@ -53,14 +53,11 @@ if (profiles.length > 0) {
     </div>
     `);
 
-    waitForModal(() => {
-        $("#profilesImageModal").modal();
-        $("#modalClose").click(function () {
-            $("#profilesImageModal").modal("hide");
-        });
-    })
-
     document.body.append(modalHTML);
+
+    waitForModal(() => $("#modalClose").click(() => {
+        $("#profilesImageModal").modal("hide");
+    }))
 
     var ctx = profilesCanvas.getContext("2d");
     ctx.fillStyle = window.getComputedStyle(profileEls[0].parentElement.parentElement).backgroundColor;
