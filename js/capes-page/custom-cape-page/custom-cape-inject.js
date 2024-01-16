@@ -27,12 +27,12 @@ const waitForFunc = function (func, callback) {
   }
 };
 
-const waitForJQuery = function (callback) {
+const waitForTooltip = function (callback) {
   if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
     callback();
   } else {
     setTimeout(function () {
-      waitForJQuery(callback);
+      waitForTooltip(callback);
     });
   }
 };
@@ -212,8 +212,8 @@ async function loadPage(mainDiv) {
 
     let skinViewer = new skinview3d.SkinViewer({
       canvas: skinContainer,
-      width: 300,
-      height: 400,
+      width: 256,
+      height: 256,
       skin: steveDataURL,
       cape: capeURL,
       preserveDrawingBuffer: true
@@ -257,7 +257,7 @@ async function loadPage(mainDiv) {
     fixElytraBtn()
   })
 
-  waitForJQuery(() => $("[data-note]").tooltip())
+  waitForTooltip(() => $("[data-note]").tooltip())
 }
 
 
