@@ -2,7 +2,7 @@
 
 // only use for getting animate cookie
 function getCookie(name) {
-  let cookies = Object.fromEntries(document.cookie.split(';').map(e=>e.split('=').map(e=>decodeURIComponent(e.trim()))));
+  let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));
   return cookies[name];
 }
 
@@ -31,7 +31,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
   };
 
   const waitForSVSelector = function (selector, callback) {
-    if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && window.skinview3d.SkinViewer) {
+    if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d.SkinViewer !== 'undefined' && window.skinview3d.SkinViewer) {
       callback();
     } else {
       setTimeout(function () {
@@ -56,6 +56,16 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     } else {
       setTimeout(function () {
         waitForFunc(func, callback);
+      });
+    }
+  };
+
+  const waitForTooltip = function (callback) {
+    if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
+      callback();
+    } else {
+      setTimeout(function () {
+        waitForTooltip(callback);
       });
     }
   };
@@ -220,23 +230,25 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var accountType = json.data.accountType;
       var tooltip = json.data.tooltip;
       acctype.innerHTML = `<tooltip>${accountType}</tooltip> <i id="warningacc" class="fas fa-exclamation-circle"></i>`;
-      $('#acctype tooltip').tooltip({
-        "placement": "top",
-        "boundary": "viewport",
-        "title": tooltip
-      });
-      $('#warningacc').tooltip({
-        "placement": "top",
-        "boundary": "viewport",
-        "title": "Due to the removal of the name history API this may be inaccurate."
-      });
+      waitForTooltip(() => {
+        $('#acctype tooltip').tooltip({
+          "placement": "top",
+          "boundary": "viewport",
+          "title": tooltip
+        });
+        $('#warningacc').tooltip({
+          "placement": "top",
+          "boundary": "viewport",
+          "title": "Due to the removal of the name history API this may be inaccurate."
+        });
+      })
       if (creationDate !== 'null') {
         cdate.innerHTML = `${new Date(creationDate).toLocaleDateString()} <i id="warningcd" class="fas fa-exclamation-circle"></i>`;
-        $('#warningcd').tooltip({
+        waitForTooltip(() => $('#warningcd').tooltip({
           "placement": "top",
           "boundary": "viewport",
           "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
-        });
+        }))
       } else {
         cdate.innerHTML = 'Not Found!';
       }
@@ -420,7 +432,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       if (paused) {
         skinViewer.playerObject.skin.leftArm.rotation.x = 0.33
         skinViewer.playerObject.skin.rightArm.rotation.x = -0.33
-  
+
         skinViewer.playerObject.skin.leftLeg.rotation.x = -0.33
         skinViewer.playerObject.skin.rightLeg.rotation.x = 0.33
       }
