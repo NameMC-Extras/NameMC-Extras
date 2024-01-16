@@ -1,11 +1,10 @@
-console.log("test")
 var profileEls = document.querySelectorAll('[href*="/my-profile/switch"]');
 
 var profiles = [...profileEls].map(profile => ({
     name: profile.innerText.split(" ")[0],
     image: profile.firstChild.src,
     notifs: (profile.innerText.split(" ").length - 1) ? Number(profile.innerText.split(" ")[1]) : null
-})).filter(a=>typeof a.image !== "undefined")
+})).filter(a => typeof a.image !== "undefined")
 
 if (profiles.length > 0) {
     const imageSize = 50;
@@ -69,16 +68,39 @@ if (profiles.length > 0) {
                         var textSize = 47.5;
 
                         if (loadedProfile.name.length > 8) {
-                            textSize = 40;
+                            textSize = 42.5;
                         }
 
                         ctx.font = `${textSize}px Helvetica`;
                         ctx.fillText(`${loadedProfile.name} ${loadedProfile.notifs ? `(${loadedProfile.notifs})` : ""}`, 60 * i + 125, 100 * j + 90);
 
                         document.querySelector("#generate-image").onclick = () => {
-                            var imageWindow = window.open()
-                            imageWindow.document.body.append(profilesCanvas)
-                            imageWindow.profilesImage.style.width = profilesCanvas.width/5;
+                            var modalRange = document.createRange();
+                            var modalHTML = modalRange.createContextualFragment(`
+                            <div class="modal fade" id="profilesImageModal" tabindex="-1" role="dialog" aria-labelledby="profilesImageModalTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered justify-content-center" role="document">
+                                    <div class="modal-content" style="width:fit-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Generated Profiles Image</h5>
+                                            <button type="button" class="btn" id="modalClose" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body"></div>
+                                    <div class="modal-footer">
+                                        <p>Generated using NameMC Extras</p>
+                                    </div>
+                                </div>  
+                                </div>
+                            </div>
+                            `);
+                            profilesCanvas.style.width = "95rem";
+                            modalHTML.querySelector(".modal-body").append(profilesCanvas);
+                            document.body.append(modalHTML);
+                            $("#profilesImageModal").modal("show");
+                            $("#modalClose").click(function () {
+                                $("#profilesImageModal").modal("hide");
+                            });
                         };
                     })
                 }
