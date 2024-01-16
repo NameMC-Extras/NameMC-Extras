@@ -12,7 +12,7 @@ const waitForSelector = function (selector, callback) {
 
 const customPage = (page, name, title, icon) => {
     waitForSelector('[href="/minecraft-skins"]', async () => {
-        var isPage = location.pathname ==  "/extras/"+page;
+        var isPage = location.pathname == "/extras/" + page;
         var capeNavBar = document.querySelector('.nav-link[href="/capes"]').parentElement;
         var customNavRange = document.createRange();
         var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link ${isPage ? "active" : ""}' href='https://${window.parent.location.host}/extras/${page}'>${name}</a></li>`);
@@ -20,7 +20,7 @@ const customPage = (page, name, title, icon) => {
         var customNavDropHTML = customNavDropRange.createContextualFragment(`<a class='dropdown-item' id='${page}' href='https://${window.parent.location.host}/extras/${page}' title='${name}'><i class="${icon}"></i>${name}</a>`);
         capeNavBar.appendChild(customNavHTML);
         waitForSelector('a.dropdown-item[href="/capes"]', (capeDropNav) => capeDropNav.after(customNavDropHTML));
-        
+
         if (isPage === true) {
             document.title = title + " | NameMC Extras";
 
@@ -48,9 +48,32 @@ const customPage = (page, name, title, icon) => {
     })
 }
 
+const customMenuItem = (id, name, href, location, icon) => {
+    waitForSelector('[href="/my-account"]', async (myAccountBtn) => {
+        var dropDownMenu = myAccountBtn.parentElement;
+        var menuItem = document.createElement("a")
+        menuItem.classList.add("dropdown-item");
+        menuItem.id = id;
+        menuItem.href = href;
+        menuItem.innerHTML = `${icon ? `<i class="${icon} menu-icon"></i>` : ""}${name}`
+        dropDownMenu.insertBefore(menuItem, dropDownMenu.childNodes[location]);
+
+        var inject1 = document.createElement('script');
+        inject1.src = chrome.runtime.getURL(`dropdown-items/${id}.js`);
+        inject1.onload = function () {
+            this.remove();
+        };
+        (document.head || document.documentElement).appendChild(inject1);
+    })
+}
+
 // INJECTING PAGES
 
 customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait menu-icon')
+
+// INJECTING MENU ITEMS
+
+customMenuItem('generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image')
 
 // Credits
 waitForSelector("footer .row", (footer) => {
