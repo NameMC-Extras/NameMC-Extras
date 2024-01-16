@@ -1,3 +1,13 @@
+const waitForModal = function (callback) {
+    if (typeof $ != 'undefined' && typeof $().modal != 'undefined') {
+        callback();
+    } else {
+        setTimeout(function () {
+            waitForModal(callback);
+        });
+    }
+};
+
 var profileEls = document.querySelectorAll('[href*="/my-profile/switch"]');
 
 var profiles = [...profileEls].map(profile => ({
@@ -21,6 +31,36 @@ if (profiles.length > 0) {
 
     profilesCanvas.width = 600 * Math.round(Math.ceil(profiles.length / 10));
     profilesCanvas.height = height;
+    profilesCanvas.style.width = "95rem";
+
+    var modalRange = document.createRange();
+    var modalHTML = modalRange.createContextualFragment(`
+    <div class="modal fade" id="profilesImageModal" tabindex="-1" role="dialog" aria-labelledby="profilesImageModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered justify-content-center" role="document">
+            <div class="modal-content" style="width:fit-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generated Profiles Image</h5>
+                    <button type="button" class="btn" id="modalClose" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <p>Generated using NameMC Extras</p>
+                </div>
+            </div>  
+        </div>
+    </div>
+    `);
+
+    waitForModal(() => {
+        $("#profilesImageModal").modal();
+        $("#modalClose").click(function () {
+            $("#profilesImageModal").modal("hide");
+        });
+    })
+
+    document.body.append(modalHTML);
 
     var ctx = profilesCanvas.getContext("2d");
     ctx.fillStyle = window.getComputedStyle(profileEls[0].parentElement.parentElement).backgroundColor;
@@ -75,32 +115,8 @@ if (profiles.length > 0) {
                         ctx.fillText(`${loadedProfile.name} ${loadedProfile.notifs ? `(${loadedProfile.notifs})` : ""}`, 60 * i + 125, 100 * j + 90);
 
                         document.querySelector("#generate-image").onclick = () => {
-                            var modalRange = document.createRange();
-                            var modalHTML = modalRange.createContextualFragment(`
-                            <div class="modal fade" id="profilesImageModal" tabindex="-1" role="dialog" aria-labelledby="profilesImageModalTitle" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered justify-content-center" role="document">
-                                    <div class="modal-content" style="width:fit-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Generated Profiles Image</h5>
-                                            <button type="button" class="btn" id="modalClose" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body"></div>
-                                    <div class="modal-footer">
-                                        <p>Generated using NameMC Extras</p>
-                                    </div>
-                                </div>  
-                                </div>
-                            </div>
-                            `);
-                            profilesCanvas.style.width = "95rem";
-                            modalHTML.querySelector(".modal-body").append(profilesCanvas);
-                            document.body.append(modalHTML);
+                            document.querySelector(".modal-body").append(profilesCanvas);
                             $("#profilesImageModal").modal("show");
-                            $("#modalClose").click(function () {
-                                $("#profilesImageModal").modal("hide");
-                            });
                         };
                     })
                 }
