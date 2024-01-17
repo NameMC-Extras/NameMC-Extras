@@ -13,8 +13,7 @@ if (profileEls.length > 1)  profileEls = document.querySelectorAll('[href*="/my-
 
 var profiles = [...profileEls].map(profile => ({
     name: profile.innerText.split(" ")[0],
-    image: profile.firstChild.src,
-    notifs: (profile.innerText.split(" ").length - 1) ? Number(profile.innerText.split(" ")[1]) : null
+    image: profile.firstChild.src
 })).filter(a => typeof a.image !== "undefined")
 
 if (profiles.length > 0) {
@@ -32,7 +31,7 @@ if (profiles.length > 0) {
 
     profilesCanvas.width = 600 * Math.round(Math.ceil(profiles.length / 10));
     profilesCanvas.height = height;
-    profilesCanvas.style.width = "95rem";
+    profilesCanvas.style.width = "55em";
 
     var modalRange = document.createRange();
     var modalHTML = modalRange.createContextualFragment(`
@@ -110,7 +109,7 @@ if (profiles.length > 0) {
                         }
 
                         ctx.font = `${textSize}px Helvetica`;
-                        ctx.fillText(`${loadedProfile.name} ${loadedProfile.notifs ? `(${loadedProfile.notifs})` : ""}`, 60 * i + 125, 100 * j + 90);
+                        ctx.fillText(loadedProfile.name, 60 * i + 125, 100 * j + 90);
 
                         document.querySelector("#generate-image").onclick = () => {
                             document.querySelector(".modal-body").append(profilesCanvas);
