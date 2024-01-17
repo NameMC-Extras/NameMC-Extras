@@ -47,9 +47,10 @@ class SupabaseCape {
 }
 
 class SupabaseCapeCategory {
-  constructor(id, name) {
+  constructor(id, name, hidden) {
     this.id = id;
     this.name = name;
+    this.hidden = hidden;
   }
 
   /**
@@ -83,7 +84,7 @@ async function getAllCategories() {
     console.warn(error.message);
     return [];
   }
-  return data.map(v => new SupabaseCapeCategory(v.id, v.name));
+  return data.map(v => new SupabaseCapeCategory(v.id, v.name, v.hidden));
 }
 
 /**

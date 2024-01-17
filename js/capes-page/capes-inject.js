@@ -58,7 +58,7 @@ function getCapeCardHTML(cape, userCount) {
  */
 
 async function addCapes(mainDiv) {
-  const categories = await getAllCategories();
+  const categories = (await getAllCategories()).filter(cat => cat.hidden === false);
   categories.forEach(async cat => {
     const capes = await cat.getCapes();
     // get user count
