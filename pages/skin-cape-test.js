@@ -3,6 +3,7 @@ var elytraOn = false;
 var layer = true;
 var currentCape = null;
 var currentOptifineMode = "steal"
+var specialCapes = {};
 
 var jsColor = document.createElement("script");
 jsColor.src = 'https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.5/jscolor.min.js';
@@ -134,6 +135,17 @@ const createElytraBtn = () => {
     });
 }
 
+// get/cache special capes
+async function getSpecialCapes() {
+    if (Object.keys(specialCapes).length > 0) return specialCapes;
+    const capes = await getAllCapes();
+    const categories = await getAllCategories();
+    categories.forEach(cat => {
+        specialCapes[cat.name] = capes.filter(cape => cape.category == cat.id);
+    });
+    return specialCapes;
+}
+
 waitForSelector('main', async (main) => {
     main.innerHTML = `<h1 class="text-center">Skin & Cape Tester</h1>
         <hr class="mt-0">
@@ -191,6 +203,10 @@ waitForSelector('main', async (main) => {
                       <div class="custom-control custom-radio custom-control-inline">
                         <input type="radio" id="optifine" name="customRadioInline" class="custom-control-input">
                         <label class="custom-control-label" for="optifine">OptiFine</label>
+                      </div>
+                      <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="special" name="customRadioInline" class="custom-control-input">
+                        <label class="custom-control-label" for="special">Special</label>
                       </div>
                     </div>
                     <div class="form-group" id="capemenu" style="display:none;"></div>
@@ -493,5 +509,39 @@ waitForSelector('main', async (main) => {
                 }
             }
         }
+
+        special.onchange = async () => {
+            if (special.checked) {
+                const dictionary = await getSpecialCapes();
+                capemenu.innerHTML = `
+                    <label class="col-4 col-form-label" for="specialcapes"><strong>Special Capes:</strong></label>
+                    <div class="col">
+                        <select class="form-select" id="specialcapes" name="specialcapes">
+                            ${Object.entries(dictionary).map(entry => {
+                                const categoryName = entry[0];
+                                const capes = entry[1];
+                                return `
+                                    <optgroup label="${categoryName}">
+                                        ${capes.sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option data-value="${c.src}">${c.name}</option>`).join("")}
+                                    </optgroup>
+                                `;
+                            })}
+                        </select>
+                    </div>
+                `;
+
+                currentCape = $('#specialcapes :selected').data('value');
+
+                capemenu.style.display = 'unset';
+
+                specialcapes.onchange = () => {
+                    if (specialcapes.value && specialcapes.value.length > 0) {
+                        currentCape = $('#specialcapes :selected').data('value');
+                    }
+                }
+            }
+        }
     })
-})
+});
+
+getSpecialCapes();

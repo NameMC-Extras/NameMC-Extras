@@ -87,6 +87,21 @@ async function getAllCategories() {
 }
 
 /**
+ * Returns an array of capes
+ * @returns {Promise<SupabaseCape[]>}
+ */
+async function getAllCapes() {
+  const { data, error } = await getSupabaseClient()
+    .from('capes')
+    .select();
+  if (error) {
+    console.warn(error.message);
+    return [];
+  }
+  return data.map(v => new SupabaseCape(v.id, v.name, v.description, v.image_src, v.image_render, v.category));
+}
+
+/**
  * Returns a cape category or null if non-existent
  * @param {string} id 
  * @returns {Promise<SupabaseCapeCategory | null>}
