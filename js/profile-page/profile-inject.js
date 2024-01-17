@@ -347,7 +347,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         borderBtn.onclick = () => {
           if (skinArt == false) {
             skinsContainer.style.width = '312px'
-            skinsContainer.style.margin = '6px'
+            skinsContainer.style.margin = '6px auto'
             document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
               skin.classList.add('skinart');
             })
@@ -355,7 +355,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
             borderBtn.innerHTML = 'show borders';
           } else {
             skinsContainer.style.width = '324px';
-            skinsContainer.style.margin = '';
+            skinsContainer.style.margin = 'auto';
             document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
               skin.classList.remove('skinart');
             })
