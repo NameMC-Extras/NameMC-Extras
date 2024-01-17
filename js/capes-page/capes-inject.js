@@ -21,52 +21,6 @@ const waitForFunc = function (func, callback) {
   }
 };
 
-/*
- * UNIVERSAL VARIABLES
- */
-
-
-
-
-
-/*
- * CLASSES
- */
-
-class Cape {
-  constructor(name, redirect, imageURL, userCount) {
-    this.name = name;
-    this.redirect = redirect;
-    this.imageURL = imageURL;
-    this.userCount = userCount;
-  }
-
-  /**
-   * Returns HTML code for the cape's card
-   * @param {string} sizeClass 
-   * @returns {string}
-   */
-  getCardHTML() {
-    return `
-      <div class="col-4 col-md-2">
-        <div class="card mb-2">
-          <a href="${this.redirect}">
-            <div class="card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1" translate="no">${this.name}</div>
-            <div class="card-body position-relative text-center checkered p-1">
-              <div>
-                <img class="drop-shadow auto-size-square" loading="lazy" width="256" height="256" src="${this.imageURL}" alt="${this.name}" title="${this.name}">
-              </div>
-              <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${this.userCount}★</div>
-            </div>
-          </a>
-        </div>
-      </div>
-    `;
-  }
-}
-
-
-
 
 
 /*
@@ -74,40 +28,28 @@ class Cape {
  */
 
 /**
- * Returns a class for a 
- * @param {number} capeAmount 
- */
-/**
- * Returns an HTML string of all OptiFine cape cards
- * @returns {string}
- */
-async function getOptifineCapes() {
-  // TODO: replace this with an API call to get updated capes
-  const optifineCapes = capes.optifine.map(v => new Cape(v.name, `/cape/optifine/${v.name.toLowerCase().replace(" ", "-")}`, `https://assets.faav.top/renders/${v.name.toLowerCase().replace(/ /g, "")}.png`, v.users.length));
-  let finalString = '';
-  optifineCapes.forEach(cape => {
-    finalString += cape.getCardHTML();
-  })
-  return finalString;
-}
-
-async function addOptifineCapeCategory(mainDiv) {
-  var optifineCapesRange = document.createRange();
-  var optifineCapesHTML = optifineCapesRange.createContextualFragment(`
-    <br/>
-    <h1 class="text-center">OptiFine Capes</h1>
-    <hr class="mt-0">
-    <div class="mb-2">
-      <div class="row gx-2 justify-content-center">
-        ${await getOptifineCapes()}
+  * Returns HTML code for the cape's card
+  * @param {SupabaseCape} cape
+  * @param {number} userCount 
+  * @returns {string}
+  */
+function getCapeCardHTML(cape, userCount) {
+  return `
+    <div class="col-4 col-md-2">
+      <div class="card mb-2">
+        <a href="${cape.getURL()}">
+          <div class="card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1" translate="no">${cape.name}</div>
+          <div class="card-body position-relative text-center checkered p-1">
+            <div>
+              <img class="drop-shadow auto-size-square" loading="lazy" width="256" height="256" src="${cape.image}" alt="${cape.name}" title="${cape.name}">
+            </div>
+            <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${userCount}★</div>
+          </div>
+        </a>
       </div>
     </div>
-  `);
-
-  mainDiv.append(optifineCapesHTML);
+  `;
 }
-
-
 
 
 
@@ -115,4 +57,34 @@ async function addOptifineCapeCategory(mainDiv) {
  * MAIN LOGIC
  */
 
-waitForFunc("capes", () => waitForSelector("main", addOptifineCapeCategory))
+async function addCapes(mainDiv) {
+  const categories = await getAllCategories();
+  categories.forEach(async cat => {
+    const capes = await cat.getCapes();
+    // get user count
+    const mapPromise = await Promise.all(capes.map(async cape => {
+      cape.users = await cape.getUsers();
+      return cape;
+    }));
+    const capeHTMLCards = [];
+    mapPromise.sort((a, b) => b.users.length - a.users.length).forEach(cape => {
+      console.log(cape);
+      capeHTMLCards.push(getCapeCardHTML(cape, cape.users.length));
+    });
+    // create category
+    var categoryRange = document.createRange();
+    var categoryHTML = categoryRange.createContextualFragment(`
+      <br/>
+      <h1 class="text-center">${cat.name} Capes</h1>
+      <hr class="mt-0">
+      <div class="mb-2">
+        <div class="row gx-2 justify-content-center">
+          ${capeHTMLCards.join("")}
+        </div>
+      </div>
+    `);
+    mainDiv.append(categoryHTML);
+  });
+}
+
+waitForFunc("capes", () => waitForSelector("main", addCapes));
