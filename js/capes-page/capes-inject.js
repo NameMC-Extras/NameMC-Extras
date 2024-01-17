@@ -82,7 +82,8 @@ async function getOptifineCapes() {
 }
 
 async function addOptifineCapeCategory(mainDiv) {
-  mainDiv.innerHTML += `
+  var optifineCapesRange = document.createRange();
+  var optifineCapesHTML = optifineCapesRange.createContextualFragment(`
     <br/>
     <h1 class="text-center">OptiFine Capes</h1>
     <hr class="mt-0">
@@ -91,7 +92,9 @@ async function addOptifineCapeCategory(mainDiv) {
         ${await getOptifineCapes()}
       </div>
     </div>
-  `;
+  `);
+
+  mainDiv.append(optifineCapesHTML);
 }
 
 
