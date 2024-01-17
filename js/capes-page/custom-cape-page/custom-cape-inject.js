@@ -139,7 +139,7 @@ function getCapeType(capeCategory) {
  * @returns {CustomCape | null}
  */
 async function findCape(capeId) {
-  const capes = custom_capes[categoryId];
+  const capes = capes[categoryId];
   if (capes.length < 1) return null;
   let chosenCape = null;
   capes.forEach(v => {
@@ -268,4 +268,4 @@ async function loadPage(mainDiv) {
  * MAIN LOGIC
  */
 
-waitForSelector("main", loadPage);
+waitForFunc("capes", waitForSelector("main", loadPage));
