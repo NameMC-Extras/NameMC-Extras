@@ -464,6 +464,10 @@ if (endsWithNumber(location.pathname) && location.pathname) {
             setTimeout(createElytraBtn);
           }, capeHash);
         }
+        const userCustomCapes = await getUserCapes(uuid);
+        if (userCustomCapes.length > 0) {
+          skinViewer.loadCape(userCustomCapes[0].src);
+        }
 
         // upside down gang
         if (username === "Dinnerbone" || username === "Grumm") {
