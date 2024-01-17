@@ -8,7 +8,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "2.0.3",
+  "version": "3.0.0",
   "content_scripts": [
     {
       "css": [
@@ -19,20 +19,55 @@
       ]
     },
     {
+      "css": [
+        "css/CustomPage.css"
+      ],
+      "matches": [
+        "*://*.namemc.com/extras/*"
+      ]
+    },
+    {
       "js": [
-        "js/injector.js"
+        "js/profile-page/profile-injector.js"
       ],
       "matches": [
         "*://*.namemc.com/profile/*"
       ],
       "run_at": "document_start"
+    },
+    {
+      "js": [
+        "js/page-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
+        "js/capes-page/capes-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/capes/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "css": [
+        "css/CustomPage.css"
+      ],
+      "js": [
+        "js/capes-page/custom-cape-page/custom-cape-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/cape/*/*"
+      ],
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [{
-    "resources": ["js/namemc-inject.js"],
-    "matches": ["<all_urls>"]
-  }, {
-    "resources": ["js/skinview3d.bundle.js"],
+    "resources": ["*"],
     "matches": ["<all_urls>"]
   }]
 }

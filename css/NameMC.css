@@ -1,6 +1,9 @@
-/* copyright 2022 | Faav#6320 | github.com/bribes */
-div:has(> [id^="nn_"]), .ad-container, #nmcIf {
-    display: none!important
+/* copyright 2024 | Faav | github.com/bribes */
+div:has(> [id^="nn_"]),
+.ad-container,
+#nmcIf,
+.mt-0:has(+ .ad-container) {
+    display: none !important
 }
 
 .nav-item {
@@ -18,13 +21,15 @@ div:has(> [id^="nn_"]), .ad-container, #nmcIf {
 
 @keyframes blink {
     0% {
-      opacity: .2;
+        opacity: .2;
     }
+
     20% {
-      opacity: 1;
+        opacity: 1;
     }
+
     100% {
-      opacity: .2;
+        opacity: .2;
     }
 }
 
