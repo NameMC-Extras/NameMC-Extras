@@ -11,16 +11,6 @@ const waitForSelector = function (selector, callback) {
   }
 };
 
-const waitForFunc = function (func, callback) {
-  if (window[func]) {
-    callback();
-  } else {
-    setTimeout(function () {
-      waitForFunc(func, callback);
-    });
-  }
-};
-
 
 
 /*
@@ -87,4 +77,4 @@ async function addCapes(mainDiv) {
   });
 }
 
-waitForFunc("capes", () => waitForSelector("main", addCapes));
+waitForSelector("main", addCapes);
