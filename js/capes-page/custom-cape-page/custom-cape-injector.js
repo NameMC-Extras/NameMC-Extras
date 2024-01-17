@@ -1,13 +1,13 @@
 /* copyright 2024 | Faav#6320 | github.com/bribes */
 
-// THIS SCRIPT BELOW IS TEMPORARY SINCE WE DONT HAVE AN API YET
-
-var inject3 = document.createElement('script');
-inject3.src = chrome.runtime.getURL('more-capes.js');
-inject3.onload = function() {
-    this.remove();
-};
-(document.head || document.documentElement).appendChild(inject3);
+fetch("https://assets.faav.top/data/capes.json").then(res => res.json()).then(data => {
+    var inject = document.createElement('iframe');
+    inject.srcdoc = `<script>window.top.capes=${JSON.stringify(data)}</script>`;
+    inject.onload = function () {
+        this.remove();
+    };
+    (document.head || document.documentElement).appendChild(inject);
+})
 
 /*********************/
 
