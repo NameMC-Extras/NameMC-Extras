@@ -8,7 +8,7 @@ const waitForModal = function (callback) {
     }
 };
 
-var profileEls = document.querySelectorAll('img.skin-2d').map(a=>a.parentElement);
+var profileEls = [...document.querySelectorAll('img.skin-2d')].map(a=>a.parentElement);
 if (profileEls.length > 1)  profileEls = document.querySelectorAll('[href*="/my-profile/switch"]');
 
 var profiles = [...profileEls].map(profile => ({
