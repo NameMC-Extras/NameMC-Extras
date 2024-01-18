@@ -2,7 +2,7 @@ console.log("Creating custom cape page...");
 
 // only use for getting animate cookie
 function getCookie(name) {
-  let cookies = Object.fromEntries(document.cookie.split(';').map(e=>e.split('=').map(e=>decodeURIComponent(e.trim()))));
+  let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));
   return cookies[name];
 }
 
@@ -131,16 +131,16 @@ async function loadPage(mainDiv) {
   mainDiv.style["margin-top"] = "1rem"
 
   // get cape and update page title
-  const cape = await getCape(capeId);
+  const cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
   if (!cape) return;
-  const capeCategory = await getCapeCategory(cape.category);
-  document.title = `${cape.name} | ${capeCategory.name} Cape | NameMC Extras`
-  const capeOwners = await cape.getUsers();
+  const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name;
+  document.title = `${cape.name} | ${capeCategory} Cape | NameMC Extras`
+  const capeOwners = supabase_data.users.filter(user => user.cape == capeId);
   // update page
   mainDiv.innerHTML = `
     <h1 class="text-center" translate="no">
       ${cape.name}
-      <small class="text-muted text-nowrap">${capeCategory.name} Cape</small>
+      <small class="text-muted text-nowrap">${capeCategory} Cape</small>
     </h1>
     <hr class="mt-0">
     <div class="row justify-content-center">
@@ -173,7 +173,7 @@ async function loadPage(mainDiv) {
             <div class="d-flex flex-column" style="max-height: 25rem">
               <div class="card-header py-1"><strong>Profiles (${capeOwners.length})</strong></div>
               <div class="card-body player-list py-2">
-                  ${capeOwners.map(u => `<a translate="no" href="/profile/${u.uuid}" ${u.note ? `title="${u.note}" data-note` : ''}>${u.uuid}</a>`).join("")}
+                  ${capeOwners.map(u => `<a translate="no" href="/profile/${u.user}" ${u.note ? `title="${u.note}" data-note` : ''}>${u.user}</a>`).join("")}
               </div>
             </div>
           </div>
@@ -185,7 +185,7 @@ async function loadPage(mainDiv) {
   waitForFunc("skinview3d", () => {
     const skinContainer = document.getElementsByTagName("canvas").item(0);
     const steveDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAABJlBMVEVMaXEAf38AqKgAmZmqfWaWX0EAaGhGOqUwKHIAr691Ry8qHQ1qQDA/Pz9ra2smIVuHVTuWb1sAYGBWScwoKCgmGgovHw8AzMw6MYkkGAgoGwoAW1sjIyMAnp5RMSWGUzQsHg4pHAyBUzkrHg0fEAsoGg0mGAstHQ6aY0QnGwstIBB3QjWcZ0gzJBEyIxBiQy8rHg6dak8mGgwsHhGKWTsoGwsjFwmEUjF0SC+iakd6TjOHWDokGAqDVTucY0WIWjk6KBQoHAsvIhGcaUz///+0hG27iXJSPYlSKCaaZEqfaEmPXj4vIA2AUzQ0JRJvRSxtQyqQXkOsdlo/KhWcY0aWX0Cze2K+iGytgG1CKhK1e2e9jnK9i3K2iWycclzGloC9jnS3gnKSJOIgAAAAAXRSTlMAQObYZgAAAvxJREFUWMPtlmebojAQx5cEkAiecHcgwrGArPW2997b9d779/8SN0nMruK6oL71//iYocyPmTA6MzPTla5X4VOdK3Y1M6r0quMAoFo0QiMMxwE4js0BT0DG6ICqQ3Nw9LEB4GvbziQA5i8A12MAbCe25yiAaQxAbIN0feTX6Hl2O17sdF4mzknVTvROZzFu254n6iIPwI7iZCFJkoVvH6KThSSObAro1kUmIGrY8fLGfpz8+vHn59/3r+P9jeXYbkSiLrIjqDcjrx2dyhfy19+XZ2enUduLmnVP1EWOFLzVzb3D44vzq++XV+fy8eHe5iqcFHWRA1BvrG0pRx8//zOMLzuvjpSttUadbiKvi+w98JpLK62w+O7TU9CLWjFsrSw1vUjURSYgDFvhvLK+/eZtrbZ7cLC7vf58/tl8C36QtC6KYa5aeAR6DBLHFV5LlYddifOoUkHGrDGbDeDlPACogCYFIPA3JkphAKBpZa0AgoWuriRJPg5qO7VaEIAtBQghQhDiNmErAd0Cyn2AgqSqEkIB+BMCtoro3QAAUyKIBPR6CqD1AdiNBAUYPMFWCRdiYMKg9wN8VfXheoDhi9uYIMwBENQ9EYDhglTf9zGmbhiD6TNvOFYUxZRBJhh07Qe4boHuBQWAj4r5QzHAVMIOEAdYsqyYdwF694ACIADEALAH1BsgJgdYDGBZPQBNG3gLAiCxTbwB0CdTgNkfgQBotwDCvAgWG0YFfhygpAClkgCUSg9AkipJGNMAOABstg0KB8gKjQRS6QFwR7FCKmUKLLgAoEXmughjt8ABlswiyQCwiICARXlj+KJPBj/LTEcw1VRTTTXKvICGdeXcAwdoIgAaNliMkkJuQO+84NI+AYL/+GBgLsgGlG8aTQBNQuq2+vwArdzbqdBAWx8FcOdcMBSQmheGzgXDAWU+L9wAREvLC0ilQAEWB5h9c0E2gKdiMgDrymbOCLQUQOEAMycgPS8o3dzpaENTyQHob/fsydYkAMjdsthocyfgP7DZYc3t4J05AAAAAElFTkSuQmCC";
-    const capeURL = cape.src;
+    const capeURL = cape.image_src;
 
     let skinViewer = new skinview3d.SkinViewer({
       canvas: skinContainer,
@@ -245,4 +245,4 @@ async function loadPage(mainDiv) {
  * MAIN LOGIC
  */
 
-waitForFunc("capes", () => { waitForSelector("main", loadPage) });
+waitForFunc("supabase_data", () => waitForSelector("main", loadPage));
