@@ -1,7 +1,7 @@
 # NameMC Extras (Beta)
 A Chromium Extension that adds many features to NameMC currently work in progress.
 
-[Press here to go to the Firefox version.](https://github.com/bribes/NameMC-Extras/tree/firefox)
+[Press here to go to the Firefox version.](https://github.com/NameMC-Extras/NameMC-Extras/tree/firefox)
 
 Shouts out to M6, Orius, Arky, Swede
 
