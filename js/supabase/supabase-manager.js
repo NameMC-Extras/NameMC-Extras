@@ -1,12 +1,5 @@
 let client = null;
 
-async function injectFunc(injectedFunction) {
-  var inject = document.createElement('iframe');
-  inject.srcdoc = `<script>${"window.top." + injectedFunction.name + "=" + JSON.stringify(await injectedFunction())}</script>`;
-
-  (document.head || document.documentElement).appendChild(inject);
-}
-
 function getSupabaseClient() {
   if (client) return client;
   client = window.supabase.createClient('https://cesolgpkhjyzprrejqzn.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlc29sZ3BraGp5enBycmVqcXpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU0NTMxMTcsImV4cCI6MjAyMTAyOTExN30.kQO7yzcNRTHUIjC-xIQPVNK2HPSqWl_kh1PrZHvdifI');
