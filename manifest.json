@@ -8,8 +8,18 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "3.0.4",
+  "version": "3.0.5",
   "content_scripts": [
+    {
+      "js": [
+        "js/supabase/supabase-fast.js",
+        "js/page-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/*"
+      ],
+      "run_at": "document_start"
+    },
     {
       "css": [
         "css/NameMC.css"
@@ -25,24 +35,6 @@
       "matches": [
         "*://*.namemc.com/extras/*"
       ]
-    },
-    {
-      "js": [
-        "js/profile-page/profile-injector.js"
-      ],
-      "matches": [
-        "*://*.namemc.com/profile/*"
-      ],
-      "run_at": "document_start"
-    },
-    {
-      "js": [
-        "js/page-injector.js"
-      ],
-      "matches": [
-        "*://*.namemc.com/*"
-      ],
-      "run_at": "document_start"
     },
     {
       "js": [
@@ -64,10 +56,25 @@
         "*://*.namemc.com/cape/*/*"
       ],
       "run_at": "document_start"
+    },
+    {
+      "js": [
+        "js/profile-page/profile-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/profile/*"
+      ],
+      "run_at": "document_start"
     }
   ],
-  "web_accessible_resources": [{
-    "resources": ["*"],
-    "matches": ["<all_urls>"]
-  }]
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }
