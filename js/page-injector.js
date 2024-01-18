@@ -67,6 +67,21 @@ const customMenuItem = (id, name, href, location, icon) => {
     })
 }
 
+// INJECT SUPABASE
+
+var supabaseInject1 = document.createElement("script");
+supabaseInject1.src = chrome.runtime.getURL('js/supabase/supabase.bundle.js');
+supabaseInject1.onload = function () {
+    this.remove();
+};
+(document.head || document.documentElement).appendChild(supabaseInject1);
+var supabaseInject2 = document.createElement("script");
+supabaseInject2.src = chrome.runtime.getURL('js/supabase/supabase-manager.js');
+supabaseInject2.onload = function () {
+    this.remove();
+};
+(document.head || document.documentElement).appendChild(supabaseInject2);
+
 // INJECTING PAGES
 
 customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait menu-icon')
@@ -74,21 +89,6 @@ customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-p
 // INJECTING MENU ITEMS
 
 customMenuItem('generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image')
-
-// INJECT SUPABASE
-
-var supabaseInject1 = document.createElement("script");
-supabaseInject1.src = chrome.runtime.getURL('js/supabase.bundle.js');
-supabaseInject1.onload = function () {
-    this.remove();
-};
-(document.head || document.documentElement).appendChild(supabaseInject1);
-var supabaseInject2 = document.createElement("script");
-supabaseInject2.src = chrome.runtime.getURL('js/supabase-manager.js');
-supabaseInject2.onload = function () {
-    this.remove();
-};
-(document.head || document.documentElement).appendChild(supabaseInject2);
 
 // Credits
 waitForSelector("footer .row", (footer) => {
