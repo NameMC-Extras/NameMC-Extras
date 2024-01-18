@@ -41,7 +41,7 @@
         "js/capes-page/capes-injector.js"
       ],
       "matches": [
-        "*://*.namemc.com/capes/*"
+        "*://*.namemc.com/capes"
       ],
       "run_at": "document_start"
     },
