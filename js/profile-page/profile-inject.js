@@ -259,6 +259,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
     var uuid = document.querySelector('.order-lg-2').innerText;
     var views = document.querySelector('.card-body > :nth-child(3)');
+    var cardBody = document.querySelector('.card-body');
 
     // create layer button
     createLayerBtn()
@@ -279,6 +280,30 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
       </div>
     `;
+    // add badges
+    waitForFunc("supabase_data", () => {
+      const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user == uuid).map(v => v.badge);
+      if (userBadgeIds.length > 0) {
+        console.log(userBadgeIds);
+        const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
+        let badgesHTML = "";
+        userBadges.forEach(badge => {
+          badgesHTML += `
+            <a class="d-inline-block position-relative p-1" href="javascript:void(0)" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="&#xFEFF;${badge.name}">
+              <img class="service-icon" style="" src="${badge.image}">
+            </a>
+          `;
+        })
+        cardBody.innerHTML += `
+          <div class="row g-0 align-items-center">
+            <div class="col-auto col-lg-3 pe-3"><strong>Badges</strong></div>
+            <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem">
+                ${badgesHTML}
+            </div>
+          </div>
+        `;
+      }
+    });
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';

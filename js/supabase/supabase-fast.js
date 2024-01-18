@@ -10,9 +10,11 @@
   }
 
   var endPoints = {
-    "categories": "/cape_categories?select=*",
+    "badges": "/badges?select=*",
     "capes": "/capes?select=*",
-    "users": "/user_capes?select=*"
+    "categories": "/cape_categories?select=*",
+    "user_badges": "/user_badges?select=*",
+    "user_capes": "/user_capes?select=*"
   }
 
 
