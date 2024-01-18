@@ -3,14 +3,23 @@ console.log("Injecting capes page...");
 const waitForSelector = function (selector, callback) {
   query = document.querySelector(selector)
   if (query) {
-      callback(query);
+    callback(query);
   } else {
-      setTimeout(function () {
-          waitForSelector(selector, callback);
-      });
+    setTimeout(function () {
+      waitForSelector(selector, callback);
+    });
   }
 };
 
+const waitForFunc = function (func, callback) {
+  if (window[func]) {
+    callback();
+  } else {
+    setTimeout(function () {
+      waitForFunc(func, callback);
+    });
+  }
+};
 
 
 /*
@@ -27,11 +36,11 @@ function getCapeCardHTML(cape, userCount) {
   return `
     <div class="col-4 col-md-2">
       <div class="card mb-2">
-        <a href="${cape.getURL()}">
+        <a href="${`https://namemc.com/cape/${cape.category}/${cape.id}`}">
           <div class="card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1" translate="no">${cape.name}</div>
           <div class="card-body position-relative text-center checkered p-1">
             <div>
-              <img class="drop-shadow auto-size-square" loading="lazy" width="256" height="256" src="${cape.image}" alt="${cape.name}" title="${cape.name}">
+              <img class="drop-shadow auto-size-square" loading="lazy" width="256" height="256" src="${cape.image_render}" alt="${cape.name}" title="${cape.name}">
             </div>
             <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${userCount}★</div>
           </div>
@@ -48,12 +57,13 @@ function getCapeCardHTML(cape, userCount) {
  */
 
 async function addCapes(mainDiv) {
-  const categories = (await getAllCategories()).filter(cat => cat.hidden === false);
+  const categories = supabase_data.categories.filter(cat => cat.hidden === false)
   categories.forEach(async cat => {
-    const capes = await cat.getCapes();
+    const capes = supabase_data.capes.filter(cape => cape.category == cat.id)
     // get user count
     const mapPromise = await Promise.all(capes.map(async cape => {
-      cape.users = await cape.getUsers();
+      console.log(cape)
+      cape.users = supabase_data.users.filter(user => user.cape == cape.id)
       return cape;
     }));
     const capeHTMLCards = [];
@@ -64,17 +74,17 @@ async function addCapes(mainDiv) {
     // create category
     var categoryRange = document.createRange();
     var categoryHTML = categoryRange.createContextualFragment(`
-      <br/>
-      <h1 class="text-center">${cat.name} Capes</h1>
-      <hr class="mt-0">
-      <div class="mb-2">
-        <div class="row gx-2 justify-content-center">
-          ${capeHTMLCards.join("")}
-        </div>
-      </div>
-    `);
+          <br/>
+          <h1 class="text-center">${cat.name} Capes</h1>
+          <hr class="mt-0">
+          <div class="mb-2">
+            <div class="row gx-2 justify-content-center">
+              ${capeHTMLCards.join("")}
+            </div>
+          </div>
+        `);
     mainDiv.append(categoryHTML);
   });
 }
 
-waitForSelector("main", addCapes);
+waitForFunc("supabase_data", () => waitForSelector("main", addCapes));
