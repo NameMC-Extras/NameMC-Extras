@@ -120,11 +120,12 @@ function addCapes(mainDiv) {
 
     categoryHTML.querySelector("h1").textContent = `${cat.name} Capes`;
 
-    console.log(categoryHTML.querySelector("temp").innerHTML)
     return categoryHTML.querySelector("temp").innerHTML;
   });
 
-  mainDiv.innerHTML += categoriesHTML.join("");
+  var categoriesRange = document.createRange();
+  var categoriesFrag = categoriesRange.createContextualFragment(categoriesHTML.join(""))
+  mainDiv.append(categoriesFrag)
 }
 
 waitForStorage("supabase_data", () => waitForSelector("main", addCapes));
