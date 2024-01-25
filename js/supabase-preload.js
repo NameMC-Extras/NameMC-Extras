@@ -27,7 +27,5 @@
     localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(await datas)))
   }
 
-  fetchSupabase(Object.values(endPoints)).then(async results => {
-    storeResults(results)
-  })
+  fetchSupabase(Object.values(endPoints)).then(results => storeResults(results))
 })()
