@@ -60,6 +60,16 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   };
 
+  const waitForSupabase = function (callback) {
+    if (window.localStorage.getItem("supabase_data") && window.localStorage.getItem("supabase_data").length != 0) {
+      callback(JSON.parse(window.localStorage.getItem("supabase_data")));
+    } else {
+      setTimeout(function () {
+        waitForSupabase(callback);
+      });
+    }
+  };
+
   const waitForTooltip = function (callback) {
     if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
       callback();
@@ -126,7 +136,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     })
   }
 
-  // add elytra button
+  // add layer button
   const createLayerBtn = () => {
     waitForSelector('#play-pause-btn', () => {
       var pauseBtn = document.querySelector('#play-pause-btn');
@@ -229,7 +239,19 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var creationDate = json.data.creationDate;
       var accountType = json.data.accountType;
       var tooltip = json.data.tooltip;
-      acctype.innerHTML = `<tooltip>${accountType}</tooltip> <i id="warningacc" class="fas fa-exclamation-circle"></i>`;
+      var tooltipEl = document.createElement("tooltip");
+      var warningAccEl = document.createElement("i");
+
+      tooltipEl.textContent = accountType+" ";
+
+      warningAccEl.id = "warningacc";
+      warningAccEl.classList.add("fas");
+      warningAccEl.classList.add("fa-exclamation-circle");
+
+      acctype.innerHTML = "";
+      acctype.append(tooltipEl);
+      acctype.append(warningAccEl);
+
       waitForTooltip(() => {
         $('#acctype tooltip').tooltip({
           "placement": "top",
@@ -243,14 +265,22 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         });
       })
       if (creationDate !== 'null') {
-        cdate.innerHTML = `${new Date(creationDate).toLocaleDateString()} <i id="warningcd" class="fas fa-exclamation-circle"></i>`;
+        var warningCdEl = document.createElement("i")
+
+        warningCdEl.id = "warningcd";
+        warningCdEl.classList.add("fas");
+        warningCdEl.classList.add("fa-exclamation-circle");
+
+        cdate.textContent = new Date(creationDate).toLocaleDateString()+" ";
+        cdate.append(warningCdEl);
+
         waitForTooltip(() => $('#warningcd').tooltip({
           "placement": "top",
           "boundary": "viewport",
           "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
         }))
       } else {
-        cdate.innerHTML = 'Not Found!';
+        cdate.textContent = 'Not Found!';
       }
     }
   });
@@ -280,30 +310,46 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
       </div>
     `;
+
     // add badges
-    waitForFunc("supabase_data", () => {
+    waitForSupabase((supabase_data) => {
       const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user == uuid).map(v => v.badge);
       if (userBadgeIds.length > 0) {
         console.log(userBadgeIds);
+        const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
+        var hrEl = document.createElement("hr");
+        hrEl.classList.add("my-1");
+        if (!socialsTitle) cardBody.append(hrEl)
+
         const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
-        let badgesHTML = "";
-        userBadges.forEach(badge => {
-          badgesHTML += `
-            <a class="d-inline-block position-relative p-1" href="javascript:void(0)" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="&#xFEFF;${badge.name}">
-              <img class="service-icon" style="" src="${badge.image}">
-            </a>
-          `;
-        })
-        cardBody.innerHTML += `
-          <div class="row g-0 align-items-center">
-            <div class="col-auto col-lg-3 pe-3"><strong>Badges</strong></div>
-            <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem">
-                ${badgesHTML}
-            </div>
+        let badgeCardRange = document.createRange();
+        let badgeCardHTML = badgeCardRange.createContextualFragment(`
+        <div class="row g-0 align-items-center">
+          <div class="col-auto col-lg-3 pe-3"><strong>Badges</strong></div>
+          <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges">
           </div>
-        `;
+        </div>
+        `)
+        let badgesHTML = userBadges.forEach(badge => {
+          var badgeRange = document.createRange()
+          var badgeHTML = badgeRange.createContextualFragment(`
+            <a class="d-inline-block position-relative p-1" href="javascript:void(0)" data-bs-toggle="popover" data-bs-placement="top">
+              <img class="service-icon" style="">
+            </a>
+          `);
+
+          badgeHTML.querySelector("img").src = badge.image;
+          badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
+          badgeHTML.querySelector("a").setAttribute("data-bs-content", badge.name);
+
+          badgeCardHTML.querySelector("#badges").append(badgeHTML);
+        })
+
+        console.log(badgeCardHTML)
+        cardBody.append(badgeCardHTML)
       }
     });
+
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';
@@ -377,7 +423,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               skin.classList.add('skinart');
             })
             skinArt = true;
-            borderBtn.innerHTML = 'show borders';
+            borderBtn.textContent = 'show borders';
           } else {
             skinsContainer.style.width = '324px';
             skinsContainer.style.margin = 'auto';
@@ -385,7 +431,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               skin.classList.remove('skinart');
             })
             skinArt = false;
-            borderBtn.innerHTML = 'hide borders';
+            borderBtn.textContent = 'hide borders';
           }
         }
       }
@@ -404,11 +450,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           if (isHidden == true) {
             showHidden();
             isHidden = false;
-            histBtn.innerHTML = 'hide hidden';
+            histBtn.textContent = 'hide hidden';
           } else {
             hideHidden();
             isHidden = true;
-            histBtn.innerHTML = 'show hidden';
+            histBtn.textContent = 'show hidden';
           }
         }
       }
@@ -486,13 +532,17 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         if (capeHash !== '') {
           waitForImage(() => {
             skinViewer.loadCape(window.namemc.images[capeHash].src);
+            waitForSupabase((supabase_data) => {
+              const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).map(v => v.cape);
+              const notMarcOrLucky = uuid != "b0588118-6e75-410d-b2db-4d3066b223f7" || Math.random() * 10 < 1;
+
+              if (userCapeIds.length > 0 && notMarcOrLucky) {
+                const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
+                skinViewer.loadCape(userCapes[0].image_src)
+              }
+            })
             setTimeout(createElytraBtn);
           }, capeHash);
-        }
-        const userCustomCapes = await getUserCapes(uuid);
-        const notMarcOrLucky = uuid != "b0588118-6e75-410d-b2db-4d3066b223f7" || Math.random() * 10 < 1;
-        if (userCustomCapes.length > 0 && notMarcOrLucky) {
-          skinViewer.loadCape(userCustomCapes[0].src);
         }
 
         // upside down gang
