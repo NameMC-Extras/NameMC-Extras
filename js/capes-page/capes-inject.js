@@ -54,7 +54,7 @@ function getCapeCardHTML(cape, userCount) {
       titleEl.textContent = cape.name;
 
       return titleEl.outerHTML;
-      })()}
+    })()}
           <div class="card-body position-relative text-center checkered p-1">
             <div>
               ${(() => {
@@ -85,17 +85,19 @@ function getCapeCardHTML(cape, userCount) {
  * MAIN LOGIC
  */
 
-async function addCapes(mainDiv) {
+function addCapes(mainDiv) {
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
   const categories = supabase_data.categories.filter(cat => cat.hidden === false)
-  categories.forEach(async cat => {
+  var categoriesHTML = categories.map(cat => {
     const capes = supabase_data.capes.filter(cape => cape.category == cat.id)
+
     // get user count
-    const mapPromise = await Promise.all(capes.map(async cape => {
+    const mapPromise = capes.map(cape => {
       console.log(cape)
       cape.users = supabase_data.user_capes.filter(user => user.cape == cape.id)
       return cape;
-    }));
+    });
+
     const capeHTMLCards = [];
     mapPromise.sort((a, b) => b.users.length - a.users.length).forEach(cape => {
       console.log(cape);
@@ -104,6 +106,7 @@ async function addCapes(mainDiv) {
     // create category
     var categoryRange = document.createRange();
     var categoryHTML = categoryRange.createContextualFragment(`
+        <temp>
           <br/>
           <h1 class="text-center"></h1>
           <hr class="mt-0">
@@ -112,11 +115,16 @@ async function addCapes(mainDiv) {
               ${capeHTMLCards.join("")}
             </div>
           </div>
+        </temp>
         `);
 
     categoryHTML.querySelector("h1").textContent = `${cat.name} Capes`;
-    mainDiv.append(categoryHTML);
+
+    console.log(categoryHTML.querySelector("temp").innerHTML)
+    return categoryHTML.querySelector("temp").innerHTML;
   });
+
+  mainDiv.innerHTML += categoriesHTML.join("");
 }
 
 waitForStorage("supabase_data", () => waitForSelector("main", addCapes));
