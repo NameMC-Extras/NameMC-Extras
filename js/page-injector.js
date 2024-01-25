@@ -11,7 +11,7 @@ const waitForSelector = function (selector, callback) {
 };
 
 const customPage = (page, name, title, icon) => {
-    waitForSelector('[href="/minecraft-skins"]', async () => {
+    waitForSelector('[href="/minecraft-skins"]', () => {
         var isPage = location.pathname == "/extras/" + page;
         var capeNavBar = document.querySelector('.nav-link[href="/capes"]').parentElement;
         var customNavRange = document.createRange();
@@ -56,7 +56,7 @@ const customPage = (page, name, title, icon) => {
 }
 
 const customMenuItem = (id, name, href, location, classes) => {
-    waitForSelector('[href="/my-account"]', async (myAccountBtn) => {
+    waitForSelector('[href="/my-account"]', (myAccountBtn) => {
         var dropDownMenu = myAccountBtn.parentElement;
         var menuItem = document.createElement("a")
         menuItem.classList.add("dropdown-item");
