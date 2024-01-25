@@ -242,15 +242,13 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var tooltipEl = document.createElement("tooltip");
       var warningAccEl = document.createElement("i");
 
-      tooltipEl.textContent = accountType+" ";
+      tooltipEl.textContent = accountType + " ";
 
       warningAccEl.id = "warningacc";
       warningAccEl.classList.add("fas");
       warningAccEl.classList.add("fa-exclamation-circle");
 
-      acctype.innerHTML = "";
-      acctype.append(tooltipEl);
-      acctype.append(warningAccEl);
+      acctype.innerHTML = tooltipEl.outerHTML + warningAccEl.outerHTML;
 
       waitForTooltip(() => {
         $('#acctype tooltip').tooltip({
@@ -271,7 +269,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         warningCdEl.classList.add("fas");
         warningCdEl.classList.add("fa-exclamation-circle");
 
-        cdate.textContent = new Date(creationDate).toLocaleDateString()+" ";
+        cdate.textContent = new Date(creationDate).toLocaleDateString() + " ";
         cdate.append(warningCdEl);
 
         waitForTooltip(() => $('#warningcd').tooltip({
@@ -285,7 +283,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     }
   });
 
-  waitForSelector('.order-lg-2', async () => {
+  waitForSelector('.order-lg-2', () => {
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
     var uuid = document.querySelector('.order-lg-2').innerText;
     var views = document.querySelector('.card-body > :nth-child(3)');
@@ -326,15 +324,15 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         let badgeCardHTML = badgeCardRange.createContextualFragment(`
         <div class="row g-0 align-items-center">
           <div class="col-auto col-lg-3 pe-3"><strong>Badges</strong></div>
-          <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges">
-          </div>
+          <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges"></div>
         </div>
         `)
-        let badgesHTML = userBadges.forEach(badge => {
+        let badgesHTML = userBadges.map(badge => {
+          console.log(badge)
           var badgeRange = document.createRange()
           var badgeHTML = badgeRange.createContextualFragment(`
             <a class="d-inline-block position-relative p-1" href="javascript:void(0)" data-bs-toggle="popover" data-bs-placement="top">
-              <img class="service-icon" style="">
+              <img class="service-icon">
             </a>
           `);
 
@@ -342,8 +340,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
           badgeHTML.querySelector("a").setAttribute("data-bs-content", badge.name);
 
-          badgeCardHTML.querySelector("#badges").append(badgeHTML);
+          return badgeHTML.querySelector("a").outerHTML;
         })
+
+        console.log(badgesHTML.join(""))
+        badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
 
         console.log(badgeCardHTML)
         cardBody.append(badgeCardHTML)
@@ -460,7 +461,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       }
     });
 
-    waitForSVSelector('.skin-3d', async () => {
+    waitForSVSelector('.skin-3d', () => {
       const oldContainer = document.querySelector('.skin-3d');
       oldContainer.classList.remove('skin-3d');
       const newContainer = document.createElement('canvas');
@@ -518,7 +519,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
-      waitForImage(async () => {
+      waitForImage(() => {
         // has ears
         if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
 
@@ -571,7 +572,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               el.classList.remove('skin-button-selected');
             });
             el.classList.add('skin-button-selected');
-            waitForImage(async () => {
+            waitForImage(() => {
               skinViewer.loadSkin(window.namemc.images[el.getAttribute('data-id')].src);
             }, el.getAttribute('data-id'));
           }
@@ -584,7 +585,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               el.classList.remove('skin-button-selected');
             });
             el.classList.add('skin-button-selected');
-            waitForImage(async () => {
+            waitForImage(() => {
               if (elytraOn == true) {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
                   backEquipment: "elytra"
