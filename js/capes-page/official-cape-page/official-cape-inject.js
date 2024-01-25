@@ -147,7 +147,7 @@ var elytraOn = false;
  */
 
 // create skin viewer
-waitForSVSelector('.skin-3d', async () => {
+waitForSVSelector('.skin-3d', () => {
   const oldContainer = document.querySelector('.skin-3d');
   oldContainer.classList.remove('skin-3d');
   const newContainer = document.createElement('canvas');
