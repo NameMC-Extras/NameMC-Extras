@@ -38,6 +38,13 @@ const customPage = (page, name, title, icon) => {
             };
             (document.head || document.documentElement).appendChild(inject2);
 
+            var inject3 = document.createElement('script');
+            inject3.src = chrome.runtime.getURL('js/jscolor.min.js');
+            inject3.onload = function () {
+                this.remove();
+            };
+            (document.head || document.documentElement).appendChild(inject3);
+
             waitForSelector('#faq', (faq) => {
                 faq.remove()
             });
@@ -48,14 +55,22 @@ const customPage = (page, name, title, icon) => {
     })
 }
 
-const customMenuItem = (id, name, href, location, icon) => {
+const customMenuItem = (id, name, href, location, classes) => {
     waitForSelector('[href="/my-account"]', async (myAccountBtn) => {
         var dropDownMenu = myAccountBtn.parentElement;
         var menuItem = document.createElement("a")
         menuItem.classList.add("dropdown-item");
         menuItem.id = id;
         menuItem.href = href;
-        menuItem.innerHTML = `${icon ? `<i class="${icon} menu-icon"></i>` : ""}${name}`
+        menuItem.textContent = name;
+        if (classes) {
+            var iconEl = document.createElement("i");
+            iconEl.classList.add("menu-icon");
+            classes.split(" ").forEach(icon => iconEl.classList.add(icon));
+
+            menuItem.before(iconEl);
+        }
+        menuItem.before()
         dropDownMenu.insertBefore(menuItem, dropDownMenu.childNodes[location]);
 
         var inject1 = document.createElement('script');
@@ -66,21 +81,6 @@ const customMenuItem = (id, name, href, location, icon) => {
         (document.head || document.documentElement).appendChild(inject1);
     })
 }
-
-// INJECT SUPABASE
-
-var supabaseInject1 = document.createElement("script");
-supabaseInject1.src = chrome.runtime.getURL('js/supabase/supabase.bundle.js');
-supabaseInject1.onload = function () {
-    this.remove();
-};
-(document.head || document.documentElement).appendChild(supabaseInject1);
-var supabaseInject2 = document.createElement("script");
-supabaseInject2.src = chrome.runtime.getURL('js/supabase/supabase-manager.js');
-supabaseInject2.onload = function () {
-    this.remove();
-};
-(document.head || document.documentElement).appendChild(supabaseInject2);
 
 // INJECTING PAGES
 
