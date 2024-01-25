@@ -12,7 +12,7 @@
   "content_scripts": [
     {
       "js": [
-        "js/supabase/supabase-fast.js",
+        "js/supabase-preload.js",
         "js/page-injector.js"
       ],
       "matches": [
@@ -46,6 +46,18 @@
       "run_at": "document_start"
     },
     {
+      "js": [
+        "js/capes-page/official-cape-page/official-cape-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/cape/*"
+      ],
+      "exclude_matches": [
+        "*://*.namemc.com/cape/*/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
       "css": [
         "css/CustomPage.css"
       ],
@@ -70,10 +82,10 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "*"
+        "/*"
       ],
       "matches": [
-        "<all_urls>"
+        "*://*.namemc.com/*"
       ]
     }
   ]
