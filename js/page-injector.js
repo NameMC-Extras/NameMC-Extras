@@ -18,7 +18,7 @@ const customPage = (page, name, title, icon) => {
         var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link ${isPage ? "active" : ""}' href='https://${window.parent.location.host}/extras/${page}'>${name}</a></li>`);
         var customNavDropRange = document.createRange();
         var customNavDropHTML = customNavDropRange.createContextualFragment(`<a class='dropdown-item' id='${page}' href='https://${window.parent.location.host}/extras/${page}' title='${name}'><i class="${icon}"></i>${name}</a>`);
-        capeNavBar.appendChild(customNavHTML);
+        capeNavBar.after(customNavHTML);
         waitForSelector('a.dropdown-item[href="/capes"]', (capeDropNav) => capeDropNav.after(customNavDropHTML));
 
         if (isPage === true) {
