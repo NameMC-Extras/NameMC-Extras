@@ -135,7 +135,7 @@ class CustomCape {
  * FUNCTIONS
  */
 
-async function loadPage(mainDiv) {
+function loadPage(mainDiv) {
   console.log("Loading page!")
 
   mainDiv.style["margin-top"] = "1rem";
@@ -187,13 +187,13 @@ async function loadPage(mainDiv) {
               <strong>Description</strong>
             </div>
             ${(() => {
-              var cardBody = document.createElement("div");
-              cardBody.classList.add("card-body");
-              cardBody.classList.add("py-2");
-              cardBody.textContent = cape.description ?? "Awarded for being a prominent member of the OptiFine community.";
+      var cardBody = document.createElement("div");
+      cardBody.classList.add("card-body");
+      cardBody.classList.add("py-2");
+      cardBody.textContent = cape.description ?? "Awarded for being a prominent member of the OptiFine community.";
 
-              return cardBody.outerHTML;
-            })()}
+      return cardBody.outerHTML;
+    })()}
           </div>
         </div>
       </div>
@@ -203,17 +203,17 @@ async function loadPage(mainDiv) {
               <div class="card-header py-1"><strong>Profiles (${capeOwners.length})</strong></div>
               <div class="card-body player-list py-2">
                 ${capeOwners.map(u => {
-                    var userEl = document.createElement("a");
-                    userEl.textContent = u.user;
-                    userEl.href = "/profile/" + u.user;
-                    userEl.translate = "no";
-                    if (u.note) {
-                      userEl.setAttribute("data-note", "");
-                      userEl.title = u.note;
-                    }
+      var userEl = document.createElement("a");
+      userEl.textContent = u.user;
+      userEl.href = "/profile/" + u.user;
+      userEl.translate = "no";
+      if (u.note) {
+        userEl.setAttribute("data-note", "");
+        userEl.title = u.note;
+      }
 
-                    return userEl.outerHTML;
-                }).join("")}
+      return userEl.outerHTML;
+    }).join("")}
               </div>
             </div>
           </div>
