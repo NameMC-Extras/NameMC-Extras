@@ -65,7 +65,7 @@ const customMenuItem = (id, name, href, location, classes) => {
         menuItem.textContent = name;
         if (classes) {
             var iconEl = document.createElement("i");
-            iconEl.setAttribute("class", classes+" menu-icon")
+            iconEl.setAttribute("class", classes + " menu-icon")
 
             menuItem.insertBefore(iconEl, menuItem.lastChild);
         }
@@ -84,7 +84,7 @@ const customMenuItem = (id, name, href, location, classes) => {
 // INJECTING PAGES
 
 customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait')
-customPage('badges', 'Badges', 'NameMC Extras Badges', 'fas fa-award')
+customPage('badges', 'Badges', 'Badges', 'fas fa-award')
 
 // INJECTING MENU ITEMS
 
