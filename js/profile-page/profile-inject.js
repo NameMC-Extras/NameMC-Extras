@@ -313,7 +313,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     waitForSupabase((supabase_data) => {
       const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user == uuid).map(v => v.badge);
       if (userBadgeIds.length > 0) {
-        console.log(userBadgeIds);
         const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
         var hrEl = document.createElement("hr");
         hrEl.classList.add("my-1");
@@ -328,7 +327,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         </div>
         `)
         let badgesHTML = userBadges.map(badge => {
-          console.log(badge)
           var badgeRange = document.createRange()
           var badgeHTML = badgeRange.createContextualFragment(`
             <a class="d-inline-block position-relative p-1" href="javascript:void(0)" data-bs-toggle="popover" data-bs-placement="top">
@@ -343,10 +341,8 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           return badgeHTML.querySelector("a").outerHTML;
         })
 
-        console.log(badgesHTML.join(""))
         badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
 
-        console.log(badgeCardHTML)
         cardBody.append(badgeCardHTML)
       }
     });
@@ -396,8 +392,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               if (skinArtImages.length == skins.length) {
                 for (let i = 0; i < skinArtImages.length; i += rows) {
                   const chunk = skinArtImages.slice(i, i + rows);
-                  console.log(i)
-                  console.log(chunk)
                   chunk.forEach((image, j, array) => {
                     if (array.length == rows) {
                       ctx.drawImage(image, size * j, size * (i / rows))
