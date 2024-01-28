@@ -47,6 +47,16 @@ const waitForTooltip = function (callback) {
   }
 };
 
+const waitForCape = function (callback) {
+  if (skinViewer.capeTexture) {
+    callback();
+  } else {
+    setTimeout(function () {
+      waitForCape(callback);
+    });
+  }
+};
+
 const fixPauseBtn = () => {
   setTimeout(() => {
     var pauseBtn = document.querySelector('#play-pause-btn');
@@ -273,7 +283,7 @@ function loadPage(mainDiv) {
     );
 
     fixPauseBtn()
-    fixElytraBtn()
+    waitForCape(fixElytraBtn);
   })
 
   waitForTooltip(() => $("[data-note]").tooltip())
