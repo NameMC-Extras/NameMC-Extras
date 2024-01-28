@@ -157,11 +157,10 @@ function getSpecialCapes(supabase_data) {
     return specialCapes;
 }
 
-waitForSupabase(supabase_data => {
-    waitForSelector('main', (main) => {
-        main.style["margin-top"] = "1rem";
+waitForSelector('main', (main) => {
+    main.style["margin-top"] = "1rem";
 
-        main.innerHTML = `<h1 class="text-center">Skin & Cape Tester</h1>
+    main.innerHTML = `<h1 class="text-center">Skin & Cape Tester</h1>
         <hr class="mt-0">
         <div class="row">
           <div class="col-md-6 col-lg-6">
@@ -219,7 +218,7 @@ waitForSupabase(supabase_data => {
                         <label class="custom-control-label" for="optifine">OptiFine</label>
                       </div>
                       <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" id="special" name="customRadioInline" class="custom-control-input">
+                        <input type="radio" id="special" name="customRadioInline" class="custom-control-input" disabled>
                         <label class="custom-control-label" for="special">Special</label>
                       </div>
                     </div>
@@ -233,101 +232,101 @@ waitForSupabase(supabase_data => {
                 </div>
               </div>
             </div>`;
-        waitForFunc("skinview3d", () => {
-            const skinContainer = document.querySelector('#skin_container');
-            let skinViewer = new skinview3d.SkinViewer({
-                canvas: skinContainer,
-                width: 276,
-                height: 368,
-                skin: null,
-                preserveDrawingBuffer: true
-            });
+    waitForFunc("skinview3d", () => {
+        const skinContainer = document.querySelector('#skin_container');
+        let skinViewer = new skinview3d.SkinViewer({
+            canvas: skinContainer,
+            width: 276,
+            height: 368,
+            skin: null,
+            preserveDrawingBuffer: true
+        });
 
-            skinViewer.controls.enableRotate = true;
-            skinViewer.controls.enableZoom = false;
-            skinViewer.controls.enablePan = false;
+        skinViewer.controls.enableRotate = true;
+        skinViewer.controls.enableZoom = false;
+        skinViewer.controls.enablePan = false;
 
-            skinViewer.animation = new skinview3d.WalkingAnimation();
-            skinViewer.animation.speed = 0.5;
-            skinViewer.animation.paused = paused;
-            skinViewer.animation.headBobbing = false;
+        skinViewer.animation = new skinview3d.WalkingAnimation();
+        skinViewer.animation.speed = 0.5;
+        skinViewer.animation.paused = paused;
+        skinViewer.animation.headBobbing = false;
 
-            window.skinViewer = skinViewer;
+        window.skinViewer = skinViewer;
 
-            skinViewer.fov = 40;
-            skinViewer.camera.position.y = 22 * Math.cos(.01);
-            skinViewer.playerWrapper.rotation.y = .53;
-            skinViewer.globalLight.intensity = .65;
-            skinViewer.cameraLight.intensity = .38;
-            skinViewer.cameraLight.position.set(12, 25, 0);
+        skinViewer.fov = 40;
+        skinViewer.camera.position.y = 22 * Math.cos(.01);
+        skinViewer.playerWrapper.rotation.y = .53;
+        skinViewer.globalLight.intensity = .65;
+        skinViewer.cameraLight.intensity = .38;
+        skinViewer.cameraLight.position.set(12, 25, 0);
 
-            skinContainer.addEventListener(
-                "contextmenu",
-                (event) => event.stopImmediatePropagation(),
-                true
-            );
+        skinContainer.addEventListener(
+            "contextmenu",
+            (event) => event.stopImmediatePropagation(),
+            true
+        );
 
-            fixPauseBtn();
+        fixPauseBtn();
 
-            if (Math.floor(Math.random() * 2) == 1) {
-                skinViewer.loadSkin('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAdVBMVEUAAAAAaGgAf38ApKQAr68AzMwDenoElZUFiIgKvLwkGAgmGgooKCgrHg0zJBE0JRI3Nzc6MYk/KhU/Pz9BNZtCHQpGOqVJJRBKSkpSPYlVVVVqQDB2SzN3QjWBUzmPXj6QWT+UYD6bY0mqclmzeV63g2v///9KLpkGAAAAAXRSTlMAQObYZgAAAvdJREFUWMPtlu1aozAQhWtBSdmSBYpVV4Vs0vX+L3HPmUmUdqsN/bsOSCc8zst8BGZWqyhNY3HaZoyyWiqN7XES8AK5BgBjHu5FxF3hAQLA3/WARoNwGsJygGUOm74fHVPopuWAXmKw06jHFTmwzGMzTg+QcVoQOyxrXnsICFgwHG4LaE1O9pu6trYmwfKoa91UPe/3WbHLDvKHP4fgf8q6Z0FJtvayB/QYz/ThcAgheLHSMCSQrA3UOF+Ht6fgn95C7Z3csrWAbE79be0hITw/wwNILf4jFUzHRUDd1M5P4283Pby+3kMZJ+9wk4AmBzA62JMw3j/co/4OC++4HX9AMt/KDtK2221a3wYgfLjtoqT7ZVkWCDWcBWy3bfsOgD0IZwFIk7vswWeADQE5HnwSQiEhnHgwDN2w3+87/AxQugqC56CsRal6gStMYVzgZw3h4gPQfQDwu6+MqcqyCoFX0WFZvtuX65ubNdQ5QAyHBDB3d6aACS/USSCrFPOiEgAW5wE47yDJiDrjhl6so9xA+HsEYBgkMGE0wtMJMBFQSfK8dzxEsDj2gCch+KPbBu4SEEMQh/im4kAN+NrMSplif8+BkcwVeKxJOpdiBYQAcM7KeAxg5g3dZvmgC6CIgCAAd+RBJ4ZDSsRQwcZUkrdKNKlfZcR/fd2PAY+Pab89ilRiVkkeKbSGvQkKCPrpmAHaHax+0XRHdafFgD8GZlQQEZS9ArwC/BzQtjsa7lrR2rilURZjNC9g4coCaA6dIFbf8l/KRoX7uiihfGfkW7LmhXmzZU/i52gRYN7uCXD+TFvP92BTnp0LFnhQuNzvoM4LQ+rWg84D2tqP5oKvAGKpc8Ne23kkzOeCrwBd7PcJUEVjQvI9IABamgeSpO9B+j78CziZF3Qe0HbCvnjZA+2xOrJAZy+Ko0HIKuVRCJA4EKTpICxIos4LLo0ksT1nbKK0EzQWl/q5zwSczgvJPiXhIuB0XkjzQErDZcDJvKAVZPp0Pjj9/7/jX3fLYvZOsQAAAABJRU5ErkJggg==');
+        if (Math.floor(Math.random() * 2) == 1) {
+            skinViewer.loadSkin('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAdVBMVEUAAAAAaGgAf38ApKQAr68AzMwDenoElZUFiIgKvLwkGAgmGgooKCgrHg0zJBE0JRI3Nzc6MYk/KhU/Pz9BNZtCHQpGOqVJJRBKSkpSPYlVVVVqQDB2SzN3QjWBUzmPXj6QWT+UYD6bY0mqclmzeV63g2v///9KLpkGAAAAAXRSTlMAQObYZgAAAvdJREFUWMPtlu1aozAQhWtBSdmSBYpVV4Vs0vX+L3HPmUmUdqsN/bsOSCc8zst8BGZWqyhNY3HaZoyyWiqN7XES8AK5BgBjHu5FxF3hAQLA3/WARoNwGsJygGUOm74fHVPopuWAXmKw06jHFTmwzGMzTg+QcVoQOyxrXnsICFgwHG4LaE1O9pu6trYmwfKoa91UPe/3WbHLDvKHP4fgf8q6Z0FJtvayB/QYz/ThcAgheLHSMCSQrA3UOF+Ht6fgn95C7Z3csrWAbE79be0hITw/wwNILf4jFUzHRUDd1M5P4283Pby+3kMZJ+9wk4AmBzA62JMw3j/co/4OC++4HX9AMt/KDtK2221a3wYgfLjtoqT7ZVkWCDWcBWy3bfsOgD0IZwFIk7vswWeADQE5HnwSQiEhnHgwDN2w3+87/AxQugqC56CsRal6gStMYVzgZw3h4gPQfQDwu6+MqcqyCoFX0WFZvtuX65ubNdQ5QAyHBDB3d6aACS/USSCrFPOiEgAW5wE47yDJiDrjhl6so9xA+HsEYBgkMGE0wtMJMBFQSfK8dzxEsDj2gCch+KPbBu4SEEMQh/im4kAN+NrMSplif8+BkcwVeKxJOpdiBYQAcM7KeAxg5g3dZvmgC6CIgCAAd+RBJ4ZDSsRQwcZUkrdKNKlfZcR/fd2PAY+Pab89ilRiVkkeKbSGvQkKCPrpmAHaHax+0XRHdafFgD8GZlQQEZS9ArwC/BzQtjsa7lrR2rilURZjNC9g4coCaA6dIFbf8l/KRoX7uiihfGfkW7LmhXmzZU/i52gRYN7uCXD+TFvP92BTnp0LFnhQuNzvoM4LQ+rWg84D2tqP5oKvAGKpc8Ne23kkzOeCrwBd7PcJUEVjQvI9IABamgeSpO9B+j78CziZF3Qe0HbCvnjZA+2xOrJAZy+Ko0HIKuVRCJA4EKTpICxIos4LLo0ksT1nbKK0EzQWl/q5zwSczgvJPiXhIuB0XkjzQErDZcDJvKAVZPp0Pjj9/7/jX3fLYvZOsQAAAABJRU5ErkJggg==');
+        } else {
+            skinViewer.loadSkin('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAZlBMVEUAAAAYOBYjYiQoKCgrVCg2NjY/Pz9PT09YWFhcOydkQSxlZWVsRi5vb29xq25yTjZ1UDh7snh8Vz6AglqGuYSMvoqUlmuUyJLUt4/egS7fxKLljT/rmD/r0LDvu7Hv2r/zqFj///9X5330AAAAAXRSTlMAQObYZgAAAy9JREFUWMPtVmtjojAQ1CrykMIFiRASCv3/f/JmNsGC1yr49bpIhOjMTjaP3d0umHXW4LLWGXyc2201BzPGsH2VYBwJ9kqc3UxgjfdshMGZ7QpGGBrPY80LCqxzGEDXIhL2BQJEb4R623Vd24JkuwLoZxy7rod13XoghIvrkQpGLoSRQ0E/b7vCsyCtHwBb6mCvk8410Z/cYfyESzRkRKB5TkB3dA2Gfuh7YbDiXFieB5ODpuv+820Y3j5771piYqDErJk+i8APk3X2FhMzrllQ3H0B//ExYBDdaEfjjAjAb88VWNO2nHvh6BlHwC13heOuWLUWClgUHQ7Tu64ZGWeLYLd+reHjB4LDIYq+CGruKVcUKWxJ0LffEqTpUsGlJYPgwfBcAf61UHDBhsIoviP4R0GttcrKKsuyoqhh+BMEIJjtpfgyJf3ym7QzgkypLK+qHAxZmmaZVkrXV0znIARqgpO6Zksn9YygzPMS+KoEAZ9AoGp1HYgHmm9aN7pp0PqGrzOCilDgq1yYKl1QgroSXyvcjZbrsrAZQU44WKAkT3EDIwhiQSAu4brpe3/Q0Pr5TCRJAullnuEhOZ8TaCZANRgpWeQZPX6nkIKLdkZwBig5C1gMIDolqGY88K1IEfZa7zfeXAFR74JNTnF84iw0ShcEIR6YZLw9IiAoCeA4SeL9fn9k/HWh1REv4OBVTAQYxJ0CgAI44Y1JKI5E7o9HPvMbtr/hoWFBEBP1ziCQJY4xhYpLhVdYf4rLb9rtnmFGEJ1OMccfn04RniNNXPYHlsniU2EJ30JwPwu/9vC4Hn3CYdZ/iYHZQRLPa/DdmsT6WMCyULvSpuPgukrB7zL43w3ZbJFsndbbDpH7gsNZ3fZbCNK7dD/ajQpIMFcw6g0KmOazqvTpXk7U2rqpOLCrCZBsmW6hBEczCKRAWNYFDwjykvlarMxmlcGyLvjJfJmAEZTCkN/XBeFACMfDDwRl5csOWigIQnmwQsFdvRCHgiAkphUEkua+6oXEJ9PJ1iggalYvbCaQVD+rF251+GoFs3qBJgHcEoN5vUCT0qyfkvsKglAvnKd6QSqCBwr+Ak0igZxltPjNAAAAAElFTkSuQmCC');
+        }
+
+        // make layer button work
+        document.querySelector("#layer-btn").onclick = toggleLayers;
+
+        const captureSkin = () => {
+            var a = document.createElement("a");
+            a.href = skinViewer.canvas.toDataURL();
+            a.setAttribute("download", "body");
+            a.click();
+        }
+
+        const downloadSkin = () => {
+            var a = document.createElement("a");
+            a.href = skinViewer.skinCanvas.toDataURL();
+            a.setAttribute("download", "skin");
+            a.click();
+        }
+
+        capture.onclick = captureSkin;
+        download.onclick = downloadSkin;
+
+        apply.onclick = () => {
+            const isNameMCID = /^[a-f0-9]{16}$/i;
+            if (elytraOn) {
+                skinViewer.loadCape(currentCape, {
+                    backEquipment: "elytra"
+                })
             } else {
-                skinViewer.loadSkin('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAZlBMVEUAAAAYOBYjYiQoKCgrVCg2NjY/Pz9PT09YWFhcOydkQSxlZWVsRi5vb29xq25yTjZ1UDh7snh8Vz6AglqGuYSMvoqUlmuUyJLUt4/egS7fxKLljT/rmD/r0LDvu7Hv2r/zqFj///9X5330AAAAAXRSTlMAQObYZgAAAy9JREFUWMPtVmtjojAQ1CrykMIFiRASCv3/f/JmNsGC1yr49bpIhOjMTjaP3d0umHXW4LLWGXyc2201BzPGsH2VYBwJ9kqc3UxgjfdshMGZ7QpGGBrPY80LCqxzGEDXIhL2BQJEb4R623Vd24JkuwLoZxy7rod13XoghIvrkQpGLoSRQ0E/b7vCsyCtHwBb6mCvk8410Z/cYfyESzRkRKB5TkB3dA2Gfuh7YbDiXFieB5ODpuv+820Y3j5771piYqDErJk+i8APk3X2FhMzrllQ3H0B//ExYBDdaEfjjAjAb88VWNO2nHvh6BlHwC13heOuWLUWClgUHQ7Tu64ZGWeLYLd+reHjB4LDIYq+CGruKVcUKWxJ0LffEqTpUsGlJYPgwfBcAf61UHDBhsIoviP4R0GttcrKKsuyoqhh+BMEIJjtpfgyJf3ym7QzgkypLK+qHAxZmmaZVkrXV0znIARqgpO6Zksn9YygzPMS+KoEAZ9AoGp1HYgHmm9aN7pp0PqGrzOCilDgq1yYKl1QgroSXyvcjZbrsrAZQU44WKAkT3EDIwhiQSAu4brpe3/Q0Pr5TCRJAullnuEhOZ8TaCZANRgpWeQZPX6nkIKLdkZwBig5C1gMIDolqGY88K1IEfZa7zfeXAFR74JNTnF84iw0ShcEIR6YZLw9IiAoCeA4SeL9fn9k/HWh1REv4OBVTAQYxJ0CgAI44Y1JKI5E7o9HPvMbtr/hoWFBEBP1ziCQJY4xhYpLhVdYf4rLb9rtnmFGEJ1OMccfn04RniNNXPYHlsniU2EJ30JwPwu/9vC4Hn3CYdZ/iYHZQRLPa/DdmsT6WMCyULvSpuPgukrB7zL43w3ZbJFsndbbDpH7gsNZ3fZbCNK7dD/ajQpIMFcw6g0KmOazqvTpXk7U2rqpOLCrCZBsmW6hBEczCKRAWNYFDwjykvlarMxmlcGyLvjJfJmAEZTCkN/XBeFACMfDDwRl5csOWigIQnmwQsFdvRCHgiAkphUEkua+6oXEJ9PJ1iggalYvbCaQVD+rF251+GoFs3qBJgHcEoN5vUCT0qyfkvsKglAvnKd6QSqCBwr+Ak0igZxltPjNAAAAAElFTkSuQmCC');
+                skinViewer.loadCape(currentCape)
             }
 
-            // make layer button work
-            document.querySelector("#layer-btn").onclick = toggleLayers;
-
-            const captureSkin = () => {
-                var a = document.createElement("a");
-                a.href = skinViewer.canvas.toDataURL();
-                a.setAttribute("download", "body");
-                a.click();
+            if (isNameMCID.test(skin.value)) {
+                skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${skin.value}`)
+            } else if (skin.value.length > 0) {
+                skinViewer.loadSkin('https://nmsr.nickac.dev/skin/' + skin.value)
             }
 
-            const downloadSkin = () => {
-                var a = document.createElement("a");
-                a.href = skinViewer.skinCanvas.toDataURL();
-                a.setAttribute("download", "skin");
-                a.click();
+            if (currentCape) {
+                createElytraBtn()
+            } else {
+                if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").remove()
             }
+        }
 
-            capture.onclick = captureSkin;
-            download.onclick = downloadSkin;
-
-            apply.onclick = () => {
-                const isNameMCID = /^[a-f0-9]{16}$/i;
-                if (elytraOn) {
-                    skinViewer.loadCape(currentCape, {
-                        backEquipment: "elytra"
-                    })
-                } else {
-                    skinViewer.loadCape(currentCape)
-                }
-
-                if (isNameMCID.test(skin.value)) {
-                    skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${skin.value}`)
-                } else if (skin.value.length > 0) {
-                    skinViewer.loadSkin('https://nmsr.nickac.dev/skin/' + skin.value)
-                }
-
-                if (currentCape) {
-                    createElytraBtn()
-                } else {
-                    if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").remove()
-                }
+        none.onchange = () => {
+            if (none.checked == true) {
+                currentCape = null;
+                capemenu.style.display = 'none';
             }
+        }
 
-            none.onchange = () => {
-                if (none.checked == true) {
-                    currentCape = null;
-                    capemenu.style.display = 'none';
-                }
-            }
-
-            vanilla.onchange = () => {
-                if (vanilla.checked == true) {
-                    capemenu.innerHTML = `<label class="col-4 col-form-label" for="officialcapes"><strong>Official Capes:</strong></label>
+        vanilla.onchange = () => {
+            if (vanilla.checked == true) {
+                capemenu.innerHTML = `<label class="col-4 col-form-label" for="officialcapes"><strong>Official Capes:</strong></label>
                 <div class="col">
                     <select class="form-select" id="officialcapes" name="officialcapes" required>
                         <optgroup label="Common">
@@ -387,21 +386,21 @@ waitForSupabase(supabase_data => {
                     </select>
                 </div>`;
 
-                    currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
+                currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
 
-                    capemenu.style.display = 'unset';
+                capemenu.style.display = 'unset';
 
-                    officialcapes.onchange = () => {
-                        if (officialcapes.value && officialcapes.value.length > 0) {
-                            currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
-                        }
+                officialcapes.onchange = () => {
+                    if (officialcapes.value && officialcapes.value.length > 0) {
+                        currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
                     }
                 }
             }
+        }
 
-            optifine.onchange = () => {
-                if (optifine.checked == true) {
-                    capemenu.innerHTML = `<hr style="margin: 0.7rem 0;">
+        optifine.onchange = () => {
+            if (optifine.checked == true) {
+                capemenu.innerHTML = `<hr style="margin: 0.7rem 0;">
             <label class="col-4 col-form-label" for="optifinecape"><strong>OptiFine Cape:</strong></label>
                 <div class="form-group" id="optifinecape">
                 <div class="custom-control custom-radio"> <input type="radio" id="stealopti" name="customRadio"
@@ -422,38 +421,38 @@ waitForSupabase(supabase_data => {
                     usernames are case sensitive!</small>
             </div>`;
 
-                    opticapestealuser.onchange = () => {
-                        if (opticapestealuser.value.length > 0) {
-                            currentCape = "https://cors.faav.top/optifine/stealCape?username=" + opticapestealuser.value;
-                        } else {
-                            currentCape = null;
-                        }
+                opticapestealuser.onchange = () => {
+                    if (opticapestealuser.value.length > 0) {
+                        currentCape = "https://cors.faav.top/optifine/stealCape?username=" + opticapestealuser.value;
+                    } else {
+                        currentCape = null;
                     }
+                }
 
-                    capemenu.style.display = 'unset';
+                capemenu.style.display = 'unset';
 
-                    stealopti.onchange = () => {
-                        if (stealopti.checked == true) {
-                            currentOptifineMode = "steal";
-                            optimenus.innerHTML = `<label for="opticapestealuser">Steal the OptiFine Cape design
+                stealopti.onchange = () => {
+                    if (stealopti.checked == true) {
+                        currentOptifineMode = "steal";
+                        optimenus.innerHTML = `<label for="opticapestealuser">Steal the OptiFine Cape design
                         from:</label><input type="text" class="form-control input-dark" id="opticapestealuser"
                         placeholder="Username with cape" required><small class="form-text text-muted">Note: OptiFine Cape
                         usernames are case sensitive!</small>`;
 
-                            opticapestealuser.onchange = () => {
-                                if (opticapestealuser.value.length > 0) {
-                                    currentCape = "https://cors.faav.top/optifine/stealCape?username=" + opticapestealuser.value;
-                                } else {
-                                    currentCape = null;
-                                }
+                        opticapestealuser.onchange = () => {
+                            if (opticapestealuser.value.length > 0) {
+                                currentCape = "https://cors.faav.top/optifine/stealCape?username=" + opticapestealuser.value;
+                            } else {
+                                currentCape = null;
                             }
                         }
                     }
+                }
 
-                    ofdesign.onchange = () => {
-                        if (ofdesign.checked == true) {
-                            currentOptifineMode = "of";
-                            optimenus.innerHTML = `<div class="form-inline skinforminline"> <label for="ofcapetop">Top: </label> <input id="ofcapetop" minlength="1"
+                ofdesign.onchange = () => {
+                    if (ofdesign.checked == true) {
+                        currentOptifineMode = "of";
+                        optimenus.innerHTML = `<div class="form-inline skinforminline"> <label for="ofcapetop">Top: </label> <input id="ofcapetop" minlength="1"
                         maxlength="16" name="skin" placeholder="Top color" type="text" class="form-control" style="width: 150px;"
                         data-jscolor required></div>
                      <div class="form-inline skinforminline"> <label for="ofcapebottom">Bottom: </label> <input id="ofcapebottom"
@@ -465,34 +464,34 @@ waitForSupabase(supabase_data => {
                      <div class="form-inline skinforminline"> <label for="ofshadow">Shadow: </label> <input id="ofshadow" minlength="1"
                         maxlength="16" name="skin" placeholder="Top color" type="text" class="form-control" style="width: 150px;"
                         data-jscolor required></div>`
-                        }
-
-                        ofCapeTop = new JSColor('#ofcapetop', {
-                            format: 'hex',
-                            onChange: () => currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
-                        });
-                        ofCapeBottom = new JSColor('#ofcapebottom', {
-                            format: 'hex',
-                            onChange: () => currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
-                        });
-                        ofText = new JSColor('#oftext', {
-                            format: 'hex',
-                            onChange: () => currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
-                        });
-                        ofShadow = new JSColor('#ofshadow', {
-                            format: 'hex',
-                            onChange: () => currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
-                        });
-
-                        jscolor.init()
-
-                        currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
                     }
 
-                    banner.onchange = () => {
-                        if (banner.checked == true) {
-                            currentOptifineMode = "banner";
-                            optimenus.innerHTML = `<div class="form-inline skinforminline"> <label for="optibanner">Banner: </label> <input id="optibanner" minlength="1"
+                    ofCapeTop = new JSColor('#ofcapetop', {
+                        format: 'hex',
+                        onChange: () => currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
+                    });
+                    ofCapeBottom = new JSColor('#ofcapebottom', {
+                        format: 'hex',
+                        onChange: () => currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
+                    });
+                    ofText = new JSColor('#oftext', {
+                        format: 'hex',
+                        onChange: () => currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
+                    });
+                    ofShadow = new JSColor('#ofshadow', {
+                        format: 'hex',
+                        onChange: () => currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
+                    });
+
+                    jscolor.init()
+
+                    currentCape = `https://cors.faav.top/optifine/showCape?colTop=${ofCapeTop.toHEXString().replace('#', '')}&colBottom=${ofCapeBottom.toHEXString().replace('#', '')}&colText=${ofText.toHEXString().replace('#', '')}&colShadow=${ofShadow.toHEXString().replace('#', '')}`
+                }
+
+                banner.onchange = () => {
+                    if (banner.checked == true) {
+                        currentOptifineMode = "banner";
+                        optimenus.innerHTML = `<div class="form-inline skinforminline"> <label for="optibanner">Banner: </label> <input id="optibanner" minlength="1"
                         maxlength="128" name="skin" placeholder="Banner pattern" type="text" class="form-control input-dark"
                         style="width: 150px;" required></div>
                 <div class="form-inline skinforminline"> <label for="ofbannertop">Top: </label> <input id="ofbannertop" minlength="1"
@@ -507,28 +506,30 @@ waitForSupabase(supabase_data => {
                         data-jscolor required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                         data-current-color="#FFFFFF"></div>`
 
-                            ofBannerTop = new JSColor('#ofbannertop', {
-                                format: 'hex',
-                                onChange: () => currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
-                            });
-                            ofBannerBottom = new JSColor('#ofbannerbottom', {
-                                format: 'hex',
-                                onChange: () => currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
-                            });
+                        ofBannerTop = new JSColor('#ofbannertop', {
+                            format: 'hex',
+                            onChange: () => currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
+                        });
+                        ofBannerBottom = new JSColor('#ofbannerbottom', {
+                            format: 'hex',
+                            onChange: () => currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
+                        });
 
-                            jscolor.init()
+                        jscolor.init()
 
-                            currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
-                        }
+                        currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
                     }
                 }
             }
+        }
 
+        waitForSupabase((supabase_data) => {
+            special.disabled = false;
             special.onchange = () => {
                 if (special.checked) {
                     const dictionary = getSpecialCapes(supabase_data);
                     capemenu.innerHTML = `
-                    <label class="col-4 col-form-label" for="specialcapes"><strong>Special Capes:</strong></label>
+                    <label class="col-4 col-form-label" for="specialcapes"><strong>Special (Unobtainable):</strong></label>
                     <div class="col">
                         <select class="form-select" id="specialcapes" name="specialcapes">
                             ${Object.keys(dictionary).map(key => {
