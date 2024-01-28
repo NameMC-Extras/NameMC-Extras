@@ -13,13 +13,13 @@ const waitForSelector = function (selector, callback) {
 const customPage = (page, name, title, icon) => {
     waitForSelector('[href="/minecraft-skins"]', () => {
         var isPage = location.pathname == "/extras/" + page;
-        var capeNavBar = document.querySelector('.nav-link[href="/capes"]').parentElement;
+        var storeNavBar = document.querySelector('.nav-link[href="https://store.namemc.com/category/emerald"]').parentElement;
         var customNavRange = document.createRange();
-        var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link ${isPage ? "active" : ""}' href='https://${window.parent.location.host}/extras/${page}'>${name}</a></li>`);
+        var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link ${isPage ? "active" : ""}' href='/extras/${page}'>${name}</a></li>`);
         var customNavDropRange = document.createRange();
-        var customNavDropHTML = customNavDropRange.createContextualFragment(`<a class='dropdown-item' id='${page}' href='https://${window.parent.location.host}/extras/${page}' title='${name}'><i class="${icon}"></i>${name}</a>`);
-        capeNavBar.after(customNavHTML);
-        waitForSelector('a.dropdown-item[href="/capes"]', (capeDropNav) => capeDropNav.after(customNavDropHTML));
+        var customNavDropHTML = customNavDropRange.createContextualFragment(`<a class='dropdown-item' id='${page}' href='/extras/${page}' title='${name}'><i class="${icon} menu-icon"></i>${name}</a>`);
+        storeNavBar.before(customNavHTML);
+        waitForSelector('.dropdown-divider:nth-of-type(2)', (dropDivider) => dropDivider.before(customNavDropHTML));
 
         if (isPage === true) {
             document.title = title + " | NameMC Extras";
@@ -65,12 +65,11 @@ const customMenuItem = (id, name, href, location, classes) => {
         menuItem.textContent = name;
         if (classes) {
             var iconEl = document.createElement("i");
-            iconEl.classList.add("menu-icon");
-            classes.split(" ").forEach(icon => iconEl.classList.add(icon));
+            iconEl.setAttribute("class", classes+" menu-icon")
 
-            menuItem.before(iconEl);
+            menuItem.insertBefore(iconEl, menuItem.lastChild);
         }
-        menuItem.before()
+
         dropDownMenu.insertBefore(menuItem, dropDownMenu.childNodes[location]);
 
         var inject1 = document.createElement('script');
@@ -84,7 +83,8 @@ const customMenuItem = (id, name, href, location, classes) => {
 
 // INJECTING PAGES
 
-customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait menu-icon')
+customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait')
+customPage('badges', 'Badges', 'NameMC Extras Badges', 'fas fa-award')
 
 // INJECTING MENU ITEMS
 
