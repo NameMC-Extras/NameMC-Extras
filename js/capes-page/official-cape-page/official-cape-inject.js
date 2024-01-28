@@ -213,4 +213,31 @@ waitForSVSelector('.skin-3d', () => {
   );
 
   fixPauseBtn()
-})
+});
+
+// wait for supabase before creating official description card
+waitForStorage("supabase_data", () => waitForSelector("main", () => {
+  // get cape data from supabase
+  const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
+  const capeHash = location.href.split("/").pop();
+  let cape = supabase_data.nmc_capes.filter(cape => cape.id == capeHash)[0];
+  if (!cape) {
+    cape = {
+      "description": "Hmm... we haven't seen this cape just yet...\n\nPlease contact a NameMC Extras developer to fix this!"
+    }
+  };
+  // create html for card
+  const descriptionCard = `
+    <div class="card mb-3">
+      <div class="d-flex flex-column" style="max-height: 25rem">
+        <div class="card-header py-1">
+          <strong>Description</strong>
+        </div>
+        <div class="card-body py-2">${cape.description.toString()}</div>
+      </div>
+    </div>
+  `;
+  // inject card
+  const leftColumn = document.getElementsByClassName("col-md-6")[0];
+  leftColumn.innerHTML += descriptionCard;
+}));

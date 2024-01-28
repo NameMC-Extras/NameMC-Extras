@@ -12,6 +12,7 @@
   var endPoints = {
     "badges": "/badges?select=*",
     "capes": "/capes?select=*",
+    "nmc_capes": "/capes_nmc?select=*",
     "categories": "/cape_categories?select=*",
     "user_badges": "/user_badges?select=*",
     "user_capes": "/user_capes?select=*"
