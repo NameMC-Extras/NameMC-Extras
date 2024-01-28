@@ -93,14 +93,12 @@ function addCapes(mainDiv) {
 
     // get user count
     const mapPromise = capes.map(cape => {
-      console.log(cape)
       cape.users = supabase_data.user_capes.filter(user => user.cape == cape.id)
       return cape;
     });
 
     const capeHTMLCards = [];
     mapPromise.sort((a, b) => b.users.length - a.users.length).forEach(cape => {
-      console.log(cape);
       capeHTMLCards.push(getCapeCardHTML(cape, cape.users.length));
     });
     // create category
