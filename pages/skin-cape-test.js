@@ -371,7 +371,7 @@ waitForSelector('main', (main) => {
                         </optgroup>
                         <optgroup label="Special">
                             <option value="17912790ff164b93196f08ba71d0e62129304776d0f347334f8a6eae509f8a56">Realms Mapmaker</option>
-                            <option value="9e507afc56359978a3eb3e32367042b853cddd0995d17d0da995662913fb00f7">Mojang (New)</option>
+                            <option value="9e507afc56359978a3eb3e32367042b853cddd0995d17d0da995662913fb00f7">Mojang Studios</option>
                             <option value="5786fe99be377dfb6858859f926c4dbc995751e91cee373468c5fbf4865e7151">Mojang</option>
                             <option value="8f120319222a9f4a104e2f5cb97b2cda93199a2ee9e1585cb8d09d6f687cb761">Mojang (Classic)</option>
                             <option value="ae677f7d98ac70a533713518416df4452fe5700365c09cf45d0d156ea9396551">Mojira Moderator</option>
@@ -384,13 +384,12 @@ waitForSelector('main', (main) => {
                             <option value="5048ea61566353397247d2b7d946034de926b997d5e66c86483dfb1e031aee95">Turtle</option>
                             <option value="2056f2eebd759cce93460907186ef44e9192954ae12b227d817eb4b55627a7fc">Birthday</option>
                             <option value="6a7cf0eb5cfe7e7c508b364e32916dfd28d164e7bf6d92c6ea7811b82451e760">Valentine</option>
-                            <option value="bcfbe84c6542a4a5c213c1cacf8979b5e913dcb4ad783a8b80e3c4a7d5c8bdac">dannyBstyle</option>
-                            <option value="70efffaf86fe5bc089608d3cb297d3e276b9eb7a8f9f2fe6659c23a2d8b18edf">Millionth Customer
-                            </option>
+                            <option value="bcfbe84c6542a4a5c213c1cacf8979b5e913dcb4ad783a8b80e3c4a7d5c8bdac">dB</option>
+                            <option value="70efffaf86fe5bc089608d3cb297d3e276b9eb7a8f9f2fe6659c23a2d8b18edf">Millionth Customer</option>
                             <option value="d8f8d13a1adf9636a16c31d47f3ecc9bb8d8533108aa5ad2a01b13b1a0c55eac">Prismarine</option>
-                            <option value="23ec737f18bfe4b547c95935fc297dd767bb84ee55bfd855144d279ac9bfd9fe">JulianClark</option>
-                            <option value="2e002d5e1758e79ba51d08d92a0f3a95119f2f435ae7704916507b6c565a7da8">MrMessiah</option>
-                            <option value="ca29f5dd9e94fb1748203b92e36b66fda80750c87ebc18d6eafdb0e28cc1d05f">cheapsh0t</option>
+                            <option value="23ec737f18bfe4b547c95935fc297dd767bb84ee55bfd855144d279ac9bfd9fe">Snowman</option>
+                            <option value="2e002d5e1758e79ba51d08d92a0f3a95119f2f435ae7704916507b6c565a7da8">Spade</option>
+                            <option value="ca29f5dd9e94fb1748203b92e36b66fda80750c87ebc18d6eafdb0e28cc1d05f">Translator (Japanese)</option>
                         </optgroup>
                         <optgroup label="Previous or Temporary Capes">
                             <option value="fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc">Bacon</option>
