@@ -363,11 +363,11 @@ waitForSelector('main', (main) => {
                             <option value="afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb">Cherry Blossom</option>
                         </optgroup>
                         <optgroup label="Minecon">
-                            <option value="e7dfea16dc83c97df01a12fabbd1216359c0cd0ea42f9999b6e97c584963e980">Minecon 2016</option>
-                            <option value="b0cc08840700447322d953a02b965f1d65a13a603bf64b17c803c21446fe1635">Minecon 2015</option>
-                            <option value="153b1a0dfcbae953cdeb6f2c2bf6bf79943239b1372780da44bcbb29273131da">Minecon 2013</option>
-                            <option value="a2e8d97ec79100e90a75d369d1b3ba81273c4f82bc1b737e934eed4a854be1b6">Minecon 2012</option>
-                            <option value="953cac8b779fe41383e675ee2b86071a71658f2180f56fbce8aa315ea70e2ed6">Minecon 2011</option>
+                            <option value="e7dfea16dc83c97df01a12fabbd1216359c0cd0ea42f9999b6e97c584963e980">MineCon 2016</option>
+                            <option value="b0cc08840700447322d953a02b965f1d65a13a603bf64b17c803c21446fe1635">MineCon 2015</option>
+                            <option value="153b1a0dfcbae953cdeb6f2c2bf6bf79943239b1372780da44bcbb29273131da">MineCon 2013</option>
+                            <option value="a2e8d97ec79100e90a75d369d1b3ba81273c4f82bc1b737e934eed4a854be1b6">MineCon 2012</option>
+                            <option value="953cac8b779fe41383e675ee2b86071a71658f2180f56fbce8aa315ea70e2ed6">MineCon 2011</option>
                         </optgroup>
                         <optgroup label="Special">
                             <option value="17912790ff164b93196f08ba71d0e62129304776d0f347334f8a6eae509f8a56">Realms Mapmaker</option>
