@@ -38,6 +38,15 @@
     },
     {
       "js": [
+        "js/badge-page/badge-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/extras/badge/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
         "js/capes-page/capes-injector.js"
       ],
       "matches": [
