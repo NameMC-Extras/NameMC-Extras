@@ -108,7 +108,7 @@ function addBadges(main) {
 
   var badgesRange = document.createRange();
   var badgesHTML = badgesRange.createContextualFragment(`
-            <h1 class="text-center">NameMC Extras Badges</h1>
+            <h1 class="text-center">Extras Badges</h1>
             <hr class="mt-0">
             <div class="mb-2">
               <div class="row gx-2 justify-content-center">
