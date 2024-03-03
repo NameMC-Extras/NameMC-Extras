@@ -1,17 +1,9 @@
-console.log("Creating badge page...");
-
-// only use for getting animate cookie
-function getCookie(name) {
-  let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));
-  return cookies[name];
-}
-
 const waitForSelector = function (selector, callback) {
   query = document.querySelector(selector)
   if (query) {
-    setTimeout((query) => {
+    setTimeout(() => {
       callback(query);
-    }, null, query);
+    });
   } else {
     setTimeout(() => {
       waitForSelector(selector, callback);
@@ -43,75 +35,39 @@ const waitForStorage = function (key, callback) {
   }
 };
 
-const waitForTooltip = function (callback) {
-  if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForTooltip(callback);
-    });
-  }
-};
-
-/*
- * UNIVERSAL VARIABLES
- */
-
-const badgeId = location.pathname.split("/")[3];
-
-
-
-
-
 /*
  * FUNCTIONS
  */
 
-function loadPage(mainDiv) {
-  console.log("Loading page!")
-
-  mainDiv.style["margin-top"] = "1rem";
-
-  // get badge and update page title
-  const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
-  const badge = supabase_data.badges.filter(badge => badge.id == badgeId)[0];
-  if (!badge) return;
-  document.title = `${badge.name} | Badge | NameMC Extras`
-  const badgeOwners = supabase_data.user_badges.filter(user => user.badge == badgeId);
-  // update page
-  var badgeRange = document.createRange();
-  var badgeHTML = badgeRange.createContextualFragment(`
-    ${(() => {
-      var titleEl = document.createElement("h1");
-      titleEl.classList.add("text-center");
+/**
+  * Returns HTML code for the badge's card
+  * @param {SupabaseBadge} badge
+  * @param {number} userCount 
+  * @returns {string}
+  */
+function getBadgeCardHTML(badge, userCount) {
+  return `
+      <div class="col-4 col-md-2">
+        <div class="card mb-2">
+          <a href="${encodeURI(`https://namemc.com/extras/badge/${badge.id}`)}">
+            ${(() => {
+      var titleEl = document.createElement("div");
+      titleEl.setAttribute("class", "card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1");
       titleEl.translate = "no";
-      titleEl.textContent = `
-      ${badge.name} 
-      `;
-
-      var smallEl = document.createElement("small");
-      smallEl.classList.add("text-muted");
-      smallEl.classList.add("text-nowrap")
-      smallEl.textContent = "NameMC Extras Badge"
-      titleEl.append(smallEl)
+      titleEl.textContent = badge.name;
 
       return titleEl.outerHTML;
     })()}
-    <hr class="mt-0">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card mb-3">
-          <div class="card-body position-relative text-center p-0 checkered animation-paused">
-          ${(() => {
+            <div class="card-body position-relative text-center checkered p-1">
+              <div>
+                ${(() => {
       var imageEl = document.createElement("img");
       imageEl.classList.add("drop-shadow");
       imageEl.classList.add("auto-size-square");
       imageEl.loading = "lazy";
-      imageEl.width = 300;
-      imageEl.height = 450;
-      imageEl.style.padding = "56px";
+      imageEl.width = 136;
+      imageEl.height = 136;
+      imageEl.style.padding = "9px";
       imageEl.style["image-rendering"] = "pixelated";
       imageEl.src = badge.image;
       imageEl.alt = badge.name;
@@ -119,53 +75,14 @@ function loadPage(mainDiv) {
 
       return imageEl.outerHTML;
     })()}
-            <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${badgeOwners.length}★</h5>
-          </div>
-        </div>
-        <div class="card mb-3">
-          <div class="d-flex flex-column" style="max-height: 25rem">
-            <div class="card-header py-1">
-              <strong>Description</strong>
+              </div>
+              <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${userCount}★</div>
             </div>
-            ${(() => {
-      var cardBody = document.createElement("div");
-      cardBody.classList.add("card-body");
-      cardBody.classList.add("py-2");
-      cardBody.textContent = badge.description ?? "Awarded for unknown reasons.";
-
-      return cardBody.outerHTML;
-    })()}
-          </div>
+          </a>
         </div>
       </div>
-        <div class="col-md-6">
-          <div class="card mb-3">
-            <div class="d-flex flex-column" style="max-height: 25rem">
-              <div class="card-header py-1"><strong>Profiles (${badgeOwners.length})</strong></div>
-              <div class="card-body player-list py-2">
-                ${badgeOwners.map(u => {
-      var userEl = document.createElement("a");
-      userEl.textContent = u.user;
-      userEl.href = "/profile/" + u.user;
-      userEl.translate = "no";
-      if (u.note) {
-        userEl.setAttribute("data-note", "");
-        userEl.title = u.note;
-      }
-
-      return userEl.outerHTML;
-    }).join("")}
-              </div>
-            </div>
-          </div>
-        </div>
-    </div>
-  `);
-
-  mainDiv.append(badgeHTML)
+    `;
 }
-
-
 
 
 
@@ -173,4 +90,34 @@ function loadPage(mainDiv) {
  * MAIN LOGIC
  */
 
-waitForStorage("supabase_data", () => waitForSelector("main", loadPage));
+function addBadges(main) {
+  const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
+
+  main.style["margin-top"] = "1rem";
+
+  // get user count
+  const mapPromise = supabase_data.badges.map(badge => {
+    badge.users = supabase_data.user_badges.filter(user => user.badge == badge.id)
+    return badge;
+  });
+
+  const badgeHTMLCards = [];
+  mapPromise.sort((a, b) => b.users.length - a.users.length).forEach(badge => {
+    badgeHTMLCards.push(getBadgeCardHTML(badge, badge.users.length));
+  });
+
+  var badgesRange = document.createRange();
+  var badgesHTML = badgesRange.createContextualFragment(`
+            <h1 class="text-center">NameMC Extras Badges</h1>
+            <hr class="mt-0">
+            <div class="mb-2">
+              <div class="row gx-2 justify-content-center">
+                ${badgeHTMLCards.join("")}
+              </div>
+            </div>
+          `);
+
+  main.append(badgesHTML)
+}
+
+waitForStorage("supabase_data", () => waitForSelector("main", addBadges));
