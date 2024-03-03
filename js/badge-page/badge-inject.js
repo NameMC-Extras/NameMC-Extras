@@ -112,6 +112,7 @@ function loadPage(mainDiv) {
       imageEl.width = 300;
       imageEl.height = 450;
       imageEl.style.padding = "56px";
+      imageEl.style["image-rendering"] = "pixelated";
       imageEl.src = badge.image;
       imageEl.alt = badge.name;
       imageEl.title = badge.name;
