@@ -14,9 +14,11 @@ var specialCapes = {};
 const waitForSelector = function (selector, callback) {
     query = document.querySelector(selector)
     if (query) {
-        callback(query);
+        setTimeout((query) => {
+            callback(query);
+        }, null, query);
     } else {
-        setTimeout(function () {
+        setTimeout(() => {
             waitForSelector(selector, callback);
         });
     }
@@ -24,19 +26,24 @@ const waitForSelector = function (selector, callback) {
 
 const waitForFunc = function (func, callback) {
     if (window[func]) {
-        callback();
+        setTimeout(() => {
+            callback();
+        });
     } else {
-        setTimeout(function () {
+        setTimeout(() => {
             waitForFunc(func, callback);
         });
     }
 };
 
 const waitForSupabase = function (callback) {
-    if (window.localStorage.getItem("supabase_data") && window.localStorage.getItem("supabase_data").length != 0) {
-        callback(JSON.parse(window.localStorage.getItem("supabase_data")));
+    var supabase_data = window.localStorage.getItem("supabase_data");
+    if (supabase_data && supabase_data.length > 0) {
+        setTimeout((supabase_data) => {
+            callback(supabase_data);
+        }, null, JSON.parse(supabase_data));
     } else {
-        setTimeout(function () {
+        setTimeout(() => {
             waitForSupabase(callback);
         });
     }
