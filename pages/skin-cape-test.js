@@ -10,6 +10,22 @@ var layer = true;
 var currentCape = null;
 var currentOptifineMode = "steal"
 var specialCapes = {};
+var noElytra = [
+    "fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc",
+    "2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211",
+    "d1f20f8534f9f58a3a0a26586d5615f513add564809986334b7f247593425ee3",
+    "938155dd83118a3993a22579649fab313cdb06073029c3839843d58fad06ebb2",
+    "4e25998e4db8e19fe4df3df74d7983f03ff81a4074426252ce6eb3d1c70c9a59",
+    "dc39d8eb38419f4cbb9a2e19642893b854c131a9ab06bd4e2c2a5b3af98f3a19",
+    "35d9516769099ad42be14344551f9e9dfe66ee9ceb1d5624b4442f76cef9ea9e",
+    "da01a74f8ca96bdf652ad3acddc886d6396eea482870ed3d2678e07cd1cd653f",
+    "c900e2768696a783f34a6ce548aad6d4241051fac15b1622fa7beeb521ae43e",
+    "16516dd786b870268e7601ad9c9dbf53530fef54041a2d18f2b5fbf15c0724ea",
+    "17c4ec5654f5d2f37953f228be1aa796d482a395c08dba65c82c020ebc6e03d8",
+    "639cb7c0f0d4345900b64f14ee33ecfccc7d6bcb5e18d027fb3452bfc9e5c4d1",
+    "12607ff71c803562dfb985769caaebf867172c13b20853368da1ebb099817f0d",
+    "aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413"
+]
 
 const waitForSelector = function (selector, callback) {
     query = document.querySelector(selector)
@@ -138,16 +154,16 @@ const createElytraBtn = () => {
             var elytraIconEl = document.querySelector('#elytra-btn i');
             if (!elytraOn) {
                 elytraOn = true;
-                elytraIconEl.classList.toggle('fa-dove');
-                elytraIconEl.classList.toggle('fa-square');
+                elytraIconEl.classList.remove('fa-dove');
+                elytraIconEl.classList.add('fa-square');
                 elytraIconEl.parentElement.title = "No Elytra"
                 skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
                     backEquipment: "elytra"
                 });
             } else {
                 elytraOn = false;
-                elytraIconEl.classList.toggle('fa-square');
-                elytraIconEl.classList.toggle('fa-dove');
+                elytraIconEl.classList.remove('fa-square');
+                elytraIconEl.classList.add('fa-dove');
                 elytraIconEl.parentElement.title = "Elytra"
                 skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
             }
@@ -303,7 +319,7 @@ waitForSelector('main', (main) => {
 
         apply.onclick = () => {
             const isNameMCID = /^[a-f0-9]{16}$/i;
-            if (elytraOn) {
+            if (elytraOn && !noElytra.includes(currentCape.split("/").at(-1))) {
                 skinViewer.loadCape(currentCape, {
                     backEquipment: "elytra"
                 })
@@ -317,10 +333,14 @@ waitForSelector('main', (main) => {
                 skinViewer.loadSkin('https://nmsr.nickac.dev/skin/' + skin.value)
             }
 
-            if (currentCape) {
-                createElytraBtn()
+            if (currentCape && !noElytra.includes(currentCape.split("/").at(-1))) {
+                if (document.querySelector("#elytra-btn")) {
+                    document.querySelector("#elytra-btn").style.display="block";
+                } else {
+                    createElytraBtn();
+                }
             } else {
-                if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").remove()
+                if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").style.display="none";
             }
         }
 
@@ -339,8 +359,7 @@ waitForSelector('main', (main) => {
                         <optgroup label="Common">
                             <option value="2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933">Migrator</option>
                             <option value="f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4">Vanilla</option>
-                            <option value="afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb">Cherry Blossom
-                            </option>
+                            <option value="afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb">Cherry Blossom</option>
                         </optgroup>
                         <optgroup label="Minecon">
                             <option value="e7dfea16dc83c97df01a12fabbd1216359c0cd0ea42f9999b6e97c584963e980">Minecon 2016</option>
@@ -350,17 +369,13 @@ waitForSelector('main', (main) => {
                             <option value="953cac8b779fe41383e675ee2b86071a71658f2180f56fbce8aa315ea70e2ed6">Minecon 2011</option>
                         </optgroup>
                         <optgroup label="Special">
-                            <option value="17912790ff164b93196f08ba71d0e62129304776d0f347334f8a6eae509f8a56">Realms Mapmaker
-                            </option>
+                            <option value="17912790ff164b93196f08ba71d0e62129304776d0f347334f8a6eae509f8a56">Realms Mapmaker</option>
                             <option value="9e507afc56359978a3eb3e32367042b853cddd0995d17d0da995662913fb00f7">Mojang (New)</option>
                             <option value="5786fe99be377dfb6858859f926c4dbc995751e91cee373468c5fbf4865e7151">Mojang</option>
-                            <option value="8f120319222a9f4a104e2f5cb97b2cda93199a2ee9e1585cb8d09d6f687cb761">Mojang (Classic)
-                            </option>
-                            <option value="ae677f7d98ac70a533713518416df4452fe5700365c09cf45d0d156ea9396551">Mojira Moderator
-                            </option>
+                            <option value="8f120319222a9f4a104e2f5cb97b2cda93199a2ee9e1585cb8d09d6f687cb761">Mojang (Classic)</option>
+                            <option value="ae677f7d98ac70a533713518416df4452fe5700365c09cf45d0d156ea9396551">Mojira Moderator</option>
                             <option value="1bf91499701404e21bd46b0191d63239a4ef76ebde88d27e4d430ac211df681e">Translator</option>
-                            <option value="2262fb1d24912209490586ecae98aca8500df3eff91f2a07da37ee524e7e3cb6">Translator (Chinese)
-                            </option>
+                            <option value="2262fb1d24912209490586ecae98aca8500df3eff91f2a07da37ee524e7e3cb6">Translator (Chinese)</option>
                             <option value="ca35c56efe71ed290385f4ab5346a1826b546a54d519e6a3ff01efa01acce81">Cobalt</option>
                             <option value="3efadf6510961830f9fcc077f19b4daf286d502b5f5aafbd807c7bbffcaca245">Scrolls</option>
                         </optgroup>
@@ -378,17 +393,28 @@ waitForSelector('main', (main) => {
                         </optgroup>
                         <optgroup label="Previous or Temporary Capes">
                             <option value="fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc">Bacon</option>
-                            <option value="2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211">Christmas 2010
-                            </option>
-                            <option value="d1f20f8534f9f58a3a0a26586d5615f513add564809986334b7f247593425ee3">New Year's 2011
-                            </option>
-                            <option value="938155dd83118a3993a22579649fab313cdb06073029c3839843d58fad06ebb2">Xbox 360 1st Birthday
-                                Cape</option>
+                            <option value="2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211">Christmas 2010</option>
+                            <option value="d1f20f8534f9f58a3a0a26586d5615f513add564809986334b7f247593425ee3">New Year's 2011</option>
+                            <option value="938155dd83118a3993a22579649fab313cdb06073029c3839843d58fad06ebb2">Xbox 360 1st Birthday</option>
+                            <option value="4e25998e4db8e19fe4df3df74d7983f03ff81a4074426252ce6eb3d1c70c9a59">Unused Minecon 1</option>
+                            <option value="dc39d8eb38419f4cbb9a2e19642893b854c131a9ab06bd4e2c2a5b3af98f3a19">Unused Minecon 2</option>
+                            <option value="35d9516769099ad42be14344551f9e9dfe66ee9ceb1d5624b4442f76cef9ea9e">Unused Minecon 3</option>
                         </optgroup>
                         <optgroup label="Bedrock Capes">
-                            <option value="99aba02ef05ec6aa4d42db8ee43796d6cd50e4b2954ab29f0caeb85f96bf52a1">Founder's Cape
-                            </option>
-                            <option value="28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336">Pancape</option>
+                            <option value="99aba02ef05ec6aa4d42db8ee43796d6cd50e4b2954ab29f0caeb85f96bf52a1">Founder's</option>
+                            <option value="28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336">Pan</option>
+                            <option value="432c50e576e0b490865b562c7acf10473ac24780ea0fc3ef80fb303f482ba64">Progress Pride</option>
+                        </optgroup>
+                        <optgroup label="Console Capes">
+                            <option value="aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413">Microsoft Xbox 360</option>
+                        </optgroup>
+                        <optgroup label="April Fools Capes">
+                            <option value="da01a74f8ca96bdf652ad3acddc886d6396eea482870ed3d2678e07cd1cd653f">Awesom</option>
+                            <option value="c900e2768696a783f34a6ce548aad6d4241051fac15b1622fa7beeb521ae43e">Blonk</option>
+                            <option value="16516dd786b870268e7601ad9c9dbf53530fef54041a2d18f2b5fbf15c0724ea">No Circle</option>
+                            <option value="17c4ec5654f5d2f37953f228be1aa796d482a395c08dba65c82c020ebc6e03d8">Nyan</option>
+                            <option value="639cb7c0f0d4345900b64f14ee33ecfccc7d6bcb5e18d027fb3452bfc9e5c4d1">Squid</option>
+                            <option value="12607ff71c803562dfb985769caaebf867172c13b20853368da1ebb099817f0d">Veterinarian</option>
                         </optgroup>
                     </select>
                 </div>`;
