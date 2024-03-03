@@ -52,7 +52,7 @@ function getCapeCardHTML(cape, userCount) {
   return `
     <div class="col-4 col-md-2">
       <div class="card mb-2">
-        <a href="${encodeURI(`https://namemc.com/cape/${cape.category}/${cape.id}`)}">
+        <a href="${encodeURI(`/cape/${cape.category}/${cape.id}`)}">
           ${(() => {
       var titleEl = document.createElement("div");
       titleEl.setAttribute("class", "card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1");
