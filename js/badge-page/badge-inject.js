@@ -94,7 +94,7 @@ function loadPage(mainDiv) {
       var smallEl = document.createElement("small");
       smallEl.classList.add("text-muted");
       smallEl.classList.add("text-nowrap")
-      smallEl.textContent = "NameMC Extras Badge"
+      smallEl.textContent = "Extras Badge"
       titleEl.append(smallEl)
 
       return titleEl.outerHTML;
