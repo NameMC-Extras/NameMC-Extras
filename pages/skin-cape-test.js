@@ -24,7 +24,8 @@ var noElytra = [
     "17c4ec5654f5d2f37953f228be1aa796d482a395c08dba65c82c020ebc6e03d8",
     "639cb7c0f0d4345900b64f14ee33ecfccc7d6bcb5e18d027fb3452bfc9e5c4d1",
     "12607ff71c803562dfb985769caaebf867172c13b20853368da1ebb099817f0d",
-    "aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413"
+    "aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413",
+    "5e8f3740ec1aabc872d8149c5e00b5b739cce63971db6edab30f94ccffed9d37"
 ]
 
 const waitForSelector = function (selector, callback) {
@@ -395,7 +396,6 @@ waitForSelector('main', (main) => {
                             <option value="fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc">Bacon</option>
                             <option value="2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211">Christmas 2010</option>
                             <option value="d1f20f8534f9f58a3a0a26586d5615f513add564809986334b7f247593425ee3">New Year's 2011</option>
-                            <option value="938155dd83118a3993a22579649fab313cdb06073029c3839843d58fad06ebb2">Xbox 360 1st Birthday</option>
                             <option value="4e25998e4db8e19fe4df3df74d7983f03ff81a4074426252ce6eb3d1c70c9a59">Unused Minecon 1</option>
                             <option value="dc39d8eb38419f4cbb9a2e19642893b854c131a9ab06bd4e2c2a5b3af98f3a19">Unused Minecon 2</option>
                             <option value="35d9516769099ad42be14344551f9e9dfe66ee9ceb1d5624b4442f76cef9ea9e">Unused Minecon 3</option>
@@ -406,7 +406,9 @@ waitForSelector('main', (main) => {
                             <option value="432c50e576e0b490865b562c7acf10473ac24780ea0fc3ef80fb303f482ba64">Progress Pride</option>
                         </optgroup>
                         <optgroup label="Console Capes">
-                            <option value="aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413">Microsoft Xbox 360</option>
+                            <option value="aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413">Xbox 360 Microsoft</option>
+                            <option value="5e8f3740ec1aabc872d8149c5e00b5b739cce63971db6edab30f94ccffed9d37">Xbox 360 Minecraft</option>
+                            <option value="938155dd83118a3993a22579649fab313cdb06073029c3839843d58fad06ebb2">Xbox 360 1st Birthday</option>
                         </optgroup>
                         <optgroup label="April Fools Capes">
                             <option value="da01a74f8ca96bdf652ad3acddc886d6396eea482870ed3d2678e07cd1cd653f">Awesom</option>
