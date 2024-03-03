@@ -242,7 +242,7 @@ waitForSelector('main', (main) => {
                       </div>
                       <div class="custom-control custom-radio custom-control-inline">
                         <input type="radio" id="special" name="customRadioInline" class="custom-control-input" disabled>
-                        <label class="custom-control-label" for="special">Special</label>
+                        <label class="custom-control-label" for="special">Third-Party</label>
                       </div>
                     </div>
                     <div class="form-group" id="capemenu" style="display:none;"></div>
@@ -562,7 +562,7 @@ waitForSelector('main', (main) => {
                 if (special.checked) {
                     const dictionary = getSpecialCapes(supabase_data);
                     capemenu.innerHTML = `
-                    <label class="col-4 col-form-label" for="specialcapes"><strong>Special (Unobtainable):</strong></label>
+                    <label class="col-4 col-form-label" for="specialcapes"><strong>Third-Party:</strong></label>
                     <div class="col">
                         <select class="form-select" id="specialcapes" name="specialcapes">
                             ${Object.keys(dictionary).map(key => {
