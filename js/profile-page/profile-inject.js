@@ -22,9 +22,11 @@ var layer = true;
 if (endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
     if (document.querySelector(selector)) {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForSelector(selector, callback);
       });
     }
@@ -32,9 +34,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   const waitForSVSelector = function (selector, callback) {
     if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d.SkinViewer !== 'undefined' && window.skinview3d.SkinViewer) {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForSelector(selector, callback);
       });
     }
@@ -42,9 +46,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   const waitForImage = function (callback, hash) {
     if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[hash] !== 'undefined' && window.namemc.images[hash].src) {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForImage(callback, hash);
       });
     }
@@ -52,19 +58,24 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   const waitForFunc = function (func, callback) {
     if (window[func]) {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForFunc(func, callback);
       });
     }
   };
 
   const waitForSupabase = function (callback) {
-    if (window.localStorage.getItem("supabase_data") && window.localStorage.getItem("supabase_data").length != 0) {
-      callback(JSON.parse(window.localStorage.getItem("supabase_data")));
+    var supabase_data = window.localStorage.getItem("supabase_data");
+    if (supabase_data && supabase_data.length > 0) {
+      setTimeout((supabase_data) => {
+        callback(supabase_data);
+      }, null, JSON.parse(supabase_data));
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForSupabase(callback);
       });
     }
@@ -72,9 +83,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   const waitForTooltip = function (callback) {
     if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForTooltip(callback);
       });
     }
@@ -322,21 +335,21 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         let badgeCardRange = document.createRange();
         let badgeCardHTML = badgeCardRange.createContextualFragment(`
         <div class="row g-0 align-items-center">
-          <div class="col-auto col-lg-3 pe-3"><strong>Badges</strong></div>
+          <div class="col-auto col-lg-3 pe-3"><strong id="badgestitle">Badges</strong></div>
           <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges"></div>
         </div>
         `)
         let badgesHTML = userBadges.map(badge => {
           var badgeRange = document.createRange()
           var badgeHTML = badgeRange.createContextualFragment(`
-            <a class="d-inline-block position-relative p-1" href="javascript:void(0)" data-bs-toggle="popover" data-bs-placement="top">
+            <a class="d-inline-block position-relative p-1" href="javascript:void(0)" id="badge">
               <img class="service-icon">
             </a>
           `);
 
           badgeHTML.querySelector("img").src = badge.image;
           badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
-          badgeHTML.querySelector("a").setAttribute("data-bs-content", badge.name);
+          badgeHTML.querySelector("a").setAttribute("title", badge.name);
 
           return badgeHTML.querySelector("a").outerHTML;
         })
@@ -344,6 +357,19 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
 
         cardBody.append(badgeCardHTML)
+
+        waitForTooltip(() => {
+          $('#badgestitle').tooltip({
+            "placement": "top",
+            "boundary": "viewport",
+            "title": "Badges from NameMC Extras!"
+          })
+
+          $('#badge').tooltip({
+            "placement": "top",
+            "boundary": "viewport"
+          });
+        })
       }
     });
 
