@@ -3,9 +3,11 @@ console.log("Injecting capes page...");
 const waitForSelector = function (selector, callback) {
   query = document.querySelector(selector)
   if (query) {
-    callback(query);
+    setTimeout(() => {
+      callback(query);
+    });
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForSelector(selector, callback);
     });
   }
@@ -13,9 +15,11 @@ const waitForSelector = function (selector, callback) {
 
 const waitForFunc = function (func, callback) {
   if (window[func]) {
-    callback();
+    setTimeout(() => {
+      callback();
+    });
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForFunc(func, callback);
     });
   }
@@ -23,9 +27,11 @@ const waitForFunc = function (func, callback) {
 
 const waitForStorage = function (key, callback) {
   if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
-    callback();
+    setTimeout(() => {
+      callback();
+    });
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForStorage(key, callback);
     });
   }
