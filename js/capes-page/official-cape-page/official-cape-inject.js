@@ -9,29 +9,35 @@ function getCookie(name) {
 const waitForSelector = function (selector, callback) {
   query = document.querySelector(selector)
   if (query) {
-    callback(query);
+    setTimeout((query) => {
+      callback(query);
+    }, null, query);
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForSelector(selector, callback);
     });
   }
 };
 
 const waitForSVSelector = function (selector, callback) {
-  if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d.SkinViewer !== 'undefined' && window.skinview3d.SkinViewer) {
-    callback();
+  if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d.SkinViewer !== 'undefined' && window.skinview3d.SkinViewer) {
+    setTimeout(() => {
+      callback();
+    });
   } else {
-    setTimeout(function () {
-      waitForSelector(selector, callback);
+    setTimeout(() => {
+      waitForSVSelector(selector, callback);
     });
   }
 };
 
 const waitForImage = function (callback, hash) {
   if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[hash] !== 'undefined' && window.namemc.images[hash].src) {
-    callback();
+    setTimeout(() => {
+      callback();
+    });
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForImage(callback, hash);
     });
   }
@@ -39,9 +45,11 @@ const waitForImage = function (callback, hash) {
 
 const waitForFunc = function (func, callback) {
   if (window[func]) {
-    callback();
+    setTimeout(() => {
+      callback();
+    });
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForFunc(func, callback);
     });
   }
@@ -49,29 +57,23 @@ const waitForFunc = function (func, callback) {
 
 const waitForStorage = function (key, callback) {
   if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
-    callback();
-  } else {
-    setTimeout(function () {
-      waitForStorage(key, callback);
+    setTimeout(() => {
+      callback();
     });
-  }
-};
-
-const waitForTooltip = function (callback) {
-  if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
-    callback();
   } else {
-    setTimeout(function () {
-      waitForTooltip(callback);
+    setTimeout(() => {
+      waitForStorage(key, callback);
     });
   }
 };
 
 const waitForCape = function (callback) {
   if (skinViewer.capeTexture) {
-    callback();
+    setTimeout(() => {
+      callback();
+    });
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForCape(callback);
     });
   }
