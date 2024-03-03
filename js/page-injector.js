@@ -2,9 +2,11 @@
 const waitForSelector = function (selector, callback) {
     query = document.querySelector(selector)
     if (query) {
-        callback(query);
+        setTimeout((query) => {
+            callback(query);
+        }, null, query);
     } else {
-        setTimeout(function () {
+        setTimeout(() => {
             waitForSelector(selector, callback);
         });
     }
