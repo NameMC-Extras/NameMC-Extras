@@ -372,6 +372,28 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           });
         })
       }
+
+      // add emoji override (if applicable)
+      let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid == uuid)[0];
+      if (emojiOverride) {
+        let usernameEl = document.querySelector("h1.text-nowrap");
+        // if usernameEl has img child, remove it
+        if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
+        // add new img
+        let emojiImg = document.createElement("img");
+        emojiImg.draggable = false;
+        emojiImg.src = emojiOverride.image_src;
+        emojiImg.classList.add("emoji");
+        emojiImg.id = "emoji_override";
+        waitForTooltip(() => {
+          $('#emoji_override').tooltip({
+            "placement": "top",
+            "boundary": "viewport",
+            "title": emojiOverride.tooltip_text
+          }); 
+        });
+        usernameEl.append(emojiImg);
+      }
     });
 
     var gadgetIf = document.createElement('iframe');
