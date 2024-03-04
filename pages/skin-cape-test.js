@@ -401,7 +401,7 @@ waitForSelector('main', (main) => {
                         </optgroup>
                         <optgroup label="Bedrock Capes">
                             <option value="99aba02ef05ec6aa4d42db8ee43796d6cd50e4b2954ab29f0caeb85f96bf52a1">Founder's</option>
-                            <option value="28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336">Pan</option>
+                            <option value="28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336">Pancape</option>
                             <option value="432c50e576e0b490865b562c7acf10473ac24780ea0fc3ef80fb303f482ba64">Progress Pride</option>
                         </optgroup>
                         <optgroup label="Console Capes">
