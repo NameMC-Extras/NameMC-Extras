@@ -342,7 +342,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         let badgesHTML = userBadges.map(badge => {
           var badgeRange = document.createRange()
           var badgeHTML = badgeRange.createContextualFragment(`
-            <a class="d-inline-block position-relative p-1" href="javascript:void(0)" id="badge">
+            <a class="d-inline-block position-relative p-1" href="javascript:void(0)">
               <img class="service-icon">
             </a>
           `);
@@ -366,7 +366,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             "title": "Badges from NameMC Extras!"
           })
 
-          $('#badge').tooltip({
+          $('[src*=badges]').parent().tooltip({
             "placement": "top",
             "boundary": "viewport"
           });
@@ -385,7 +385,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     // give developers verification
     if (uuid == '2ce90d65-f253-4e3c-8e4b-3d5fb1e4c927' || uuid == '88e152f3-e545-4681-8cec-3e8f85175902') {
-      [...document.querySelectorAll(".service-icon:not([src*=badge])")].forEach(el => {
+      [...document.querySelectorAll(".service-icon:not([src*=badges])")].forEach(el => {
         var verifyEl = document.createElement("img");
         verifyEl.width = 15;
         verifyEl.height = 15;
