@@ -383,6 +383,19 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     document.body.append(gadgetIf);
 
+    // give developers verification
+    if (uuid == '2ce90d65-f253-4e3c-8e4b-3d5fb1e4c927' || uuid == '88e152f3-e545-4681-8cec-3e8f85175902') {
+      [...document.querySelectorAll(".service-icon:not([src*=badge])")].forEach(el => {
+        var verifyEl = document.createElement("img");
+        verifyEl.width = 15;
+        verifyEl.height = 15;
+        verifyEl.className = 'position-absolute bottom-0 end-0';
+        verifyEl.src = 'https://s.namemc.com/img/verification-badge.svg';
+        verifyEl.title = "Verified";
+        el.parentElement.appendChild(verifyEl);
+      })
+    }
+
     // add legendarisk clown emoji and remove verification
     if (uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '0dd649c1-40c7-47f5-a839-0b98eaefedf2' || uuid == '70296d53-9fc3-4e53-97eb-269e97f14aad') {
       document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
