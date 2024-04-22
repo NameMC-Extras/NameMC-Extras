@@ -1,15 +1,17 @@
 const waitForModal = function (callback) {
     if (typeof $ != 'undefined' && typeof $().modal != 'undefined') {
-        callback();
+        setTimeout(() => {
+            callback();
+        });
     } else {
-        setTimeout(function () {
+        setTimeout(() => {
             waitForModal(callback);
         });
     }
 };
 
-var profileEls = [...document.querySelectorAll('img.skin-2d')].map(a=>a.parentElement);
-if (profileEls.length > 1)  profileEls = document.querySelectorAll('[href*="/my-profile/switch"]');
+var profileEls = [...document.querySelectorAll('img.skin-2d')].map(a => a.parentElement);
+if (profileEls.length > 1) profileEls = document.querySelectorAll('[href*="/my-profile/switch"]');
 
 var profiles = [...profileEls].map(profile => ({
     name: profile.innerText.split(" ")[0],
