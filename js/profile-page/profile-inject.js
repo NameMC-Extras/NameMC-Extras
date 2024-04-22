@@ -324,6 +324,28 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     // add badges
     waitForSupabase((supabase_data) => {
+      // add emoji override (if applicable)
+      let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid == uuid)[0];
+      if (emojiOverride) {
+        let usernameEl = document.querySelector("h1.text-nowrap");
+        // if usernameEl has img child, remove it
+        if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
+        // add new img
+        let emojiImg = document.createElement("img");
+        emojiImg.draggable = false;
+        emojiImg.src = emojiOverride.image_src;
+        emojiImg.classList.add("emoji");
+        emojiImg.id = "emoji_override";
+        waitForTooltip(() => {
+          $('#emoji_override').tooltip({
+            "placement": "top",
+            "boundary": "viewport",
+            "title": emojiOverride.tooltip_text
+          }); 
+        });
+        usernameEl.append(emojiImg);
+      }
+
       const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user == uuid).map(v => v.badge);
       if (userBadgeIds.length > 0) {
         const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
@@ -371,28 +393,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             "boundary": "viewport"
           });
         })
-      }
-
-      // add emoji override (if applicable)
-      let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid == uuid)[0];
-      if (emojiOverride) {
-        let usernameEl = document.querySelector("h1.text-nowrap");
-        // if usernameEl has img child, remove it
-        if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
-        // add new img
-        let emojiImg = document.createElement("img");
-        emojiImg.draggable = false;
-        emojiImg.src = emojiOverride.image_src;
-        emojiImg.classList.add("emoji");
-        emojiImg.id = "emoji_override";
-        waitForTooltip(() => {
-          $('#emoji_override').tooltip({
-            "placement": "top",
-            "boundary": "viewport",
-            "title": emojiOverride.tooltip_text
-          }); 
-        });
-        usernameEl.append(emojiImg);
       }
     });
 
@@ -654,13 +654,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             fixPauseBtn();
           }
         });
-
-        const userCustomCapes = await getUserCapes(uuid);
-        const notMarcOrLucky = uuid != "b0588118-6e75-410d-b2db-4d3066b223f7" || Math.random() * 10 < 1;
-        if (userCustomCapes.length > 0 && notMarcOrLucky) {
-          skinViewer.loadCape(userCustomCapes[0].src);
-        }
-
       }, skinHash);
     });
   });
