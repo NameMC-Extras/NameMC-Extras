@@ -7,7 +7,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "manifest_version": 2,
+  "manifest_version": 3,
   "version": "3.1.0",
   "content_scripts": [
     {
@@ -89,9 +89,13 @@
     }
   ],
   "web_accessible_resources": [
+    {
+      "resources": [
         "/*"
-  ],
-  "permissions": [
-    "https://cesolgpkhjyzprrejqzn.supabase.co/*"
+      ],
+      "matches": [
+        "*://*.namemc.com/*"
+      ]
+    }
   ]
 }
