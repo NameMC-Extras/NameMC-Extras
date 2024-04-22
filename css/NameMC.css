@@ -6,6 +6,10 @@ div:has(> [id^="nn_"]),
     display: none !important
 }
 
+.player-list {
+    word-break: break-all
+}
+
 .nav-item {
     display: flex;
     align-items: center
