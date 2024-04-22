@@ -9,9 +9,11 @@ function getCookie(name) {
 const waitForSelector = function (selector, callback) {
   query = document.querySelector(selector)
   if (query) {
-    callback(query);
+    setTimeout((query) => {
+      callback(query);
+    }, null, query);
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForSelector(selector, callback);
     });
   }
@@ -19,20 +21,48 @@ const waitForSelector = function (selector, callback) {
 
 const waitForFunc = function (func, callback) {
   if (window[func]) {
-    callback();
+    setTimeout(() => {
+      callback();
+    });
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForFunc(func, callback);
+    });
+  }
+};
+
+const waitForStorage = function (key, callback) {
+  if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
+    setTimeout(() => {
+      callback();
+    });
+  } else {
+    setTimeout(() => {
+      waitForStorage(key, callback);
     });
   }
 };
 
 const waitForTooltip = function (callback) {
   if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
-    callback();
+    setTimeout(() => {
+      callback();
+    });
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       waitForTooltip(callback);
+    });
+  }
+};
+
+const waitForCape = function (callback) {
+  if (skinViewer.capeTexture) {
+    setTimeout(() => {
+      callback();
+    });
+  } else {
+    setTimeout(() => {
+      waitForCape(callback);
     });
   }
 };
@@ -125,23 +155,37 @@ class CustomCape {
  * FUNCTIONS
  */
 
-async function loadPage(mainDiv) {
+function loadPage(mainDiv) {
   console.log("Loading page!")
 
-  mainDiv.style["margin-top"] = "1rem"
+  mainDiv.style["margin-top"] = "1rem";
 
   // get cape and update page title
+  const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
   const cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
   if (!cape) return;
   const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name;
   document.title = `${cape.name} | ${capeCategory} Cape | NameMC Extras`
-  const capeOwners = supabase_data.users.filter(user => user.cape == capeId);
+  const capeOwners = supabase_data.user_capes.filter(user => user.cape == capeId);
   // update page
-  mainDiv.innerHTML = `
-    <h1 class="text-center" translate="no">
-      ${cape.name}
-      <small class="text-muted text-nowrap">${capeCategory} Cape</small>
-    </h1>
+  var capeRange = document.createRange();
+  var capeHTML = capeRange.createContextualFragment(`
+    ${(() => {
+      var titleEl = document.createElement("h1");
+      titleEl.classList.add("text-center");
+      titleEl.translate = "no";
+      titleEl.textContent = `
+      ${cape.name} 
+      `;
+
+      var smallEl = document.createElement("small");
+      smallEl.classList.add("text-muted");
+      smallEl.classList.add("text-nowrap")
+      smallEl.textContent = capeCategory + " Cape"
+      titleEl.append(smallEl)
+
+      return titleEl.outerHTML;
+    })()}
     <hr class="mt-0">
     <div class="row justify-content-center">
       <div class="col-md-6">
@@ -162,9 +206,14 @@ async function loadPage(mainDiv) {
             <div class="card-header py-1">
               <strong>Description</strong>
             </div>
-            <div class="card-body py-2">
-              ${cape.description ?? "Awarded for being a prominent member of the OptiFine community."}
-            </div>
+            ${(() => {
+      var cardBody = document.createElement("div");
+      cardBody.classList.add("card-body");
+      cardBody.classList.add("py-2");
+      cardBody.textContent = cape.description ?? "Awarded for being a prominent member of the OptiFine community.";
+
+      return cardBody.outerHTML;
+    })()}
           </div>
         </div>
       </div>
@@ -173,13 +222,26 @@ async function loadPage(mainDiv) {
             <div class="d-flex flex-column" style="max-height: 25rem">
               <div class="card-header py-1"><strong>Profiles (${capeOwners.length})</strong></div>
               <div class="card-body player-list py-2">
-                  ${capeOwners.map(u => `<a translate="no" href="/profile/${u.user}" ${u.note ? `title="${u.note}" data-note` : ''}>${u.user}</a>`).join("")}
+                ${capeOwners.map(u => {
+      var userEl = document.createElement("a");
+      userEl.textContent = u.user;
+      userEl.href = "/profile/" + u.user;
+      userEl.translate = "no";
+      if (u.note) {
+        userEl.setAttribute("data-note", "");
+        userEl.title = u.note;
+      }
+
+      return userEl.outerHTML;
+    }).join("")}
               </div>
             </div>
           </div>
         </div>
     </div>
-  `;
+  `);
+
+  mainDiv.append(capeHTML)
 
   // create skin viewer
   waitForFunc("skinview3d", () => {
@@ -231,10 +293,10 @@ async function loadPage(mainDiv) {
     );
 
     fixPauseBtn()
-    fixElytraBtn()
+    waitForCape(fixElytraBtn);
   })
 
-  waitForTooltip(() => $("[data-note]").tooltip())
+  window.addEventListener('DOMContentLoaded', () => $("[data-note]").tooltip());
 }
 
 
@@ -245,4 +307,4 @@ async function loadPage(mainDiv) {
  * MAIN LOGIC
  */
 
-waitForFunc("supabase_data", () => waitForSelector("main", loadPage));
+waitForStorage("supabase_data", () => waitForSelector("main", loadPage));
