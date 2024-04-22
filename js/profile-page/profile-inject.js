@@ -19,12 +19,14 @@ var isHidden = true;
 var skinArt = false;
 var layer = true;
 
-if (endsWithNumber(location.pathname) && location.pathname) {
+if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
     if (document.querySelector(selector)) {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForSelector(selector, callback);
       });
     }
@@ -32,9 +34,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   const waitForSVSelector = function (selector, callback) {
     if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d.SkinViewer !== 'undefined' && window.skinview3d.SkinViewer) {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForSelector(selector, callback);
       });
     }
@@ -42,9 +46,11 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   const waitForImage = function (callback, hash) {
     if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[hash] !== 'undefined' && window.namemc.images[hash].src) {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForImage(callback, hash);
       });
     }
@@ -52,19 +58,36 @@ if (endsWithNumber(location.pathname) && location.pathname) {
 
   const waitForFunc = function (func, callback) {
     if (window[func]) {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForFunc(func, callback);
+      });
+    }
+  };
+
+  const waitForSupabase = function (callback) {
+    var supabase_data = window.localStorage.getItem("supabase_data");
+    if (supabase_data && supabase_data.length > 0) {
+      setTimeout((supabase_data) => {
+        callback(supabase_data);
+      }, null, JSON.parse(supabase_data));
+    } else {
+      setTimeout(() => {
+        waitForSupabase(callback);
       });
     }
   };
 
   const waitForTooltip = function (callback) {
     if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
-      callback();
+      setTimeout(() => {
+        callback();
+      });
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         waitForTooltip(callback);
       });
     }
@@ -126,7 +149,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     })
   }
 
-  // add elytra button
+  // add layer button
   const createLayerBtn = () => {
     waitForSelector('#play-pause-btn', () => {
       var pauseBtn = document.querySelector('#play-pause-btn');
@@ -229,7 +252,17 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var creationDate = json.data.creationDate;
       var accountType = json.data.accountType;
       var tooltip = json.data.tooltip;
-      acctype.innerHTML = `<tooltip>${accountType}</tooltip> <i id="warningacc" class="fas fa-exclamation-circle"></i>`;
+      var tooltipEl = document.createElement("tooltip");
+      var warningAccEl = document.createElement("i");
+
+      tooltipEl.textContent = accountType + " ";
+
+      warningAccEl.id = "warningacc";
+      warningAccEl.classList.add("fas");
+      warningAccEl.classList.add("fa-exclamation-circle");
+
+      acctype.innerHTML = tooltipEl.outerHTML + warningAccEl.outerHTML;
+
       waitForTooltip(() => {
         $('#acctype tooltip').tooltip({
           "placement": "top",
@@ -243,22 +276,31 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         });
       })
       if (creationDate !== 'null') {
-        cdate.innerHTML = `${new Date(creationDate).toLocaleDateString()} <i id="warningcd" class="fas fa-exclamation-circle"></i>`;
+        var warningCdEl = document.createElement("i")
+
+        warningCdEl.id = "warningcd";
+        warningCdEl.classList.add("fas");
+        warningCdEl.classList.add("fa-exclamation-circle");
+
+        cdate.textContent = new Date(creationDate).toLocaleDateString() + " ";
+        cdate.append(warningCdEl);
+
         waitForTooltip(() => $('#warningcd').tooltip({
           "placement": "top",
           "boundary": "viewport",
           "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
         }))
       } else {
-        cdate.innerHTML = 'Not Found!';
+        cdate.textContent = 'Not Found!';
       }
     }
   });
 
-  waitForSelector('.order-lg-2', async () => {
+  waitForSelector('.order-lg-2', () => {
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
     var uuid = document.querySelector('.order-lg-2').innerText;
     var views = document.querySelector('.card-body > :nth-child(3)');
+    var cardBody = document.querySelector('.card-body');
 
     // create layer button
     createLayerBtn()
@@ -279,6 +321,81 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
       </div>
     `;
+
+    // add badges
+    waitForSupabase((supabase_data) => {
+      const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user == uuid).map(v => v.badge);
+      if (userBadgeIds.length > 0) {
+        const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
+        var hrEl = document.createElement("hr");
+        hrEl.classList.add("my-1");
+        if (!socialsTitle) cardBody.append(hrEl)
+
+        const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
+        let badgeCardRange = document.createRange();
+        let badgeCardHTML = badgeCardRange.createContextualFragment(`
+        <div class="row g-0 align-items-center">
+          <div class="col-auto col-lg-3 pe-3"><strong id="badgestitle">Badges</strong></div>
+          <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges"></div>
+        </div>
+        `)
+        let badgesHTML = userBadges.map(badge => {
+          var badgeRange = document.createRange()
+          var badgeHTML = badgeRange.createContextualFragment(`
+            <a class="d-inline-block position-relative p-1" href="javascript:void(0)">
+              <img class="service-icon">
+            </a>
+          `);
+
+          badgeHTML.querySelector("img").src = badge.image;
+          badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
+          badgeHTML.querySelector("a").setAttribute("title", badge.name);
+          badgeHTML.querySelector("a").href = encodeURI(`/extras/badge/${badge.id}`);
+
+          return badgeHTML.querySelector("a").outerHTML;
+        })
+
+        badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
+
+        cardBody.append(badgeCardHTML)
+
+        waitForTooltip(() => {
+          $('#badgestitle').tooltip({
+            "placement": "top",
+            "boundary": "viewport",
+            "title": "Badges from NameMC Extras!"
+          })
+
+          $('[src*=badges]').parent().tooltip({
+            "placement": "top",
+            "boundary": "viewport"
+          });
+        })
+      }
+
+      // add emoji override (if applicable)
+      let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid == uuid)[0];
+      if (emojiOverride) {
+        let usernameEl = document.querySelector("h1.text-nowrap");
+        // if usernameEl has img child, remove it
+        if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
+        // add new img
+        let emojiImg = document.createElement("img");
+        emojiImg.draggable = false;
+        emojiImg.src = emojiOverride.image_src;
+        emojiImg.classList.add("emoji");
+        emojiImg.id = "emoji_override";
+        waitForTooltip(() => {
+          $('#emoji_override').tooltip({
+            "placement": "top",
+            "boundary": "viewport",
+            "title": emojiOverride.tooltip_text
+          }); 
+        });
+        usernameEl.append(emojiImg);
+      }
+    });
+
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';
@@ -287,6 +404,19 @@ if (endsWithNumber(location.pathname) && location.pathname) {
     };
 
     document.body.append(gadgetIf);
+
+    // give developers verification
+    if (uuid == '2ce90d65-f253-4e3c-8e4b-3d5fb1e4c927' || uuid == '88e152f3-e545-4681-8cec-3e8f85175902') {
+      [...document.querySelectorAll(".service-icon:not([src*=badges])")].forEach(el => {
+        var verifyEl = document.createElement("img");
+        verifyEl.width = 15;
+        verifyEl.height = 15;
+        verifyEl.className = 'position-absolute bottom-0 end-0';
+        verifyEl.src = 'https://s.namemc.com/img/verification-badge.svg';
+        verifyEl.title = "Verified";
+        el.parentElement.appendChild(verifyEl);
+      })
+    }
 
     // add legendarisk clown emoji and remove verification
     if (uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '0dd649c1-40c7-47f5-a839-0b98eaefedf2' || uuid == '70296d53-9fc3-4e53-97eb-269e97f14aad') {
@@ -324,8 +454,6 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               if (skinArtImages.length == skins.length) {
                 for (let i = 0; i < skinArtImages.length; i += rows) {
                   const chunk = skinArtImages.slice(i, i + rows);
-                  console.log(i)
-                  console.log(chunk)
                   chunk.forEach((image, j, array) => {
                     if (array.length == rows) {
                       ctx.drawImage(image, size * j, size * (i / rows))
@@ -352,7 +480,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               skin.classList.add('skinart');
             })
             skinArt = true;
-            borderBtn.innerHTML = 'show borders';
+            borderBtn.textContent = 'show borders';
           } else {
             skinsContainer.style.width = '324px';
             skinsContainer.style.margin = 'auto';
@@ -360,7 +488,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               skin.classList.remove('skinart');
             })
             skinArt = false;
-            borderBtn.innerHTML = 'hide borders';
+            borderBtn.textContent = 'hide borders';
           }
         }
       }
@@ -379,17 +507,17 @@ if (endsWithNumber(location.pathname) && location.pathname) {
           if (isHidden == true) {
             showHidden();
             isHidden = false;
-            histBtn.innerHTML = 'hide hidden';
+            histBtn.textContent = 'hide hidden';
           } else {
             hideHidden();
             isHidden = true;
-            histBtn.innerHTML = 'show hidden';
+            histBtn.textContent = 'show hidden';
           }
         }
       }
     });
 
-    waitForSVSelector('.skin-3d', async () => {
+    waitForSVSelector('.skin-3d', () => {
       const oldContainer = document.querySelector('.skin-3d');
       oldContainer.classList.remove('skin-3d');
       const newContainer = document.createElement('canvas');
@@ -447,7 +575,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
-      waitForImage(async () => {
+      waitForImage(() => {
         // has ears
         if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
 
@@ -461,6 +589,15 @@ if (endsWithNumber(location.pathname) && location.pathname) {
         if (capeHash !== '') {
           waitForImage(() => {
             skinViewer.loadCape(window.namemc.images[capeHash].src);
+            waitForSupabase((supabase_data) => {
+              const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).map(v => v.cape);
+              const notMarcOrLucky = uuid != "b0588118-6e75-410d-b2db-4d3066b223f7" || Math.random() * 10 < 1;
+
+              if (userCapeIds.length > 0 && notMarcOrLucky) {
+                const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
+                skinViewer.loadCape(userCapes[0].image_src)
+              }
+            })
             setTimeout(createElytraBtn);
           }, capeHash);
         }
@@ -491,7 +628,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               el.classList.remove('skin-button-selected');
             });
             el.classList.add('skin-button-selected');
-            waitForImage(async () => {
+            waitForImage(() => {
               skinViewer.loadSkin(window.namemc.images[el.getAttribute('data-id')].src);
             }, el.getAttribute('data-id'));
           }
@@ -504,7 +641,7 @@ if (endsWithNumber(location.pathname) && location.pathname) {
               el.classList.remove('skin-button-selected');
             });
             el.classList.add('skin-button-selected');
-            waitForImage(async () => {
+            waitForImage(() => {
               if (elytraOn == true) {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
                   backEquipment: "elytra"
