@@ -1,12 +1,12 @@
 # NameMC Extras (Beta)
-A Firefox Addon that adds many features to NameMC currently work in progress.
+A Chromium Extension that adds many features to NameMC currently work in progress.
 
-[Press here to go to the Chromium version.](https://github.com/NameMC-Extras/NameMC-Extras/tree/chromium)
+[Press here to go to the Firefox version.](https://github.com/NameMC-Extras/NameMC-Extras/tree/firefox)
 
 Shouts out to M6, Orius, Arky, Swede
 
 ## Installation
-Install the Firefox extension [here](https://addons.mozilla.org/en-US/firefox/addon/namemc-extras-beta/)!
+Install the Chromium extension [here](https://chrome.google.com/webstore/detail/namemc-extras-beta/cpphfojhgkppblcdhjbcploikanimgek)!
 
 ## Features:
 - Original Account Types
@@ -20,7 +20,7 @@ Install the Firefox extension [here](https://addons.mozilla.org/en-US/firefox/ad
 - Show Custom Optifine capes
 - Generate a image of all your profiles
 
-Create a issue or message me on discord (faav) if you have any suggestions.
+Create a issue or message me on discord (Faav#6320) if you have any suggestions.
 
 Example Image:
 
