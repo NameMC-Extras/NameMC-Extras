@@ -10,24 +10,26 @@
   }
 
   var endPoints = {
-    "badges": "/badges?select=*",
-    "capes": "/capes?select=*",
-    "nmc_capes": "/capes_nmc?select=*",
     "categories": "/cape_categories?select=*",
-    "user_badges": "/user_badges?select=*",
-    "user_capes": "/user_capes?select=*",
-    "user_emoji_overrides": "/user_emoji_overrides?select=*",
+    "capes": "/capes?select=*",
+    "users": "/user_capes?select=*"
   }
 
 
-  async function storeResults(results) {
+  async function injectResults(results) {
     var inject = document.createElement('iframe');
     var datas = Promise.all(results.map(async (result, i) => {
       return [Object.keys(endPoints)[i], await result.json()]
     }))
 
-    localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(await datas)))
+    inject.srcdoc = `<script>window.top.supabase_data=${JSON.stringify(Object.fromEntries(await datas))}</script>`;
+    inject.onload = function () {
+      this.remove();
+    };
+    (document.head || document.documentElement).appendChild(inject);
   }
 
-  fetchSupabase(Object.values(endPoints)).then(results => storeResults(results))
+  fetchSupabase(Object.values(endPoints)).then(async results => {
+    injectResults(results)
+  })
 })()
