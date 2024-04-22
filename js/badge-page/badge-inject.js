@@ -73,6 +73,7 @@ function loadPage(mainDiv) {
   console.log("Loading page!")
 
   mainDiv.style["margin-top"] = "1rem";
+  mainDiv.innerHTML = "";
 
   // get badge and update page title
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
