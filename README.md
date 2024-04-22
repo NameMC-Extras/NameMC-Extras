@@ -20,7 +20,7 @@ Install the Chromium extension [here](https://chrome.google.com/webstore/detail/
 - Show Custom Optifine capes
 - Generate a image of all your profiles
 
-Create a issue or message me on discord (Faav#6320) if you have any suggestions.
+Create a issue or message me on discord (faav) if you have any suggestions.
 
 Example Image:
 
