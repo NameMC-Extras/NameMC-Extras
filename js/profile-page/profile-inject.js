@@ -654,6 +654,13 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             fixPauseBtn();
           }
         });
+
+        const userCustomCapes = await getUserCapes(uuid);
+        const notMarcOrLucky = uuid != "b0588118-6e75-410d-b2db-4d3066b223f7" || Math.random() * 10 < 1;
+        if (userCustomCapes.length > 0 && notMarcOrLucky) {
+          skinViewer.loadCape(userCustomCapes[0].src);
+        }
+
       }, skinHash);
     });
   });

@@ -1,12 +1,12 @@
 # NameMC Extras (Beta)
-A Chromium Extension that adds many features to NameMC currently work in progress.
+A Firefox Addon that adds many features to NameMC currently work in progress.
 
-[Press here to go to the Firefox version.](https://github.com/bribes/NameMC-Extras/tree/firefox)
+[Press here to go to the Chromium version.](https://github.com/NameMC-Extras/NameMC-Extras/tree/chromium)
 
 Shouts out to M6, Orius, Arky, Swede
 
 ## Installation
-Install the Chromium extension [here](https://chrome.google.com/webstore/detail/namemc-extras-beta/cpphfojhgkppblcdhjbcploikanimgek)!
+Install the Firefox extension [here](https://addons.mozilla.org/en-US/firefox/addon/namemc-extras-beta/)!
 
 ## Features:
 - Original Account Types
@@ -14,12 +14,13 @@ Install the Chromium extension [here](https://chrome.google.com/webstore/detail/
 - Deadmau5 Ear Display
 - Elytra Button
 - Ability to hide dashed out names (hidden names) from name history
-- Hide Borders for Skin Art
+- Hide Borders for Skin Art (and download)
 - Hide Skin Layers
 - Skin & Cape Tester
-- Custom Badges (TODO)
+- Show Custom Optifine capes
+- Generate a image of all your profiles
 
-Create a issue or message me on discord (Faav#6320) if you have any suggestions.
+Create a issue or message me on discord (faav) if you have any suggestions.
 
 Example Image:
 
