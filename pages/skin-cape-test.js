@@ -25,7 +25,9 @@ var noElytra = [
     "639cb7c0f0d4345900b64f14ee33ecfccc7d6bcb5e18d027fb3452bfc9e5c4d1",
     "12607ff71c803562dfb985769caaebf867172c13b20853368da1ebb099817f0d",
     "aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413",
-    "5e8f3740ec1aabc872d8149c5e00b5b739cce63971db6edab30f94ccffed9d37"
+    "5e8f3740ec1aabc872d8149c5e00b5b739cce63971db6edab30f94ccffed9d37",
+    "b69e02edd267ea9bd7bf3f67f2a5cfff0f5aa8caf7c081e2d7221ac78277970a",
+    "b698cefe18ac367f930332dd77f4a6d390be7adb36380e568761df4683562f84"
 ]
 
 const waitForSelector = function (selector, callback) {
@@ -361,6 +363,9 @@ waitForSelector('main', (main) => {
                             <option value="2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933">Migrator</option>
                             <option value="f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4">Vanilla</option>
                             <option value="afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb">Cherry Blossom</option>
+                            <option value="cd9d82ab17fd92022dbd4a86cde4c382a7540e117fae7b9a2853658505a80625">15th Anniversary</option>
+                            <option value="569b7f2a1d00d26f30efe3f9ab9ac817b1e6d35f4f3cfb0324ef2d328223d350">Followers</option>
+                            <option value="cb40a92e32b57fd732a00fc325e7afb00a7ca74936ad50d8e860152e482cfbde">Purple Heart</option>
                         </optgroup>
                         <optgroup label="Minecon">
                             <option value="e7dfea16dc83c97df01a12fabbd1216359c0cd0ea42f9999b6e97c584963e980">MineCon 2016</option>
@@ -391,6 +396,13 @@ waitForSelector('main', (main) => {
                             <option value="2e002d5e1758e79ba51d08d92a0f3a95119f2f435ae7704916507b6c565a7da8">Spade</option>
                             <option value="ca29f5dd9e94fb1748203b92e36b66fda80750c87ebc18d6eafdb0e28cc1d05f">Translator (Japanese)</option>
                         </optgroup>
+                        <optgroup label="API Testing">
+                            <option value="7a93b1867eb599f2b76e6e1c30a0ddb530e6f4c7bce6515d1ba72b206df30e39">Sniffer</option>
+                            <option value="e75f4110215ef4f3c25ed4b4fb0cd76cb6c4d5fc8bf7f351811435fbc2e085c4">Snail</option>
+                            <option value="b69e02edd267ea9bd7bf3f67f2a5cfff0f5aa8caf7c081e2d7221ac78277970a">ICU</option>
+                            <option value="b698cefe18ac367f930332dd77f4a6d390be7adb36380e568761df4683562f84">ICU 2</option>
+                            <option value="8c6b65823f7c686895160faf51f571ec2e4841317f7bc30d7e59371344c0c7d1">Frog</option>
+                        </optgroup>
                         <optgroup label="Previous or Temporary Capes">
                             <option value="fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc">Bacon</option>
                             <option value="2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211">Christmas 2010</option>
@@ -417,6 +429,7 @@ waitForSelector('main', (main) => {
                             <option value="639cb7c0f0d4345900b64f14ee33ecfccc7d6bcb5e18d027fb3452bfc9e5c4d1">Squid</option>
                             <option value="12607ff71c803562dfb985769caaebf867172c13b20853368da1ebb099817f0d">Veterinarian</option>
                         </optgroup>
+
                     </select>
                 </div>`;
 
@@ -550,6 +563,10 @@ waitForSelector('main', (main) => {
                         });
 
                         jscolor.init()
+
+                        document.getElementById('optibanner').onchange = () => {
+                            currentCape = currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
+                        }
 
                         currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
                     }
