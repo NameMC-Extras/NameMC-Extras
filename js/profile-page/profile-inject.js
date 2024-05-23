@@ -39,7 +39,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       });
     } else {
       setTimeout(() => {
-        waitForSelector(selector, callback);
+        waitForSVSelector(selector, callback);
       });
     }
   };
