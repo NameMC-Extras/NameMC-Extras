@@ -417,13 +417,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         el.parentElement.appendChild(verifyEl);
       })
     }
-
-    // add legendarisk clown emoji and remove verification
-    if (uuid == '55733f30-8907-4851-8af3-420f6f255856' || uuid == '0dd649c1-40c7-47f5-a839-0b98eaefedf2' || uuid == '70296d53-9fc3-4e53-97eb-269e97f14aad') {
-      document.querySelector('h1 .emoji').src = 'https://s.namemc.com/img/emoji/twitter/1f921.svg';
-      document.querySelectorAll('[title=Verified]').forEach(el => el.remove());
-    }
-
+    
     waitForSVSelector('.skin-2d.skin-button', () => {
       var skins = [...document.querySelectorAll(".skin-2d.skin-button")]
       var hasMultipleSkins = skins.length > 1;
