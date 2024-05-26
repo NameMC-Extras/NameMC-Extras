@@ -413,7 +413,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
         skinsTitle.innerHTML += `<div>
             <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-border-style"></i></a>
-            ${skinEdit?.parentElement?.outerHTML ? skinEdit?.parentElement?.outerHTML : ""}
+            ${skinEdit ? skinEdit?.parentElement?.outerHTML : ""}
           </div>`;
 
         skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
@@ -453,27 +453,27 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         // add show hidden button
         historyTitle.innerHTML += `<div>
           <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
-          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
-          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.innerHTML : ""}
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
 
         histBtn.onclick = () => {
           if (isHidden == true) {
             showHidden();
             isHidden = false;
-            copyHist.setAttribute("data-clipboard-text", [...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n"));
+            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
           } else {
             hideHidden();
             isHidden = true;
-            copyHist.setAttribute("data-clipboard-text", [...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n"));
+            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
           }
         }
       } else {
         historyTitle.innerHTML += `<div>
-          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
-          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.innerHTML : ""}
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
       }
 
