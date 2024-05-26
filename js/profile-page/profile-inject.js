@@ -18,6 +18,7 @@ var elytraOn = false;
 var isHidden = true;
 var skinArt = false;
 var layer = true;
+var shiftPress = false;
 
 if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
@@ -453,7 +454,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         // add show hidden button
         historyTitle.innerHTML += `<div>
           <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
-          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
 
@@ -472,10 +473,12 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         }
       } else {
         historyTitle.innerHTML += `<div>
-          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
       }
+
+      setTimeout(()=>copyHist.title = "Copy", 1000)
 
       window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].length-1) : null)
       window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")))
