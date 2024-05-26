@@ -302,7 +302,7 @@ async function loadPage(mainDiv) {
     }
 
     return userEl.outerHTML;
-  }).join("                ");
+  }).join(" ");
 }
 
 
