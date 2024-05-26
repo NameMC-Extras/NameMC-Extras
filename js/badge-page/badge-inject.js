@@ -69,7 +69,7 @@ const badgeId = location.pathname.split("/")[3];
  * FUNCTIONS
  */
 
-function loadPage(mainDiv) {
+async function loadPage(mainDiv) {
   console.log("Loading page!")
 
   mainDiv.style["margin-top"] = "1rem";
@@ -81,6 +81,7 @@ function loadPage(mainDiv) {
   if (!badge) return;
   document.title = `${badge.name} | Badge | NameMC Extras`
   const badgeOwners = supabase_data.user_badges.filter(user => user.badge == badgeId);
+
   // update page
   var badgeRange = document.createRange();
   var badgeHTML = badgeRange.createContextualFragment(`
@@ -143,19 +144,7 @@ function loadPage(mainDiv) {
           <div class="card mb-3">
             <div class="d-flex flex-column" style="max-height: 25rem">
               <div class="card-header py-1"><strong>Profiles (${badgeOwners.length})</strong></div>
-              <div class="card-body player-list py-2">
-                ${badgeOwners.map(u => {
-      var userEl = document.createElement("a");
-      userEl.textContent = u.user;
-      userEl.href = "/profile/" + u.user;
-      userEl.translate = "no";
-      if (u.note) {
-        userEl.setAttribute("data-note", "");
-        userEl.title = u.note;
-      }
-
-      return userEl.outerHTML;
-    }).join("")}
+              <div class="card-body player-list py-2"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
               </div>
             </div>
           </div>
@@ -164,6 +153,24 @@ function loadPage(mainDiv) {
   `);
 
   mainDiv.append(badgeHTML)
+
+  var badgeOwnerNames = (await Promise.all(badgeOwners.map(async badge => {
+    const resp = await fetch("https://sessionserver.mojang.club/session/minecraft/profile/" + badge.user);
+    return await resp.json();
+  }))).map(a => a.name);
+
+  document.querySelector(".player-list").innerHTML = badgeOwners.map((u, i) => {
+    var userEl = document.createElement("a");
+    userEl.textContent = badgeOwnerNames[i];
+    userEl.href = "/profile/" + u.user;
+    userEl.translate = "no";
+    if (u.note) {
+      userEl.setAttribute("data-note", "");
+      userEl.title = u.note;
+    }
+
+    return userEl.outerHTML;
+  }).join("                ")
 }
 
 
