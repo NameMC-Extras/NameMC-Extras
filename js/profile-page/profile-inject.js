@@ -18,7 +18,6 @@ var elytraOn = false;
 var isHidden = true;
 var skinArt = false;
 var layer = true;
-var shiftPress = false;
 
 if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
