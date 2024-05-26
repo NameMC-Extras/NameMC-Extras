@@ -232,7 +232,7 @@ async function loadPage(mainDiv) {
   mainDiv.append(capeHTML)
 
   var badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
-    const resp = await fetch("https://api.mcuserna.me/session/" + badge.user);
+    const resp = await fetch("https://sessionserver.mojang.club/session/minecraft/profile/" + badge.user);
     return await resp.json();
   }))).map(a=>a.name);
 
