@@ -18,6 +18,7 @@ var elytraOn = false;
 var isHidden = true;
 var skinArt = false;
 var layer = true;
+var shiftPress = false;
 
 if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
@@ -236,7 +237,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   waitForFunc("updateSkin", () => {
     updateSkin = () => {}
   });
-  
+
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
@@ -476,6 +477,9 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
       }
+
+      window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].length-1) : null)
+      window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")))
 
       historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
     });
