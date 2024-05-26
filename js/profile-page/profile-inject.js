@@ -376,6 +376,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       editLink.innerHTML = '  <i class="far fa-edit"></i>';
       editLink.classList.add("text-white");
       editLink.title = "Edit";
+
+      if (editLink.parentElement.tagName == "STRONG" && editLink.parentElement.parentElement.parentElement.parentElement.classList.contains("col-md-auto")) {
+        editLink.parentElement.parentElement.append(editLink);
+        editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
+      }
     });
 
     var copyLinks = [...document.querySelectorAll("a")].filter(a=>a.innerText=="Copy");
