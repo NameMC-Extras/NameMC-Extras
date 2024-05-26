@@ -92,14 +92,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       });
     }
   };
-
-  const downloadSkinArt = () => {
-    var a = document.createElement("a");
-    a.href = skinArtImage.toDataURL();
-    a.setAttribute("download", "skinart");
-    a.click();
-  }
-
+  
   // toggle skin layers
   const toggleLayers = () => {
     var layerIcon = document.querySelector("#layer-btn i");
@@ -288,7 +281,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       </div>
       <div class="row g-0">
         <div class="col order-lg-1 col-lg-3"><strong>Links</strong></div>
-        <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
+        <div class="col-12 order-lg-2 col-lg"><a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
       </div>
     `;
 
@@ -418,60 +411,14 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         var skinsTitle = skinsContainer.parentElement.parentElement.querySelector('.card-header');
         var skinEdit = skinsTitle.querySelector(".fa-edit");
 
-        if (skinEdit) {
-          skinsTitle.innerHTML += `<div>
-            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-square"></i></a>
-            <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-fw fa-arrow-alt-to-bottom"></i></a>
-            ${skinEdit?.parentElement?.outerHTML}
+        skinsTitle.innerHTML += `<div>
+            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-border-style"></i></a>
+            ${skinEdit?.parentElement?.outerHTML ? skinEdit?.parentElement?.outerHTML : ""}
           </div>`;
 
-          skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
-        } else {
-          skinsTitle.innerHTML += `<div>
-            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-square"></i></a>
-            <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-fw fa-arrow-alt-to-bottom"></i></a>
-          </div>`;
-        }
+        skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
         
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
-        
-        waitForImage(() => {
-          var skinArtCanvas = document.createElement("canvas");
-          skinArtCanvas.id = "skinArtImage";
-          skinArtCanvas.width = rows * size;
-          skinArtCanvas.height = columns * size;
-          skinArtCanvas.style.display = "none";
-
-          document.body.append(skinArtCanvas)
-
-          var ctx = skinArtImage.getContext("2d");
-          var skinArtImages = []
-
-          skins.forEach((skin) => {
-            var img = new Image();
-            img.onload = () => {
-              skinArtImages.push(img)
-
-              if (skinArtImages.length == skins.length) {
-                for (let i = 0; i < skinArtImages.length; i += rows) {
-                  const chunk = skinArtImages.slice(i, i + rows);
-                  chunk.forEach((image, j, array) => {
-                    if (array.length == rows) {
-                      ctx.drawImage(image, size * j, size * (i / rows))
-                    } else {
-                      var padding = ((rows - array.length) / 2) * size
-                      ctx.drawImage(image, padding + (size * j), size * (i / rows))
-                    }
-                  })
-                }
-              }
-            };
-
-            img.src = skin.toDataURL();
-          })
-
-          skinArtBtn.onclick = downloadSkinArt;
-        }, skins.at(-1).getAttribute("data-id"))
 
         borderBtn.onclick = () => {
           if (skinArt == false) {
@@ -481,7 +428,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               skin.classList.add('skinart');
             })
             skinArt = true;
-            borderBtn.innerHTML = '<i class="far fa-fw fa-border-style">';
+            borderBtn.innerHTML = '<i class="far fa-fw fa-border-all">';
           } else {
             skinsContainer.style.width = '324px';
             skinsContainer.style.margin = 'auto';
@@ -489,7 +436,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               skin.classList.remove('skinart');
             })
             skinArt = false;
-            borderBtn.innerHTML = '<i class="far fa-fw fa-square">';
+            borderBtn.innerHTML = '<i class="far fa-fw fa-border-style">';
           }
         }
       }
@@ -507,7 +454,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         historyTitle.innerHTML += `<div>
           <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
           <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
-          ${historyTitle.querySelector(".fa-edit")?.parentElement?.innerHTML}
+          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.innerHTML : ""}
         </div>`;
 
         histBtn.onclick = () => {
@@ -526,7 +473,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       } else {
         historyTitle.innerHTML += `<div>
           <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
-          ${historyTitle.querySelector(".fa-edit")?.parentElement?.innerHTML}
+          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.innerHTML : ""}
         </div>`;
       }
 
