@@ -122,31 +122,29 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
   // fix pause button
   const fixPauseBtn = () => {
-    setTimeout(() => {
-      var pauseBtn = document.querySelector('#play-pause-btn');
-      var pauseIcon = pauseBtn.querySelector('i');
-      if (paused == true) {
+    var pauseBtn = document.querySelector('#play-pause-btn');
+    var pauseIcon = pauseBtn.querySelector('i');
+    if (paused == true) {
+      pauseIcon.classList.remove('fa-pause');
+      pauseIcon.classList.add('fa-play');
+    } else {
+      pauseIcon.classList.remove('fa-play');
+      pauseIcon.classList.add('fa-pause');
+    }
+    pauseBtn.setAttribute('onclick', '');
+    pauseBtn.onclick = () => {
+      if (paused == false) {
+        paused = true;
         pauseIcon.classList.remove('fa-pause');
         pauseIcon.classList.add('fa-play');
       } else {
+        paused = false;
         pauseIcon.classList.remove('fa-play');
         pauseIcon.classList.add('fa-pause');
       }
-      pauseBtn.setAttribute('onclick', '');
-      pauseBtn.onclick = () => {
-        if (paused == false) {
-          paused = true;
-          pauseIcon.classList.remove('fa-pause');
-          pauseIcon.classList.add('fa-play');
-        } else {
-          paused = false;
-          pauseIcon.classList.remove('fa-play');
-          pauseIcon.classList.add('fa-pause');
-        }
-        setCookie("animate", !paused);
-        skinViewer.animation.paused = paused;
-      }
-    })
+      setCookie("animate", !paused);
+      skinViewer.animation.paused = paused;
+    }
   }
 
   // add layer button
@@ -238,14 +236,14 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   }
 
   // fix bug
-  waitForFunc("updateSkin", () => {
-    updateSkin = () => { }
-  })
-
   waitForFunc("animateSkin", () => {
-    animateSkin = () => { }
-  })
+    animateSkin = () => {}
+  });
 
+  waitForFunc("updateSkin", () => {
+    updateSkin = () => {}
+  });
+  
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
@@ -373,7 +371,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     editLinks.forEach(editLink => {
       editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
       editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
-      editLink.innerHTML = '  <i class="far fa-edit"></i>';
+      editLink.innerHTML = '<i class="far fa-edit"></i>';
       editLink.classList.add("text-white");
       editLink.title = "Edit";
 
@@ -421,19 +419,17 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         var skinEdit = skinsTitle.querySelector(".fa-edit");
 
         if (skinEdit) {
-          skinEdit.classList.add("p-1")
-
           skinsTitle.innerHTML += `<div>
             ${skinEdit.parentElement.outerHTML}
-            <a href="javascript:void(0)" id="borderBtn" class="text-white p-1" title="Show/Hide Borders"><i class="far fa-border-style"></i></a>
-            <a href="javascript:void(0)" id="skinArtBtn" class="text-white p-1" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
+            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-border-style"></i></a>
+            <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
           </div>`;
 
           skinsTitle.querySelector(".fa-edit").remove()
         } else {
           skinsTitle.innerHTML += `<div>
-            <a href="javascript:void(0)" id="borderBtn" class="text-white p-1" title="Show/Hide Borders"><i class="far fa-border-style"></i></a>
-            <a href="javascript:void(0)" id="skinArtBtn" class="text-white p-1" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
+            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-border-style"></i></a>
+            <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
           </div>`;
         }
         
@@ -485,7 +481,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               skin.classList.add('skinart');
             })
             skinArt = true;
-            borderBtn.innerHTML = '<i class="far fa-square">';
+            borderBtn.innerHTML = '<i class="far fa-fw fa-square">';
           } else {
             skinsContainer.style.width = '324px';
             skinsContainer.style.margin = 'auto';
@@ -493,7 +489,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               skin.classList.remove('skinart');
             })
             skinArt = false;
-            borderBtn.innerHTML = '<i class="far fa-border-style">';
+            borderBtn.innerHTML = '<i class="far fa-fw fa-border-style">';
           }
         }
       }
@@ -506,17 +502,25 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
         // add show hidden button
         var historyTitle = document.querySelectorAll('.card-header')[1]
-        historyTitle.innerHTML += ' (<a href="javascript:void(0)" id="histBtn">show hidden</a>)';
+        historyTitle.innerHTML += ' <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye-slash"></i></a>';
+
+        var historyEdit = historyTitle.querySelector(".fa-edit")?.parentElement;
+        if (historyEdit) {
+          historyTitle.querySelector("strong").innerHTML += ` ${historyEdit.innerHTML}`;
+          historyEdit.remove();
+        }
+
+        historyTitle.style.cssText = "display:flex;justify-content:space-between";
 
         histBtn.onclick = () => {
           if (isHidden == true) {
             showHidden();
             isHidden = false;
-            histBtn.textContent = 'hide hidden';
+            histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
           } else {
             hideHidden();
             isHidden = true;
-            histBtn.textContent = 'show hidden';
+            histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
           }
         }
       }
@@ -580,6 +584,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
+      
       waitForImage(() => {
         // has ears
         if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
@@ -603,6 +608,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
                 skinViewer.loadCape(userCapes[0].image_src)
               }
             })
+
             setTimeout(createElytraBtn);
           }, capeHash);
         }
@@ -623,9 +629,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         // make layer button work
         document.querySelector("#layer-btn").onclick = toggleLayers;
 
-        // fix pause button
-        fixPauseBtn()
-
         // skins
         document.querySelectorAll('.skin-2d').forEach((el) => {
           el.onmouseover = () => {
@@ -638,6 +641,9 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             }, el.getAttribute('data-id'));
           }
         });
+
+        // fix pause button
+        setTimeout(fixPauseBtn, 1000)
 
         // capes
         document.querySelectorAll('.cape-2d').forEach((el) => {
@@ -656,7 +662,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               }
               createElytraBtn();
             }, el.getAttribute('data-cape'));
-            fixPauseBtn();
+            setTimeout(fixPauseBtn);
           }
         });
       }, skinHash);
