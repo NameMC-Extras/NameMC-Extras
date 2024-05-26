@@ -96,7 +96,7 @@
     // Credits
     waitForSelector("footer .row", (footer) => {
         var creditsRange = document.createRange();
-        var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://chromewebstore.google.com/detail/cpphfojhgkppblcdhjbcploikanimgek" target="_blank">NameMC Extras</a></small></div>`);
+        var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://github.com/NameMC-Extras/NameMC-Extras" target="_blank">NameMC Extras</a></small></div>`);
         footer?.insertBefore(creditsHTML, footer?.lastElementChild)
     });
 
