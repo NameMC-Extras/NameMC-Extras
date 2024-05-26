@@ -368,6 +368,23 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       }
     });
 
+    // replace (edit) and Copy with icons
+    var editLinks = [...document.querySelectorAll("a")].filter(a=>a.innerText=="edit");
+    editLinks.forEach(editLink => {
+      editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
+      editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
+      editLink.innerHTML = '  <i class="far fa-edit"></i>';
+      editLink.classList.add("text-white");
+      editLink.title = "Edit";
+    });
+
+    var copyLinks = [...document.querySelectorAll("a")].filter(a=>a.innerText=="Copy");
+    copyLinks.forEach(copyLink => {
+      copyLink.innerHTML = '<i class="far fa-copy"></i>';
+      copyLink.classList.add("text-white");
+      setTimeout(()=>copyLink.title = "Copy", 1000)
+    });
+    
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';
@@ -396,9 +413,27 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       if (hasMultipleSkins) {
         const skinsContainer = document.querySelector('.skin-2d.skin-button').parentElement.parentElement;
         var skinsTitle = skinsContainer.parentElement.parentElement.querySelector('.card-header');
-        skinsTitle.querySelector("strong").innerHTML += ' (<a href="javascript:void(0)" id="borderBtn">hide borders</a>)';
+        var skinEdit = skinsTitle.querySelector(".fa-edit");
+
+        if (skinEdit) {
+          skinEdit.classList.add("p-1")
+
+          skinsTitle.innerHTML += `<div>
+            ${skinEdit.parentElement.outerHTML}
+            <a href="javascript:void(0)" id="borderBtn" class="text-white p-1" title="Show/Hide Borders"><i class="far fa-border-style"></i></a>
+            <a href="javascript:void(0)" id="skinArtBtn" class="text-white p-1" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
+          </div>`;
+
+          skinsTitle.querySelector(".fa-edit").remove()
+        } else {
+          skinsTitle.innerHTML += `<div>
+            <a href="javascript:void(0)" id="borderBtn" class="text-white p-1" title="Show/Hide Borders"><i class="far fa-border-style"></i></a>
+            <a href="javascript:void(0)" id="skinArtBtn" class="text-white p-1" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
+          </div>`;
+        }
+        
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
-        skinsTitle.innerHTML += '<a href="javascript:void(0)" id="skinArtBtn" style="color:white"><i class="fas fa-arrow-alt-to-bottom"></i></a>';
+        skinsTitle.innerHTML += '';
 
         waitForImage(() => {
           var skinArtCanvas = document.createElement("canvas");
@@ -446,7 +481,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               skin.classList.add('skinart');
             })
             skinArt = true;
-            borderBtn.textContent = 'show borders';
+            borderBtn.innerHTML = '<i class="far fa-square">';
           } else {
             skinsContainer.style.width = '324px';
             skinsContainer.style.margin = 'auto';
@@ -454,7 +489,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               skin.classList.remove('skinart');
             })
             skinArt = false;
-            borderBtn.textContent = 'hide borders';
+            borderBtn.innerHTML = '<i class="far fa-border-style">';
           }
         }
       }
