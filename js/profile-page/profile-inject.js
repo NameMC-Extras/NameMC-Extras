@@ -250,31 +250,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
       var creationDate = json.data.creationDate;
-      var accountType = json.data.accountType;
-      var tooltip = json.data.tooltip;
-      var tooltipEl = document.createElement("tooltip");
-      var warningAccEl = document.createElement("i");
 
-      tooltipEl.textContent = accountType + " ";
-
-      warningAccEl.id = "warningacc";
-      warningAccEl.classList.add("fas");
-      warningAccEl.classList.add("fa-exclamation-circle");
-
-      acctype.innerHTML = tooltipEl.outerHTML + warningAccEl.outerHTML;
-
-      waitForTooltip(() => {
-        $('#acctype tooltip').tooltip({
-          "placement": "top",
-          "boundary": "viewport",
-          "title": tooltip
-        });
-        $('#warningacc').tooltip({
-          "placement": "top",
-          "boundary": "viewport",
-          "title": "Due to the removal of the name history API this may be inaccurate."
-        });
-      })
       if (creationDate !== 'null') {
         var warningCdEl = document.createElement("i")
 
@@ -308,10 +284,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove()
 
     views.outerHTML += `
-      <div class="row g-0">
-        <div class="col col-lg-3"><strong>Created As</strong></div>
-        <div id="acctype" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
-      </div>
       <div class="row g-0">
         <div class="col col-lg-3"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
