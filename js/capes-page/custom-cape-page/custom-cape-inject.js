@@ -231,24 +231,6 @@ async function loadPage(mainDiv) {
 
   mainDiv.append(capeHTML)
 
-  var badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
-    const resp = await fetch("https://sessionserver.mojang.club/session/minecraft/profile/" + badge.user);
-    return await resp.json();
-  }))).map(a=>a.name);
-
-  document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
-    var userEl = document.createElement("a");
-    userEl.textContent = badgeOwnerNames[i];
-    userEl.href = "/profile/" + u.user;
-    userEl.translate = "no";
-    if (u.note) {
-      userEl.setAttribute("data-note", "");
-      userEl.title = u.note;
-    }
-
-    return userEl.outerHTML;
-  }).join("                ");
-
   // create skin viewer
   waitForFunc("skinview3d", () => {
     const skinContainer = document.getElementsByTagName("canvas").item(0);
@@ -303,6 +285,24 @@ async function loadPage(mainDiv) {
   })
 
   window.addEventListener('DOMContentLoaded', () => $("[data-note]").tooltip());
+
+  var badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
+    const resp = await fetch("https://sessionserver.mojang.club/session/minecraft/profile/" + badge.user);
+    return await resp.json();
+  }))).map(a=>a.name);
+
+  document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
+    var userEl = document.createElement("a");
+    userEl.textContent = badgeOwnerNames[i];
+    userEl.href = "/profile/" + u.user;
+    userEl.translate = "no";
+    if (u.note) {
+      userEl.setAttribute("data-note", "");
+      userEl.title = u.note;
+    }
+
+    return userEl.outerHTML;
+  }).join("                ");
 }
 
 
