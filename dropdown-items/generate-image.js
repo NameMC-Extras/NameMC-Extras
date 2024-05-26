@@ -15,7 +15,7 @@ if (profileEls.length > 1) profileEls = document.querySelectorAll('[href*="/my-p
 
 var profiles = [...profileEls].map(profile => ({
     name: profile.innerText.split(" ")[0],
-    image: profile.firstChild.src
+    image: profile.firstChild?.src
 })).filter(a => typeof a.image !== "undefined")
 
 if (profiles.length > 0) {
