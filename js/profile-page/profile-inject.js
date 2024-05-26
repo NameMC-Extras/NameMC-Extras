@@ -438,8 +438,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         }
         
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
-        skinsTitle.innerHTML += '';
-
+        
         waitForImage(() => {
           var skinArtCanvas = document.createElement("canvas");
           skinArtCanvas.id = "skinArtImage";
