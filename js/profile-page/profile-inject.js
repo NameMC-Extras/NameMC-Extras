@@ -371,11 +371,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     editLinks.forEach(editLink => {
       editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
       editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
-      editLink.innerHTML = '<i class="far fa-edit"></i>';
+      editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
       editLink.classList.add("text-white");
       editLink.title = "Edit";
 
-      if (editLink.parentElement.tagName == "STRONG" && editLink.parentElement.parentElement.parentElement.parentElement.classList.contains("col-md-auto")) {
+      if (editLink.parentElement.tagName == "STRONG") {
         editLink.parentElement.parentElement.append(editLink);
         editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
       }
@@ -383,7 +383,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     var copyLinks = [...document.querySelectorAll("a")].filter(a=>a.innerText=="Copy");
     copyLinks.forEach(copyLink => {
-      copyLink.innerHTML = '<i class="far fa-copy"></i>';
+      copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
       copyLink.classList.add("text-white");
       setTimeout(()=>copyLink.title = "Copy", 1000)
     });
@@ -420,16 +420,16 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
         if (skinEdit) {
           skinsTitle.innerHTML += `<div>
-            ${skinEdit.parentElement.outerHTML}
             <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-square"></i></a>
-            <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
+            <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-fw fa-arrow-alt-to-bottom"></i></a>
+            ${skinEdit?.parentElement?.outerHTML}
           </div>`;
 
-          skinsTitle.querySelector(".fa-edit").remove()
+          skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
         } else {
           skinsTitle.innerHTML += `<div>
             <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-square"></i></a>
-            <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
+            <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-fw fa-arrow-alt-to-bottom"></i></a>
           </div>`;
         }
         
@@ -496,34 +496,41 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     })
 
     setTimeout(() => {
+      var historyTitle = document.querySelectorAll('.card-header')[1];
+      historyTitle.style.cssText = "display:flex;justify-content:space-between";
+
       var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
       if (hasHidden) {
         hideHidden();
 
         // add show hidden button
-        var historyTitle = document.querySelectorAll('.card-header')[1]
-        historyTitle.innerHTML += ' <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>';
-
-        var historyEdit = historyTitle.querySelector(".fa-edit")?.parentElement;
-        if (historyEdit) {
-          historyTitle.querySelector("strong").innerHTML += ` ${historyEdit.innerHTML}`;
-          historyEdit.remove();
-        }
-
-        historyTitle.style.cssText = "display:flex;justify-content:space-between";
+        historyTitle.innerHTML += `<div>
+          <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          ${historyTitle.querySelector(".fa-edit")?.parentElement?.innerHTML}
+        </div>`;
 
         histBtn.onclick = () => {
           if (isHidden == true) {
             showHidden();
             isHidden = false;
+            copyHist.setAttribute("data-clipboard-text", [...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
           } else {
             hideHidden();
             isHidden = true;
+            copyHist.setAttribute("data-clipboard-text", [...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
           }
         }
+      } else {
+        historyTitle.innerHTML += `<div>
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...document.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" title="Copy" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          ${historyTitle.querySelector(".fa-edit")?.parentElement?.innerHTML}
+        </div>`;
       }
+
+      historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
     });
 
     waitForSVSelector('.skin-3d', () => {
