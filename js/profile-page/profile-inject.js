@@ -369,6 +369,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       editLink.classList.add("text-white");
       editLink.title = "Edit";
 
+      // move to far right
       if (editLink.parentElement.tagName == "STRONG") {
         editLink.parentElement.parentElement.append(editLink);
         editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
@@ -379,6 +380,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     copyLinks.forEach(copyLink => {
       copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
       copyLink.classList.add("text-white");
+
+      // fix title
       setTimeout(()=>copyLink.title = "Copy", 1000)
     });
     
@@ -478,8 +481,10 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         </div>`;
       }
 
+      // fix title
       setTimeout(()=>copyHist.title = "Copy", 1000)
 
+      // make it so when holding shift and copy is copies name changes instead
       window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].length-1) : null)
       window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")))
 
