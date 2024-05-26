@@ -421,14 +421,14 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         if (skinEdit) {
           skinsTitle.innerHTML += `<div>
             ${skinEdit.parentElement.outerHTML}
-            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-border-style"></i></a>
+            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-square"></i></a>
             <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
           </div>`;
 
           skinsTitle.querySelector(".fa-edit").remove()
         } else {
           skinsTitle.innerHTML += `<div>
-            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-border-style"></i></a>
+            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-square"></i></a>
             <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-arrow-alt-to-bottom"></i></a>
           </div>`;
         }
@@ -481,7 +481,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               skin.classList.add('skinart');
             })
             skinArt = true;
-            borderBtn.innerHTML = '<i class="far fa-fw fa-square">';
+            borderBtn.innerHTML = '<i class="far fa-fw fa-border-style">';
           } else {
             skinsContainer.style.width = '324px';
             skinsContainer.style.margin = 'auto';
@@ -489,7 +489,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               skin.classList.remove('skinart');
             })
             skinArt = false;
-            borderBtn.innerHTML = '<i class="far fa-fw fa-border-style">';
+            borderBtn.innerHTML = '<i class="far fa-fw fa-square">';
           }
         }
       }
@@ -502,7 +502,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
         // add show hidden button
         var historyTitle = document.querySelectorAll('.card-header')[1]
-        historyTitle.innerHTML += ' <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye-slash"></i></a>';
+        historyTitle.innerHTML += ' <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>';
 
         var historyEdit = historyTitle.querySelector(".fa-edit")?.parentElement;
         if (historyEdit) {
@@ -516,11 +516,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           if (isHidden == true) {
             showHidden();
             isHidden = false;
-            histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
+            histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
           } else {
             hideHidden();
             isHidden = true;
-            histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
+            histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
           }
         }
       }
