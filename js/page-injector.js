@@ -13,7 +13,7 @@
         }
     };
 
-    const customPage = async (page, name, title, icon) => {
+    const customPage = (page, name, title, icon) => {
         waitForSelector('[href="/minecraft-skins"]', () => {
             var isPage = location.pathname == "/extras/" + page;
             var storeNavBar = document.querySelector('.nav-link[href="https://store.namemc.com/category/emerald"]').parentElement;
@@ -58,7 +58,7 @@
         })
     }
 
-    const customMenuItem = async (id, name, href, location, classes) => {
+    const customMenuItem = (id, name, href, location, classes) => {
         waitForSelector('[href="/my-account"]', (myAccountBtn) => {
             var dropDownMenu = myAccountBtn.parentElement;
             var menuItem = document.createElement("a")
@@ -86,12 +86,12 @@
 
     // INJECTING PAGES
 
-    await customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait')
-    await customPage('badges', 'Badges', 'Badges', 'fas fa-award')
+    customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait')
+    customPage('badges', 'Badges', 'Badges', 'fas fa-award')
 
     // INJECTING MENU ITEMS
 
-    await customMenuItem('generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image')
+    customMenuItem('generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image')
 
     // Credits
     waitForSelector("footer .row", (footer) => {
