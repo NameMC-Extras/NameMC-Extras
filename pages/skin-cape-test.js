@@ -565,7 +565,7 @@ waitForSelector('main', (main) => {
                         jscolor.init()
 
                         document.getElementById('optibanner').onchange = () => {
-                            currentCape = currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
+                            currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
                         }
 
                         currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
