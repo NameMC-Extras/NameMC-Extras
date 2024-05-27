@@ -118,6 +118,16 @@ const fixElytraBtn = () => {
   })
 }
 
+const fixStealBtn = () => {
+  setTimeout(() => {
+    document.querySelector('#steal-btn').onclick = () => {
+      // get cape id (last "/" of url... account for query params)
+      const capeId = location.pathname.split("/").slice(-1)[0].split("?")[0];
+      window.location.href = `${location.origin}/extras/skin-cape-test?cape=${capeId}&nmceCape=1`;
+    }
+  })
+}
+
 
 /*
  * UNIVERSAL VARIABLES
@@ -197,6 +207,9 @@ async function loadPage(mainDiv) {
             </button>
             <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:50px!important;" title="Elytra">
               <i class="fas fa-dove"></i>
+            </button>
+            <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Steal Cape">
+              <i class="fas fa-user-secret"></i>
             </button>
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${capeOwners.length}★</h5>
           </div>
@@ -282,6 +295,7 @@ async function loadPage(mainDiv) {
 
     fixPauseBtn()
     waitForCape(fixElytraBtn);
+    waitForCape(fixStealBtn);
   })
 
   window.addEventListener('DOMContentLoaded', () => $("[data-note]").tooltip());

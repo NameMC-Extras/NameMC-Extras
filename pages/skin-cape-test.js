@@ -320,14 +320,22 @@ waitForSelector('main', (main) => {
         const urlParams = new URLSearchParams(window.location.search);
         const skinParam = urlParams.get('skin');
         const capeParam = urlParams.get('cape');
+        const nmceCapeParam = urlParams.get('nmceCape');
         const modelParam = urlParams.get('model');
         if (skinParam) {
             skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${skinParam}`, {
                 model: modelParam
             });
         }
-        if (capeParam) {
+        if (capeParam && !nmceCapeParam) {
             skinViewer.loadCape(`https://cors.faav.top/namemc/texture/${capeParam}`);
+        } else if (nmceCapeParam) {
+            waitForSupabase((supabase_data) => {
+                const cape = supabase_data.capes.find(cape => cape.id == capeParam);
+                if (cape) {
+                    skinViewer.loadCape(cape.image_src);
+                }
+            });
         }
 
         // make layer button work
