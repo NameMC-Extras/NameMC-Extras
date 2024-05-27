@@ -6,7 +6,11 @@
       headers: {
         apiKey
       }
-    })))
+    })));
+  };
+
+  function initBooleanKey(key) {
+    if (!localStorage.getItem(key) || localStorage.getItem(key) !== "true") localStorage.setItem(key, "false");
   }
 
   var endPoints = {
@@ -19,17 +23,18 @@
     "user_badges": "/user_badges?select=*",
     "user_capes": "/user_capes?select=*",
     "user_emoji_overrides": "/user_emoji_overrides?select=*",
-  }
-
-
+  };
+  
   async function storeResults(results) {
     var inject = document.createElement('iframe');
     var datas = Promise.all(results.map(async (result, i) => {
-      return [Object.keys(endPoints)[i], await result.json()]
-    }))
+      return [Object.keys(endPoints)[i], await result.json()];
+    }));
 
-    localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(await datas)))
+    localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(await datas)));
   }
 
-  fetchSupabase(Object.values(endPoints)).then(results => storeResults(results))
+  fetchSupabase(Object.values(endPoints)).then(results => storeResults(results));
+
+  initBooleanKey("skinArt");
 })()

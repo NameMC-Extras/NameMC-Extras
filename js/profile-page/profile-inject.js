@@ -13,7 +13,7 @@ function endsWithNumber(str) {
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
 var isHidden = true;
-var skinArt = false;
+var skinArt = (localStorage.getItem("skinArt") == "true");
 var layer = true;
 
 var currentSkinId = null;
@@ -300,7 +300,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     var cardBody = document.querySelector('.card-body');
 
     // create layer button
-    createLayerBtn()
+    setTimeout(createLayerBtn)
 
     document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove()
 
@@ -437,6 +437,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     }
     
     waitForSVSelector('.skin-2d.skin-button', () => {
+      setTimeout(createStealBtn);
+
       var skins = [...document.querySelectorAll(".skin-2d.skin-button")]
       var hasMultipleSkins = skins.length > 1;
       if (hasMultipleSkins) {
@@ -445,30 +447,42 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         var skinEdit = skinsTitle.querySelector(".fa-edit");
 
         skinsTitle.innerHTML += `<div>
-            <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders"><i class="far fa-fw fa-border-style"></i></a>
-            ${skinEdit ? skinEdit?.parentElement?.outerHTML : ""}
-          </div>`;
+          <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders">
+            ${skinArt ? '<i class="far fa-fw fa-border-all">' : '<i class="far fa-fw fa-border-style">'}</i>
+          </a>
+          ${skinEdit ? skinEdit?.parentElement?.outerHTML : ""}
+        </div>`;
 
         skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
         
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
 
+        if (skinArt) {
+          skinsContainer.style.width = '312px';
+          skinsContainer.style.margin = '6px auto';
+          document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
+            skin.classList.add('skinart');
+          });
+        }
+
         borderBtn.onclick = () => {
           if (skinArt == false) {
-            skinsContainer.style.width = '312px'
-            skinsContainer.style.margin = '6px auto'
+            skinsContainer.style.width = '312px';
+            skinsContainer.style.margin = '6px auto';
             document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
               skin.classList.add('skinart');
-            })
+            });
             skinArt = true;
+            localStorage.setItem("skinArt", "true");
             borderBtn.innerHTML = '<i class="far fa-fw fa-border-all">';
           } else {
             skinsContainer.style.width = '324px';
             skinsContainer.style.margin = 'auto';
             document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
               skin.classList.remove('skinart');
-            })
+            });
             skinArt = false;
+            localStorage.setItem("skinArt", "false");
             borderBtn.innerHTML = '<i class="far fa-fw fa-border-style">';
           }
         }
@@ -579,8 +593,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
 
-      setTimeout(createStealBtn);
-      
       waitForImage(() => {
         // has ears
         if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
@@ -662,7 +674,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               } else {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src);
               }
-              createElytraBtn();
+              setTimeout(createElytraBtn);
             }, el.getAttribute('data-cape'));
             setTimeout(fixPauseBtn);
           }

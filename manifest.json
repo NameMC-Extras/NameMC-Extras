@@ -12,7 +12,7 @@
   "content_scripts": [
     {
       "js": [
-        "js/supabase-preload.js",
+        "js/data-preload.js",
         "js/page-injector.js"
       ],
       "matches": [
