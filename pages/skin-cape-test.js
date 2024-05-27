@@ -560,7 +560,12 @@ waitForSelector('main', (main) => {
                 skinViewer.loadCape(`https://cors.faav.top/namemc/texture/${capeParam}`);
                 vanilla.checked = true;
                 vanilla.onchange();
-                document.getElementById(capeParam).selected = true;
+                const optionEl = document.getElementById(capeParam);
+                if (optionEl) optionEl.selected = true;
+                else {
+                    optifine.checked = true;
+                    optifine.onchange();
+                }
             }
 
             // load special capes
