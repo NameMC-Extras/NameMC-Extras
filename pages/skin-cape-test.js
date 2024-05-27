@@ -316,28 +316,6 @@ waitForSelector('main', (main) => {
             skinViewer.loadSkin('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAZlBMVEUAAAAYOBYjYiQoKCgrVCg2NjY/Pz9PT09YWFhcOydkQSxlZWVsRi5vb29xq25yTjZ1UDh7snh8Vz6AglqGuYSMvoqUlmuUyJLUt4/egS7fxKLljT/rmD/r0LDvu7Hv2r/zqFj///9X5330AAAAAXRSTlMAQObYZgAAAy9JREFUWMPtVmtjojAQ1CrykMIFiRASCv3/f/JmNsGC1yr49bpIhOjMTjaP3d0umHXW4LLWGXyc2201BzPGsH2VYBwJ9kqc3UxgjfdshMGZ7QpGGBrPY80LCqxzGEDXIhL2BQJEb4R623Vd24JkuwLoZxy7rod13XoghIvrkQpGLoSRQ0E/b7vCsyCtHwBb6mCvk8410Z/cYfyESzRkRKB5TkB3dA2Gfuh7YbDiXFieB5ODpuv+820Y3j5771piYqDErJk+i8APk3X2FhMzrllQ3H0B//ExYBDdaEfjjAjAb88VWNO2nHvh6BlHwC13heOuWLUWClgUHQ7Tu64ZGWeLYLd+reHjB4LDIYq+CGruKVcUKWxJ0LffEqTpUsGlJYPgwfBcAf61UHDBhsIoviP4R0GttcrKKsuyoqhh+BMEIJjtpfgyJf3ym7QzgkypLK+qHAxZmmaZVkrXV0znIARqgpO6Zksn9YygzPMS+KoEAZ9AoGp1HYgHmm9aN7pp0PqGrzOCilDgq1yYKl1QgroSXyvcjZbrsrAZQU44WKAkT3EDIwhiQSAu4brpe3/Q0Pr5TCRJAullnuEhOZ8TaCZANRgpWeQZPX6nkIKLdkZwBig5C1gMIDolqGY88K1IEfZa7zfeXAFR74JNTnF84iw0ShcEIR6YZLw9IiAoCeA4SeL9fn9k/HWh1REv4OBVTAQYxJ0CgAI44Y1JKI5E7o9HPvMbtr/hoWFBEBP1ziCQJY4xhYpLhVdYf4rLb9rtnmFGEJ1OMccfn04RniNNXPYHlsniU2EJ30JwPwu/9vC4Hn3CYdZ/iYHZQRLPa/DdmsT6WMCyULvSpuPgukrB7zL43w3ZbJFsndbbDpH7gsNZ3fZbCNK7dD/ajQpIMFcw6g0KmOazqvTpXk7U2rqpOLCrCZBsmW6hBEczCKRAWNYFDwjykvlarMxmlcGyLvjJfJmAEZTCkN/XBeFACMfDDwRl5csOWigIQnmwQsFdvRCHgiAkphUEkua+6oXEJ9PJ1iggalYvbCaQVD+rF251+GoFs3qBJgHcEoN5vUCT0qyfkvsKglAvnKd6QSqCBwr+Ak0igZxltPjNAAAAAElFTkSuQmCC');
         }
 
-        // get url query params and apply if present
-        const urlParams = new URLSearchParams(window.location.search);
-        const skinParam = urlParams.get('skin');
-        const capeParam = urlParams.get('cape');
-        const nmceCapeParam = urlParams.get('nmceCape');
-        const modelParam = urlParams.get('model');
-        if (skinParam) {
-            skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${skinParam}`, {
-                model: modelParam
-            });
-        }
-        if (capeParam && !nmceCapeParam) {
-            skinViewer.loadCape(`https://cors.faav.top/namemc/texture/${capeParam}`);
-        } else if (nmceCapeParam) {
-            waitForSupabase((supabase_data) => {
-                const cape = supabase_data.capes.find(cape => cape.id == capeParam);
-                if (cape) {
-                    skinViewer.loadCape(cape.image_src);
-                }
-            });
-        }
-
         // make layer button work
         document.querySelector("#layer-btn").onclick = toggleLayers;
 
@@ -521,6 +499,20 @@ waitForSelector('main', (main) => {
             }
         }
 
+        // get url params for applying skin/cape
+        const urlParams = new URLSearchParams(window.location.search);
+        const skinParam = urlParams.get('skin');
+        const capeParam = urlParams.get('cape');
+        const nmceCapeParam = urlParams.get('nmceCape');
+        const modelParam = urlParams.get('model');
+        
+        // apply skin
+        if (skinParam) {
+            skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${skinParam}`, {
+                model: modelParam
+            });
+        }
+
         waitForSupabase((supabase_data) => {
             // load official capes
             vanilla.onchange = () => {
@@ -539,6 +531,7 @@ waitForSelector('main', (main) => {
                             var optionEl = document.createElement("option");
                             optionEl.value = c.render_texture ?? c.id;
                             optionEl.textContent = c.name;
+                            optionEl.id = c.id;
 
                             return optionEl.outerHTML;
                         }).join("")
@@ -561,6 +554,14 @@ waitForSelector('main', (main) => {
                 }
             }
 
+            // load official cape if a url param is present
+            if (capeParam && !nmceCapeParam) {
+                skinViewer.loadCape(`https://cors.faav.top/namemc/texture/${capeParam}`);
+                vanilla.checked = true;
+                vanilla.onchange();
+                document.getElementById(capeParam).selected = true;
+            }
+
             // load special capes
             special.disabled = false;
             special.onchange = () => {
@@ -579,6 +580,7 @@ waitForSelector('main', (main) => {
                             var optionEl = document.createElement("option");
                             optionEl.value = c.image_src;
                             optionEl.textContent = c.name;
+                            optionEl.id = c.id;
 
                             return optionEl.outerHTML;
                         }).join("")
@@ -599,6 +601,17 @@ waitForSelector('main', (main) => {
                         }
                     }
                 }
+            }
+
+            // apply special cape if a url param is present
+            if (nmceCapeParam) {
+                const cape = supabase_data.capes.find(cape => cape.id == capeParam);
+                if (cape) {
+                    skinViewer.loadCape(cape.image_src);
+                }
+                special.checked = true;
+                special.onchange();
+                document.getElementById(capeParam).selected = true;
             }
         });
     });
