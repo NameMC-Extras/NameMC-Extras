@@ -511,6 +511,7 @@ waitForSelector('main', (main) => {
             skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${skinParam}`, {
                 model: modelParam
             });
+            document.getElementById("skin").value = skinParam;
         }
 
         waitForSupabase((supabase_data) => {
