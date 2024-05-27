@@ -10,15 +10,11 @@ function endsWithNumber(str) {
   return /[0-9]+$/.test(str);
 }
 
-const rows = 9
-const columns = 3
-const size = 32
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
 var isHidden = true;
 var skinArt = false;
 var layer = true;
-var shiftPress = false;
 
 var currentSkinId = null;
 var currentDataModel = "classic";
