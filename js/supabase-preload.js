@@ -14,6 +14,8 @@
     "capes": "/capes?select=*",
     "nmc_capes": "/capes_nmc?select=*",
     "categories": "/cape_categories?select=*",
+    "tester_categories": "/tester_categories?select=*",
+    "tester_capes": "/tester_capes?select=*",
     "user_badges": "/user_badges?select=*",
     "user_capes": "/user_capes?select=*",
     "user_emoji_overrides": "/user_emoji_overrides?select=*",

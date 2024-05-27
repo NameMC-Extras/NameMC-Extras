@@ -8,7 +8,9 @@ var paused = (getCookie("animate") === "false");
 var elytraOn = false;
 var layer = true;
 var currentCape = null;
-var currentOptifineMode = "steal"
+var currentOptifineMode = "steal";
+var officialCapes = {};
+var officialCapesCategoryOrder = [];
 var specialCapes = {};
 var noElytra = [
     "fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc",
@@ -183,6 +185,20 @@ function getSpecialCapes(supabase_data) {
     return specialCapes;
 }
 
+// get/cache official minecraft capes
+function getOfficialCapes(supabase_data) {
+    if (Object.keys(officialCapes).length > 0) return officialCapes;
+    const tempOrder = [];
+    supabase_data.tester_categories.forEach(cat => {
+        officialCapes[cat.name] = supabase_data.nmc_capes.filter(cape => cape.tester_category == cat.id);
+        const testerCapes = supabase_data.tester_capes.filter(cape => cape.category == cat.id);
+        officialCapes[cat.name] = officialCapes[cat.name].concat(testerCapes);
+        tempOrder[cat.position] = cat.name;
+    });
+    officialCapesCategoryOrder = tempOrder;
+    return officialCapes;
+}
+
 waitForSelector('main', (main) => {
     main.style["margin-top"] = "1rem";
 
@@ -354,97 +370,6 @@ waitForSelector('main', (main) => {
             }
         }
 
-        vanilla.onchange = () => {
-            if (vanilla.checked == true) {
-                capemenu.innerHTML = `<label class="col-4 col-form-label" for="officialcapes"><strong>Official Capes:</strong></label>
-                <div class="col">
-                    <select class="form-select" id="officialcapes" name="officialcapes" required>
-                        <optgroup label="Common">
-                            <option value="2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933">Migrator</option>
-                            <option value="f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4">Vanilla</option>
-                            <option value="afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb">Cherry Blossom</option>
-                            <option value="cd9d82ab17fd92022dbd4a86cde4c382a7540e117fae7b9a2853658505a80625">15th Anniversary</option>
-                            <option value="569b7f2a1d00d26f30efe3f9ab9ac817b1e6d35f4f3cfb0324ef2d328223d350">Followers</option>
-                            <option value="cb40a92e32b57fd732a00fc325e7afb00a7ca74936ad50d8e860152e482cfbde">Purple Heart</option>
-                        </optgroup>
-                        <optgroup label="Minecon">
-                            <option value="e7dfea16dc83c97df01a12fabbd1216359c0cd0ea42f9999b6e97c584963e980">MineCon 2016</option>
-                            <option value="b0cc08840700447322d953a02b965f1d65a13a603bf64b17c803c21446fe1635">MineCon 2015</option>
-                            <option value="153b1a0dfcbae953cdeb6f2c2bf6bf79943239b1372780da44bcbb29273131da">MineCon 2013</option>
-                            <option value="a2e8d97ec79100e90a75d369d1b3ba81273c4f82bc1b737e934eed4a854be1b6">MineCon 2012</option>
-                            <option value="953cac8b779fe41383e675ee2b86071a71658f2180f56fbce8aa315ea70e2ed6">MineCon 2011</option>
-                        </optgroup>
-                        <optgroup label="Special">
-                            <option value="17912790ff164b93196f08ba71d0e62129304776d0f347334f8a6eae509f8a56">Realms Mapmaker</option>
-                            <option value="9e507afc56359978a3eb3e32367042b853cddd0995d17d0da995662913fb00f7">Mojang Studios</option>
-                            <option value="5786fe99be377dfb6858859f926c4dbc995751e91cee373468c5fbf4865e7151">Mojang</option>
-                            <option value="8f120319222a9f4a104e2f5cb97b2cda93199a2ee9e1585cb8d09d6f687cb761">Mojang (Classic)</option>
-                            <option value="ae677f7d98ac70a533713518416df4452fe5700365c09cf45d0d156ea9396551">Mojira Moderator</option>
-                            <option value="1bf91499701404e21bd46b0191d63239a4ef76ebde88d27e4d430ac211df681e">Translator</option>
-                            <option value="2262fb1d24912209490586ecae98aca8500df3eff91f2a07da37ee524e7e3cb6">Translator (Chinese)</option>
-                            <option value="ca35c56efe71ed290385f4ab5346a1826b546a54d519e6a3ff01efa01acce81">Cobalt</option>
-                            <option value="3efadf6510961830f9fcc077f19b4daf286d502b5f5aafbd807c7bbffcaca245">Scrolls</option>
-                        </optgroup>
-                        <optgroup label="Custom">
-                            <option value="5048ea61566353397247d2b7d946034de926b997d5e66c86483dfb1e031aee95">Turtle</option>
-                            <option value="2056f2eebd759cce93460907186ef44e9192954ae12b227d817eb4b55627a7fc">Birthday</option>
-                            <option value="6a7cf0eb5cfe7e7c508b364e32916dfd28d164e7bf6d92c6ea7811b82451e760">Valentine</option>
-                            <option value="bcfbe84c6542a4a5c213c1cacf8979b5e913dcb4ad783a8b80e3c4a7d5c8bdac">dB</option>
-                            <option value="70efffaf86fe5bc089608d3cb297d3e276b9eb7a8f9f2fe6659c23a2d8b18edf">Millionth Customer</option>
-                            <option value="d8f8d13a1adf9636a16c31d47f3ecc9bb8d8533108aa5ad2a01b13b1a0c55eac">Prismarine</option>
-                            <option value="23ec737f18bfe4b547c95935fc297dd767bb84ee55bfd855144d279ac9bfd9fe">Snowman</option>
-                            <option value="2e002d5e1758e79ba51d08d92a0f3a95119f2f435ae7704916507b6c565a7da8">Spade</option>
-                            <option value="ca29f5dd9e94fb1748203b92e36b66fda80750c87ebc18d6eafdb0e28cc1d05f">Translator (Japanese)</option>
-                        </optgroup>
-                        <optgroup label="API Testing">
-                            <option value="7a93b1867eb599f2b76e6e1c30a0ddb530e6f4c7bce6515d1ba72b206df30e39">Sniffer</option>
-                            <option value="e75f4110215ef4f3c25ed4b4fb0cd76cb6c4d5fc8bf7f351811435fbc2e085c4">Snail</option>
-                            <option value="b69e02edd267ea9bd7bf3f67f2a5cfff0f5aa8caf7c081e2d7221ac78277970a">ICU</option>
-                            <option value="b698cefe18ac367f930332dd77f4a6d390be7adb36380e568761df4683562f84">ICU 2</option>
-                            <option value="8c6b65823f7c686895160faf51f571ec2e4841317f7bc30d7e59371344c0c7d1">Frog</option>
-                        </optgroup>
-                        <optgroup label="Previous or Temporary Capes">
-                            <option value="fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc">Bacon</option>
-                            <option value="2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211">Christmas 2010</option>
-                            <option value="d1f20f8534f9f58a3a0a26586d5615f513add564809986334b7f247593425ee3">New Year's 2011</option>
-                            <option value="4e25998e4db8e19fe4df3df74d7983f03ff81a4074426252ce6eb3d1c70c9a59">Unused Minecon 1</option>
-                            <option value="dc39d8eb38419f4cbb9a2e19642893b854c131a9ab06bd4e2c2a5b3af98f3a19">Unused Minecon 2</option>
-                            <option value="35d9516769099ad42be14344551f9e9dfe66ee9ceb1d5624b4442f76cef9ea9e">Unused Minecon 3</option>
-                        </optgroup>
-                        <optgroup label="Bedrock Capes">
-                            <option value="99aba02ef05ec6aa4d42db8ee43796d6cd50e4b2954ab29f0caeb85f96bf52a1">Founder's</option>
-                            <option value="28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336">Pancape</option>
-                            <option value="432c50e576e0b490865b562c7acf10473ac24780ea0fc3ef80fb303f482ba64">Progress Pride</option>
-                        </optgroup>
-                        <optgroup label="Console Capes">
-                            <option value="aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413">Xbox 360 Microsoft</option>
-                            <option value="5e8f3740ec1aabc872d8149c5e00b5b739cce63971db6edab30f94ccffed9d37">Xbox 360 Minecraft</option>
-                            <option value="938155dd83118a3993a22579649fab313cdb06073029c3839843d58fad06ebb2">Xbox 360 1st Birthday</option>
-                        </optgroup>
-                        <optgroup label="April Fools Capes">
-                            <option value="da01a74f8ca96bdf652ad3acddc886d6396eea482870ed3d2678e07cd1cd653f">Awesom</option>
-                            <option value="c900e2768696a783f34a6ce548aad6d4241051fac15b1622fa7beeb521ae43e">Blonk</option>
-                            <option value="16516dd786b870268e7601ad9c9dbf53530fef54041a2d18f2b5fbf15c0724ea">No Circle</option>
-                            <option value="17c4ec5654f5d2f37953f228be1aa796d482a395c08dba65c82c020ebc6e03d8">Nyan</option>
-                            <option value="639cb7c0f0d4345900b64f14ee33ecfccc7d6bcb5e18d027fb3452bfc9e5c4d1">Squid</option>
-                            <option value="12607ff71c803562dfb985769caaebf867172c13b20853368da1ebb099817f0d">Veterinarian</option>
-                        </optgroup>
-
-                    </select>
-                </div>`;
-
-                currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
-
-                capemenu.style.display = 'unset';
-
-                officialcapes.onchange = () => {
-                    if (officialcapes.value && officialcapes.value.length > 0) {
-                        currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
-                    }
-                }
-            }
-        }
-
         optifine.onchange = () => {
             if (optifine.checked == true) {
                 capemenu.innerHTML = `<hr style="margin: 0.7rem 0;">
@@ -575,6 +500,46 @@ waitForSelector('main', (main) => {
         }
 
         waitForSupabase((supabase_data) => {
+            // load official capes
+            vanilla.onchange = () => {
+                if (vanilla.checked) {
+                    const dictionary = getOfficialCapes(supabase_data);
+                    capemenu.innerHTML = `
+                    <label class="col-4 col-form-label" for="officialcapes"><strong>Official Capes:</strong></label>
+                    <div class="col">
+                        <select class="form-select" id="officialcapes" name="officialcapes">
+                            ${officialCapesCategoryOrder.map(key => {
+                        const categoryName = key
+                        const capes = dictionary[key]
+                        var optGroupEl = document.createElement("optgroup");
+                        optGroupEl.label = categoryName;
+                        optGroupEl.innerHTML = capes.sort((a, b) => a.name.localeCompare(b.name)).map(c => {
+                            var optionEl = document.createElement("option");
+                            optionEl.value = c.render_texture ?? c.id;
+                            optionEl.textContent = c.name;
+
+                            return optionEl.outerHTML;
+                        }).join("")
+
+                        return optGroupEl.outerHTML;
+                    }).join("")}
+                        </select>
+                    </div>
+                `;
+
+                    currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
+
+                    capemenu.style.display = 'unset';
+
+                    officialcapes.onchange = () => {
+                        if (officialcapes.value && officialcapes.value.length > 0) {
+                            currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
+                        }
+                    }
+                }
+            }
+
+            // load special capes
             special.disabled = false;
             special.onchange = () => {
                 if (special.checked) {
