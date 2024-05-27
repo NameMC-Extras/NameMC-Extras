@@ -20,6 +20,10 @@ var skinArt = false;
 var layer = true;
 var shiftPress = false;
 
+var currentSkinId = null;
+var currentDataModel = "classic";
+var currentCape = null;
+
 if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
     if (document.querySelector(selector)) {
@@ -168,7 +172,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         elytraBtn.id = 'elytra-btn';
         elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
         elytraBtn.classList.add('p-0');
-        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important;')
+        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:135px!important;')
         elytraBtn.title = "Elytra";
         elytraIcon = document.createElement('i');
         elytraIcon.classList.add('fas');
@@ -193,6 +197,35 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             elytraIconEl.parentElement.title = "Elytra"
             skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
           }
+        }
+      }
+    });
+  }
+
+  // add steal button
+  const createStealBtn = () => {
+    waitForSelector('#play-pause-btn', () => {
+      var pauseBtn = document.querySelector('#play-pause-btn');
+      if (!document.querySelector("#steal-btn")) {
+        var stealBtn = document.createElement('button');
+        stealBtn.id = 'steal-btn';
+        stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+        stealBtn.classList.add('p-0');
+        stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:92.5px!important;`)
+        stealBtn.title = "Steal Skin/Cape";
+        stealIcon = document.createElement('i');
+        stealIcon.classList.add('fas');
+        stealIcon.classList.add('fa-user-secret');
+        stealBtn.innerHTML = stealIcon.outerHTML;
+        pauseBtn.outerHTML += stealBtn.outerHTML;
+
+        document.querySelector('#steal-btn').onclick = () => {
+          const queryParams = [];
+          if (currentSkinId) queryParams.push(`skin=${currentSkinId}`);
+          if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
+          if (currentCape) queryParams.push(`cape=${currentCape}`);
+          const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
+          window.location.href = url;
         }
       }
     });
@@ -549,12 +582,16 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
+
+      setTimeout(createStealBtn);
       
       waitForImage(() => {
         // has ears
         if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
 
         // load skin
+        currentSkinId = skinHash;
+        currentDataModel = model;
         skinViewer.loadSkin(window.namemc.images[skinHash].src, {
           ears: hasEars,
           model: model
@@ -563,6 +600,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         // load cape
         if (capeHash !== '') {
           waitForImage(() => {
+            currentCape = capeHash;
             skinViewer.loadCape(window.namemc.images[capeHash].src);
             waitForSupabase((supabase_data) => {
               const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).map(v => v.cape);
@@ -603,6 +641,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             el.classList.add('skin-button-selected');
             waitForImage(() => {
               skinViewer.loadSkin(window.namemc.images[el.getAttribute('data-id')].src);
+              currentSkinId = el.getAttribute('data-id');
+              currentDataModel = el.getAttribute('data-model');
             }, el.getAttribute('data-id'));
           }
         });
@@ -617,6 +657,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               el.classList.remove('skin-button-selected');
             });
             el.classList.add('skin-button-selected');
+            currentCape = el.getAttribute('data-cape');
             waitForImage(() => {
               if (elytraOn == true) {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
