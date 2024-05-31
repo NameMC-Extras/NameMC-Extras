@@ -37,4 +37,5 @@
   fetchSupabase(Object.values(endPoints)).then(results => storeResults(results));
 
   initBooleanKey("skinArt");
+  initBooleanKey("customTheme");
 })()

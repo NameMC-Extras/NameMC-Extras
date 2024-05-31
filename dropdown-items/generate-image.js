@@ -114,7 +114,7 @@ if (profiles.length > 0) {
                         ctx.fillText(loadedProfile.name, 60 * i + 125, 100 * j + 90);
 
                         document.querySelector("#generate-image").onclick = () => {
-                            document.querySelector(".modal-body").append(profilesCanvas);
+                            document.querySelector("#profilesImageModal .modal-body").append(profilesCanvas);
                             $("#profilesImageModal").modal("show");
                         };
                     })

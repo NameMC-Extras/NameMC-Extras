@@ -13,6 +13,32 @@
         }
     };
 
+
+    const waitForFunc = function (func, callback) {
+        if (window[func]) {
+            setTimeout(() => {
+                callback();
+            });
+        } else {
+            setTimeout(() => {
+                waitForFunc(func, callback);
+            });
+        }
+    };
+
+    var theme = localStorage.getItem("theme");
+    var customThemeOn = (localStorage.getItem("customTheme") == "true");
+    var customBg = localStorage.getItem("customBg") || (theme == "light" ? "#EEF0F2" : "#12161A");
+    var customText = localStorage.getItem("customText") || (theme == "light" ? "#212529" : "#dee2e6");
+
+    waitForSelector("html", () => {
+        if (document.documentElement.getAttribute("data-bs-theme") == "light") {
+            localStorage.theme = "light";
+        } else {
+            localStorage.theme = "dark";
+        }
+    });
+
     const createSettingsButton = () => {
         const modalHTML = `
             <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
@@ -20,7 +46,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
-                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <button type="button" class="btn" data-bs-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
@@ -35,7 +61,7 @@
                                     <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/1f319.svg" alt="🌙">
                                     Dark
                                 </button>
-                                <button type="button" class="btn btn-secondary" id="customTheme" onclick='alert("Coming soon!")'>
+                                <button type="button" class="btn btn-secondary" id="customTheme">
                                     <img class="emoji" draggable="false" src="https://raw.githubusercontent.com/googlefonts/noto-emoji/41e31b110b4eb929dffb410264694a06205b7ad7/svg/emoji_u1f308.svg" alt="🌈">
                                     Custom
                                 </button>
@@ -44,11 +70,15 @@
                             <br>
                             <label for="customTheme" class="form-label">Custom Theme</label>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control" placeholder="#FFFFFF" aria-label="Custom Background Color" aria-describedby="basic-addon2">
+                                <input type="text" class="form-control" aria-label="Custom Theme Base" id="custombase">
+                                <span class="input-group-text" id="basic-addon2">Base</span>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor>
                                 <span class="input-group-text" id="basic-addon2">Background Color</span>
                             </div>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control" placeholder="#000000" aria-label="Custom Text Color" aria-describedby="basic-addon2">
+                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor>
                                 <span class="input-group-text" id="basic-addon2">Text Color</span>
                             </div>
                         </div>
@@ -56,24 +86,90 @@
                 </div>
             </div>
         `;
+
+        waitForSelector("body", () => {
+            // inject modal html
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            if (customThemeOn) {
+                document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
+                document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+            }
+
+            customTheme.onclick = () => {
+                localStorage.customTheme = true;
+                customThemeOn = true;
+                document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
+                document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+            }
+
+            lightTheme.onclick = () => {
+                localStorage.customTheme = false;
+                customThemeOn = false;
+                document.body.style.removeProperty("--bs-body-bg");
+                document.body.style.removeProperty("--bs-body-color");
+
+                if (customBg == "#12161A" && customText == "#dee2e6") {
+                    customBg = "#EEF0F2";
+                    customText = "#212529";
+                    custombgcolor.value = "#EEF0F2";
+                    customtextcolor.value = "#212529";
+                }
+            }
+
+            darkTheme.onclick = () => {
+                localStorage.customTheme = false;
+                customThemeOn = false;
+                document.body.style.removeProperty("--bs-body-bg");
+                document.body.style.removeProperty("--bs-body-color");
+
+                if (customBg == "#EEF0F2" && customText == "#212529") {
+                    customBg = "#12161A";
+                    customText = "#dee2e6";
+                    custombgcolor.value = "#12161A";
+                    customtextcolor.value = "#dee2e6";
+                }
+            }
+
+            custombgcolor.onchange = () => {
+                document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
+                localStorage.customBg = custombgcolor.value;
+                customBg = custombgcolor.value;
+            }
+
+            customtextcolor.onchange = () => {
+                document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+                localStorage.customText = customtextcolor.value;
+                customText = customtextcolor.value;
+            }
+        })
+
         // get element in following path (settings button): nav (single) -> ul (last) -> li (last)
-        waitForSelector('nav ul:last-child li:last-child', 
+        waitForSelector('[data-bs-theme-value]',
             /**
              * @param {HTMLElement} themeButton 
              */
             (themeButton) => {
                 // replace theme button with settings button... should open bootstrap modal
-                themeButton.outerHTML = `
+                themeButton.parentElement.outerHTML = `
                     <li class="nav-item">
                         <a class="nav-link" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#settingsModal">
                             <i class="fas fa-cog"></i>
                         </a>
                     </li>
                 `;
-                // inject modal html
-                document.body.insertAdjacentHTML('beforeend', modalHTML);
             }
         )
+
+        waitForFunc("JSColor", () => {
+            customBgColor = new JSColor('#custombgcolor', {
+                format: 'hex'
+            });
+
+            customTextColor = new JSColor('#customtextcolor', {
+                format: 'hex'
+            });
+        });
     }
 
     const customPage = (page, name, title, icon) => {
@@ -104,13 +200,6 @@
                 };
                 (document.head || document.documentElement).appendChild(inject2);
 
-                var inject3 = document.createElement('script');
-                inject3.src = chrome.runtime.getURL('js/jscolor.min.js');
-                inject3.onload = function () {
-                    this.remove();
-                };
-                (document.head || document.documentElement).appendChild(inject3);
-
                 waitForSelector('#faq', (faq) => {
                     faq.remove()
                 });
@@ -118,6 +207,13 @@
                 document.querySelector('.dropdown-item.active')?.classList.remove('active');
                 document.querySelector('#' + page)?.classList.add('active');
             }
+
+            var inject3 = document.createElement('script');
+            inject3.src = chrome.runtime.getURL('js/jscolor.min.js');
+            inject3.onload = function () {
+                this.remove();
+            };
+            (document.head || document.documentElement).appendChild(inject3);
         })
     }
 
