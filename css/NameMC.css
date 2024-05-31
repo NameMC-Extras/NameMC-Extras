@@ -60,3 +60,7 @@ div:has(> [id^="nn_"]),
     border-radius: 0 !important;
     margin: 0 !important;
 }
+
+.customTheme .card {
+    --bs-card-bg: unset!important;
+}

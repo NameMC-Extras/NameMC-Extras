@@ -31,11 +31,15 @@
     var customBg = localStorage.getItem("customBg") || (theme == "light" ? "#EEF0F2" : "#12161A");
     var customText = localStorage.getItem("customText") || (theme == "light" ? "#212529" : "#dee2e6");
 
-    waitForSelector("html", () => {
+    waitForSelector("html", (html) => {
         if (document.documentElement.getAttribute("data-bs-theme") == "light") {
             localStorage.theme = "light";
         } else {
             localStorage.theme = "dark";
+        }
+
+        if (customThemeOn) {
+            html.classList.add("customTheme");
         }
     });
 
@@ -86,90 +90,94 @@
                 </div>
             </div>
         `;
-
-        waitForSelector("body", () => {
-            // inject modal html
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-            if (customThemeOn) {
-                document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
-                document.body.style.setProperty("--bs-body-color", customtextcolor.value);
-            }
-
-            customTheme.onclick = () => {
-                localStorage.customTheme = true;
-                customThemeOn = true;
-                document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
-                document.body.style.setProperty("--bs-body-color", customtextcolor.value);
-            }
-
-            lightTheme.onclick = () => {
-                localStorage.customTheme = false;
-                customThemeOn = false;
-                document.body.style.removeProperty("--bs-body-bg");
-                document.body.style.removeProperty("--bs-body-color");
-
-                if (customBg == "#12161A" && customText == "#dee2e6") {
-                    customBg = "#EEF0F2";
-                    customText = "#212529";
-                    custombgcolor.value = "#EEF0F2";
-                    customtextcolor.value = "#212529";
+        console.log(1)
+        waitForSelector("[data-bs-theme]", () => {
+            console.log(1)
+            waitForSelector("body", () => {
+                console.log(2)
+                // inject modal html
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+                if (customThemeOn) {
+                    document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
+                    document.body.style.setProperty("--bs-body-color", customtextcolor.value);
                 }
-            }
-
-            darkTheme.onclick = () => {
-                localStorage.customTheme = false;
-                customThemeOn = false;
-                document.body.style.removeProperty("--bs-body-bg");
-                document.body.style.removeProperty("--bs-body-color");
-
-                if (customBg == "#EEF0F2" && customText == "#212529") {
-                    customBg = "#12161A";
-                    customText = "#dee2e6";
-                    custombgcolor.value = "#12161A";
-                    customtextcolor.value = "#dee2e6";
+    
+                customTheme.onclick = () => {
+                    localStorage.customTheme = true;
+                    customThemeOn = true;
+                    document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
+                    document.body.style.setProperty("--bs-body-color", customtextcolor.value);
                 }
-            }
-
-            custombgcolor.onchange = () => {
-                document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
-                localStorage.customBg = custombgcolor.value;
-                customBg = custombgcolor.value;
-            }
-
-            customtextcolor.onchange = () => {
-                document.body.style.setProperty("--bs-body-color", customtextcolor.value);
-                localStorage.customText = customtextcolor.value;
-                customText = customtextcolor.value;
-            }
+    
+                lightTheme.onclick = () => {
+                    localStorage.customTheme = false;
+                    customThemeOn = false;
+                    document.body.style.removeProperty("--bs-body-bg");
+                    document.body.style.removeProperty("--bs-body-color");
+    
+                    if (customBg == "#12161A" && customText == "#dee2e6") {
+                        customBg = "#EEF0F2";
+                        customText = "#212529";
+                        custombgcolor.value = "#EEF0F2";
+                        customtextcolor.value = "#212529";
+                    }
+                }
+    
+                darkTheme.onclick = () => {
+                    localStorage.customTheme = false;
+                    customThemeOn = false;
+                    document.body.style.removeProperty("--bs-body-bg");
+                    document.body.style.removeProperty("--bs-body-color");
+    
+                    if (customBg == "#EEF0F2" && customText == "#212529") {
+                        customBg = "#12161A";
+                        customText = "#dee2e6";
+                        custombgcolor.value = "#12161A";
+                        customtextcolor.value = "#dee2e6";
+                    }
+                }
+    
+                custombgcolor.onchange = () => {
+                    if (customThemeOn) document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
+                    localStorage.customBg = custombgcolor.value;
+                    customBg = custombgcolor.value;
+                }
+    
+                customtextcolor.onchange = () => {
+                    if (customThemeOn) document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+                    localStorage.customText = customtextcolor.value;
+                    customText = customtextcolor.value;
+                }
+            })
+    
+            // get element in following path (settings button): nav (single) -> ul (last) -> li (last)
+            waitForSelector('[data-bs-theme-value]',
+                /**
+                 * @param {HTMLElement} themeButton 
+                 */
+                (themeButton) => {
+                    // replace theme button with settings button... should open bootstrap modal
+                    themeButton.parentElement.outerHTML = `
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                                <i class="fas fa-cog"></i>
+                            </a>
+                        </li>
+                    `;
+                }
+            )
+    
+            waitForFunc("JSColor", () => {
+                customBgColor = new JSColor('#custombgcolor', {
+                    format: 'hex'
+                });
+    
+                customTextColor = new JSColor('#customtextcolor', {
+                    format: 'hex'
+                });
+            });
         })
-
-        // get element in following path (settings button): nav (single) -> ul (last) -> li (last)
-        waitForSelector('[data-bs-theme-value]',
-            /**
-             * @param {HTMLElement} themeButton 
-             */
-            (themeButton) => {
-                // replace theme button with settings button... should open bootstrap modal
-                themeButton.parentElement.outerHTML = `
-                    <li class="nav-item">
-                        <a class="nav-link" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#settingsModal">
-                            <i class="fas fa-cog"></i>
-                        </a>
-                    </li>
-                `;
-            }
-        )
-
-        waitForFunc("JSColor", () => {
-            customBgColor = new JSColor('#custombgcolor', {
-                format: 'hex'
-            });
-
-            customTextColor = new JSColor('#customtextcolor', {
-                format: 'hex'
-            });
-        });
     }
 
     const customPage = (page, name, title, icon) => {
