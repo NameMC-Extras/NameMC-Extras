@@ -90,11 +90,9 @@
                 </div>
             </div>
         `;
-        console.log(1)
+
         waitForSelector("[data-bs-theme]", () => {
-            console.log(1)
             waitForSelector("body", () => {
-                console.log(2)
                 // inject modal html
                 document.body.insertAdjacentHTML('beforeend', modalHTML);
     
