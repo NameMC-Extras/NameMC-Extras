@@ -106,6 +106,7 @@
                     customThemeOn = true;
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+                    document.documentElement.classList.add("customTheme");
                 }
     
                 lightTheme.onclick = () => {
@@ -113,6 +114,7 @@
                     customThemeOn = false;
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
+                    document.documentElement.classList.remove("customTheme");
     
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         customBg = "#EEF0F2";
@@ -127,6 +129,7 @@
                     customThemeOn = false;
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
+                    document.documentElement.classList.remove("customTheme");
     
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         customBg = "#12161A";
