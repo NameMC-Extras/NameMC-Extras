@@ -74,8 +74,11 @@
                             <br>
                             <label for="customTheme" class="form-label">Custom Theme</label>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control" aria-label="Custom Theme Base" id="custombase">
-                                <span class="input-group-text" id="basic-addon2">Base</span>
+                                <select class="form-select">
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light</option>
+                                </select>
+                                <span class="input-group-text" id="basic-addon2">Base Theme</span>
                             </div>
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor>

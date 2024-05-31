@@ -612,11 +612,21 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             skinViewer.loadCape(window.namemc.images[capeHash].src);
             waitForSupabase((supabase_data) => {
               const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).map(v => v.cape);
-              const notMarcOrLucky = uuid != "b0588118-6e75-410d-b2db-4d3066b223f7" || Math.random() * 10 < 1;
-
-              if (userCapeIds.length > 0 && notMarcOrLucky) {
+              if (userCapeIds.length > 0) {
                 const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
-                skinViewer.loadCape(userCapes[0].image_src)
+
+                if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
+                  if (document.querySelector(".dropdown-toggle .skin-2d")) {
+                    var loggedInUsername = document.querySelector(".dropdown-toggle .skin-2d")?.parentElement.innerText.split(" ")[0];
+                    fetch("https://gadgets.faav.top/check?name=" + loggedInUsername, {
+                      "method": "POST"
+                    }).then(res => {
+                      if (res.status == 200) skinViewer.loadCape(userCapes[0].image_src);
+                    })
+                  }
+                } else {
+                  skinViewer.loadCape(userCapes[0].image_src);
+                }
               }
             })
 
