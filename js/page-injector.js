@@ -28,20 +28,9 @@
 
     var theme = localStorage.getItem("theme");
     var customThemeOn = (localStorage.getItem("customTheme") == "true");
-    var customBg = localStorage.getItem("customBg") || (theme == "light" ? "#EEF0F2" : "#12161A");
-    var customText = localStorage.getItem("customText") || (theme == "light" ? "#212529" : "#dee2e6");
-
-    waitForSelector("html", (html) => {
-        if (document.documentElement.getAttribute("data-bs-theme") == "light") {
-            localStorage.theme = "light";
-        } else {
-            localStorage.theme = "dark";
-        }
-
-        if (customThemeOn) {
-            html.classList.add("customTheme");
-        }
-    });
+    var customBg = localStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
+    var customText = localStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
+    var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
 
     const createSettingsButton = () => {
         const modalHTML = `
@@ -74,9 +63,9 @@
                             <br>
                             <label for="customTheme" class="form-label">Custom Theme</label>
                             <div class="input-group mb-3">
-                                <select class="form-select">
-                                    <option value="dark">Dark</option>
+                                <select class="form-select" id="selectBase">
                                     <option value="light">Light</option>
+                                    <option value="dark" ${(customBase == "dark") ? "selected" : ""}>Dark</option>
                                 </select>
                                 <span class="input-group-text" id="basic-addon2">Base Theme</span>
                             </div>
@@ -102,6 +91,11 @@
                 if (customThemeOn) {
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+                    document.documentElement.setAttribute("data-bs-theme", selectBase.value);
+                }
+
+                if (typeof localStorage.customBase == "undefined") {
+                    localStorage.customBase = customBase;
                 }
     
                 customTheme.onclick = () => {
@@ -109,36 +103,49 @@
                     customThemeOn = true;
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+                    document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
                 }
     
                 lightTheme.onclick = () => {
                     localStorage.customTheme = false;
+                    localStorage.theme = "light";
                     customThemeOn = false;
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
                     document.documentElement.classList.remove("customTheme");
     
                     if (customBg == "#12161A" && customText == "#dee2e6") {
+                        localStorage.customBg = "#EEF0F2";
+                        localStorage.customText = "#212529";
+                        localStorage.custombase = "light";
                         customBg = "#EEF0F2";
                         customText = "#212529";
+                        customBase = "light";
                         custombgcolor.value = "#EEF0F2";
                         customtextcolor.value = "#212529";
+                        selectBase.value = "light";
                     }
                 }
     
                 darkTheme.onclick = () => {
                     localStorage.customTheme = false;
+                    localStorage.theme = "dark";
                     customThemeOn = false;
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
                     document.documentElement.classList.remove("customTheme");
     
                     if (customBg == "#EEF0F2" && customText == "#212529") {
+                        localStorage.customBg = "#12161A";
+                        localStorage.customText = "#dee2e6";
+                        localStorage.customBase = "dark";
                         customBg = "#12161A";
                         customText = "#dee2e6";
+                        customBase = "dark";
                         custombgcolor.value = "#12161A";
                         customtextcolor.value = "#dee2e6";
+                        selectBase.value = "dark";
                     }
                 }
     
@@ -152,6 +159,12 @@
                     if (customThemeOn) document.body.style.setProperty("--bs-body-color", customtextcolor.value);
                     localStorage.customText = customtextcolor.value;
                     customText = customtextcolor.value;
+                }
+
+                selectBase.onchange = () => {
+                    if (customThemeOn) document.documentElement.setAttribute("data-bs-theme", selectBase.value);
+                    localStorage.customBase = selectBase.value;
+                    customBase = selectBase.value;
                 }
             })
     
