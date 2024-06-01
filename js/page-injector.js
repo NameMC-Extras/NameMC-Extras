@@ -92,6 +92,7 @@
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
+                    document.documentElement.classList.add("customTheme");
                 }
 
                 if (typeof localStorage.customBase == "undefined") {
