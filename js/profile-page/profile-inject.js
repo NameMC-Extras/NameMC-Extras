@@ -621,7 +621,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
                     fetch("https://gadgets.faav.top/check?name=" + loggedInUsername, {
                       "method": "POST"
                     }).then(res => {
-                      if (res.status == 200) skinViewer.loadCape(userCapes[0].image_src);
+                      if (res.status == 200) skinViewer.loadCape("https://cesolgpkhjyzprrejqzn.supabase.co/storage/v1/object/public/capes/nmce/marc.png");
                     })
                   }
                 } else {
