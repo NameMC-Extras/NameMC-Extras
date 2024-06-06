@@ -190,7 +190,29 @@ waitForSelector(".col-md-6", () => {
       }
     };
 
-    description.textContent = cape.description.toString();
+    var text = cape.description.toString();
+
+    var elements = text.match(/\[.*?\)/g);
+    console.log(text)
+
+    if (elements && elements.length > 0) {
+      for (el of elements) {
+        var aTag = document.createElement("a");
+        var txt = el.match(/\[(.*?)\]/)[1];
+        var url = el.match(/\((.*?)\)/)[1];
+
+        aTag.innerText = txt;
+        aTag.href = url;
+
+        var textArr = text.split(el);
+        textArr.forEach(text => {
+          description
+        })
+
+      }
+    }
+
+    description.textContent = text;
   })
 
   // create skin viewer

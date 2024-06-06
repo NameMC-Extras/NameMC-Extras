@@ -32,6 +32,16 @@
     var customText = localStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
 
+    function hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+
     const createSettingsButton = () => {
         const modalHTML = `
             <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
@@ -93,6 +103,9 @@
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
+                                        
+                    var rgbBg = hexToRgb(custombgcolor.value);
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .55)`); 
                 }
 
                 if (typeof localStorage.customBase == "undefined") {
@@ -106,6 +119,9 @@
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
+
+                    var rgbBg = hexToRgb(custombgcolor.value);
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .55)`); 
                 }
     
                 lightTheme.onclick = () => {
@@ -115,6 +131,9 @@
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
                     document.documentElement.classList.remove("customTheme");
+                    document.documentElement.setAttribute("data-bs-theme", "light");
+
+                    document.body.style.setProperty("--ne-checkered", "unset");
     
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         localStorage.customBg = "#EEF0F2";
@@ -136,6 +155,9 @@
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
                     document.documentElement.classList.remove("customTheme");
+                    document.documentElement.setAttribute("data-bs-theme", "dark");
+
+                    document.body.style.setProperty("--ne-checkered", "unset");
     
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         localStorage.customBg = "#12161A";
@@ -154,6 +176,9 @@
                     if (customThemeOn) document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     localStorage.customBg = custombgcolor.value;
                     customBg = custombgcolor.value;
+
+                    var rgbBg = hexToRgb(custombgcolor.value);
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .55)`); 
                 }
     
                 customtextcolor.onchange = () => {

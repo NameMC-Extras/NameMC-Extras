@@ -61,6 +61,23 @@ div:has(> [id^="nn_"]),
     margin: 0 !important;
 }
 
-.customTheme .card {
-    --bs-card-bg: unset!important;
+.customTheme[data-bs-theme=light] .card {
+    --bs-card-bg: rgba(255, 255, 255, 0.9)!important;
+}
+
+.customTheme[data-bs-theme=dark] .card {
+    --bs-card-bg: rgba(255, 255, 255, 0.05)!important;
+}
+
+.checkered {
+    background-color: var(--ne-checkered);
+    background-blend-mode: exclusion;
+}
+
+[data-bs-theme=light] .form-control, [data-bs-theme=light] .form-control:focus, [data-bs-theme=light] .form-select, [data-bs-theme=light] .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.9)!important;
+}
+
+[data-bs-theme=dark] .form-control, [data-bs-theme=dark] .form-control:focus, [data-bs-theme=dark] .form-select, [data-bs-theme=dark] .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.05)!important;
 }
