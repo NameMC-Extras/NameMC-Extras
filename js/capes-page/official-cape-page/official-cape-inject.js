@@ -191,26 +191,31 @@ waitForSelector(".col-md-6", () => {
     };
 
     var descText = cape.description.toString();
-
-    var textAreaTag = document.createElement("textarea");
-    textAreaTag.textContent = descText;
-    descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
-    
-    var elements = descText.match(/\[.*?\)/g);
-    if (elements && elements.length > 0){
-      for(el of elements){
-        let text = el.match(/\[(.*?)\]/)[1];
-        let url = el.match(/\((.*?)\)/)[1];
-        let aTag = document.createElement("a");
-        let urlHref = new URL(url);
-        urlHref.protocol = "https:";
-        aTag.href = urlHref;
-        aTag.textContent = text;
-        descText = descText.replace(el, aTag.outerHTML)
-      }
-    }
+    var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
 
     description.innerHTML = descText;
+
+    if (hasMdLink) {
+      var textAreaTag = document.createElement("textarea");
+      textAreaTag.textContent = descText;
+      descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
+      
+      var elements = descText.match(/\[.*?\)/g);
+      if (elements && elements.length > 0){
+        for(el of elements){
+          let text = el.match(/\[(.*?)\]/)[1];
+          let url = el.match(/\((.*?)\)/)[1];
+          let aTag = document.createElement("a");
+          let urlHref = new URL(url);
+          urlHref.protocol = "https:";
+          aTag.href = urlHref;
+          aTag.textContent = text;
+          descText = descText.replace(el, aTag.outerHTML)
+        }
+      }
+  
+      description.innerHTML = descText;
+    }
   })
 
   // create skin viewer
