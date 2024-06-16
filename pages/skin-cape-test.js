@@ -508,7 +508,7 @@ waitForSelector('main', (main) => {
         
         // apply skin
         if (skinParam) {
-            skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${skinParam}`, {
+            skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${encodeURIComponent(skinParam)}`, {
                 model: modelParam
             });
             document.getElementById("skin").value = skinParam;
@@ -557,7 +557,7 @@ waitForSelector('main', (main) => {
 
             // load official cape if a url param is present
             if (capeParam && !nmceCapeParam) {
-                skinViewer.loadCape(`https://cors.faav.top/namemc/texture/${capeParam}`);
+                skinViewer.loadCape(`https://cors.faav.top/namemc/texture/${encodeURIComponent(capeParam)}`);
                 vanilla.checked = true;
                 vanilla.onchange();
                 const optionEl = document.getElementById(capeParam);
