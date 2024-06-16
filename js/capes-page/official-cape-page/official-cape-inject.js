@@ -190,29 +190,27 @@ waitForSelector(".col-md-6", () => {
       }
     };
 
-    var text = cape.description.toString();
+    var descText = cape.description.toString();
 
-    var elements = text.match(/\[.*?\)/g);
-    console.log(text)
-
-    if (elements && elements.length > 0) {
-      for (el of elements) {
-        var aTag = document.createElement("a");
-        var txt = el.match(/\[(.*?)\]/)[1];
-        var url = el.match(/\((.*?)\)/)[1];
-
-        aTag.innerText = txt;
-        aTag.href = url;
-
-        var textArr = text.split(el);
-        textArr.forEach(text => {
-          description
-        })
-
+    var textAreaTag = document.createElement("textarea");
+    textAreaTag.textContent = descText;
+    descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
+    
+    var elements = descText.match(/\[.*?\)/g);
+    if (elements && elements.length > 0){
+      for(el of elements){
+        let text = el.match(/\[(.*?)\]/)[1];
+        let url = el.match(/\((.*?)\)/)[1];
+        let aTag = document.createElement("a");
+        let urlHref = new URL(url);
+        urlHref.protocol = "https:";
+        aTag.href = urlHref;
+        aTag.textContent = text;
+        descText = descText.replace(el, aTag.outerHTML)
       }
     }
 
-    description.textContent = text;
+    description.innerHTML = descText;
   })
 
   // create skin viewer

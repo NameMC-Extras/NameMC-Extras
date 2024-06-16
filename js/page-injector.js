@@ -105,7 +105,7 @@
                     document.documentElement.classList.add("customTheme");
                                         
                     var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .55)`); 
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .5)`); 
                 }
 
                 if (typeof localStorage.customBase == "undefined") {
@@ -121,7 +121,7 @@
                     document.documentElement.classList.add("customTheme");
 
                     var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .55)`); 
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .5)`); 
                 }
     
                 lightTheme.onclick = () => {
@@ -178,7 +178,7 @@
                     customBg = custombgcolor.value;
 
                     var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .55)`); 
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .5)`); 
                 }
     
                 customtextcolor.onchange = () => {
