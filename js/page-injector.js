@@ -238,7 +238,7 @@
                 document.title = title + " | NameMC Extras";
 
                 var inject1 = document.createElement('script');
-                inject1.src = chrome.runtime.getURL(`pages/${page}.js`);
+                inject1.src = chrome.runtime.getURL(`pages/${encodeURIComponent(page)}.js`);
                 inject1.onload = function () {
                     this.remove();
                 };
@@ -286,12 +286,20 @@
             dropDownMenu.insertBefore(menuItem, dropDownMenu.childNodes[location]);
 
             var inject1 = document.createElement('script');
-            inject1.src = chrome.runtime.getURL(`dropdown-items/${id}.js`);
+            inject1.src = chrome.runtime.getURL(`dropdown-items/${encodeURIComponent(id)}.js`);
             inject1.onload = function () {
                 this.remove();
             };
             (document.head || document.documentElement).appendChild(inject1);
         })
+    }
+
+    const injectPages = (pages, i) => {
+        pages.forEach(page => setTimeout(customPage(...page), i))
+    }
+
+    const injectMenus = (menus, i) => {
+        menus.forEach(menu => setTimeout(customMenuItem(...menu), i))
     }
 
     // INJECT SETTINGS BUTTON
@@ -300,12 +308,16 @@
 
     // INJECTING PAGES
 
-    customPage('skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait')
-    customPage('badges', 'Badges', 'Badges', 'fas fa-award')
+    injectPages([
+        ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait'],
+        ['badges', 'Badges', 'Badges', 'fas fa-award']
+    ]);
 
     // INJECTING MENU ITEMS
 
-    customMenuItem('generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image')
+    injectMenus([
+        ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image']
+    ])
 
     // Credits
 
