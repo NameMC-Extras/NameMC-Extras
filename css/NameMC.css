@@ -71,6 +71,13 @@ div:has(> [id^="nn_"]),
 
 .customTheme .checkered {
     background-color: var(--ne-checkered);
+}
+
+.customTheme[data-bs-theme=light] .checkered {
+    background-blend-mode: multiply;
+}
+
+.customTheme[data-bs-theme=dark] .checkered {
     background-blend-mode: exclusion;
 }
 
@@ -95,11 +102,15 @@ div:has(> [id^="nn_"]),
 }
 
 .customTheme[data-bs-theme=light] .form-control, 
-.customTheme[data-bs-theme=light] .form-control:focus {
+.customTheme[data-bs-theme=light] .form-control:focus, .customTheme
+.customTheme[data-bs-theme=light] .form-select, 
+.customTheme[data-bs-theme=light] .form-select:focus {
     background-color: rgba(255, 255, 255, 0.9)!important;
 }
 
 .customTheme[data-bs-theme=dark] .form-control, 
-.customTheme[data-bs-theme=dark] .form-control:focus {
+.customTheme[data-bs-theme=dark] .form-control:focus,
+.customTheme[data-bs-theme=dark] .form-select,
+.customTheme[data-bs-theme=dark] .form-select:focus {
     background-color: rgba(255, 255, 255, 0.05)!important;
 }
