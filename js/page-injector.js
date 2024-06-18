@@ -15,9 +15,9 @@
 
 
     const waitForFunc = function (func, callback) {
-        if (window[func]) {
+        if (window[func] ?? window.wrappedJSObject?.[func]) {
             setTimeout(() => {
-                callback();
+                callback(window[func] ?? window.wrappedJSObject?.[func]);
             });
         } else {
             setTimeout(() => {
@@ -62,11 +62,11 @@
                                     Light
                                 </button>
                                 <button type="button" class="btn btn-dark" data-bs-theme-value="dark" id="darkTheme">
-                                    <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/1f319.svg" alt="🌙">
+                                    <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/1f319.svg" alt="�">
                                     Dark
                                 </button>
                                 <button type="button" class="btn btn-secondary" id="customTheme">
-                                    <img class="emoji" draggable="false" src="https://raw.githubusercontent.com/googlefonts/noto-emoji/41e31b110b4eb929dffb410264694a06205b7ad7/svg/emoji_u1f308.svg" alt="🌈">
+                                    <img class="emoji" draggable="false" src="https://raw.githubusercontent.com/googlefonts/noto-emoji/41e31b110b4eb929dffb410264694a06205b7ad7/svg/emoji_u1f308.svg" alt="�">
                                     Custom
                                 </button>
                             </div>
@@ -102,7 +102,16 @@
             waitForSelector("body", () => {
                 // inject modal html
                 document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
+
+                // firefox support
+                var customTheme = document.querySelector("#customTheme");
+                var lightTheme = document.querySelector("#lightTheme");
+                var darkTheme = document.querySelector("#darkTheme");
+                var custombgcolor = document.querySelector("#custombgcolor");
+                var customtextcolor = document.querySelector("#customtextcolor");
+                var customprimarycolor = document.querySelector("#customprimarycolor");
+                var selectBase = document.querySelector("#selectBase");
+
                 if (customThemeOn) {
                     var primaryRgb = hexToRgb(customprimarycolor.value);
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
@@ -111,15 +120,15 @@
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
                     localStorage.theme = selectBase.value;
-                                        
+
                     var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .5)`); 
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
                 }
 
                 if (typeof localStorage.customBase == "undefined") {
                     localStorage.customBase = customBase;
                 }
-    
+
                 customTheme.onclick = () => {
                     var primaryRgb = hexToRgb(customprimarycolor.value);
                     localStorage.customTheme = true;
@@ -132,9 +141,9 @@
                     localStorage.theme = selectBase.value;
 
                     var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .5)`); 
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
                 }
-    
+
                 lightTheme.onclick = () => {
                     localStorage.customTheme = false;
                     localStorage.theme = "light";
@@ -146,7 +155,7 @@
                     document.documentElement.setAttribute("data-bs-theme", "light");
 
                     document.body.style.setProperty("--ne-checkered", "unset");
-    
+
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         localStorage.customBg = "#EEF0F2";
                         localStorage.customText = "#212529";
@@ -159,7 +168,7 @@
                         selectBase.value = "light";
                     }
                 }
-    
+
                 darkTheme.onclick = () => {
                     localStorage.customTheme = false;
                     localStorage.theme = "dark";
@@ -171,7 +180,7 @@
                     document.documentElement.setAttribute("data-bs-theme", "dark");
 
                     document.body.style.setProperty("--ne-checkered", "unset");
-    
+
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         localStorage.customBg = "#12161A";
                         localStorage.customText = "#dee2e6";
@@ -184,16 +193,16 @@
                         selectBase.value = "dark";
                     }
                 }
-    
+
                 custombgcolor.onchange = () => {
                     if (customThemeOn) document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     localStorage.customBg = custombgcolor.value;
                     customBg = custombgcolor.value;
 
                     var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .5)`); 
+                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
                 }
-    
+
                 customtextcolor.onchange = () => {
                     if (customThemeOn) document.body.style.setProperty("--bs-body-color", customtextcolor.value);
                     localStorage.customText = customtextcolor.value;
@@ -203,7 +212,7 @@
                 customprimarycolor.onchange = () => {
                     var primaryRgb = hexToRgb(customprimarycolor.value);
                     if (customThemeOn) document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
-                    
+
                     localStorage.customPrimary = customprimarycolor.value;
                     customPrimary = customprimarycolor.value;
                 }
@@ -215,7 +224,7 @@
                     customBase = selectBase.value;
                 }
             })
-    
+
             // get element in following path (settings button): nav (single) -> ul (last) -> li (last)
             waitForSelector('[data-bs-theme-value]',
                 /**
@@ -232,16 +241,8 @@
                     `;
                 }
             )
-    
-            waitForFunc("JSColor", () => {
-                customBgColor = new JSColor('#custombgcolor', {
-                    format: 'hex'
-                });
-    
-                customTextColor = new JSColor('#customtextcolor', {
-                    format: 'hex'
-                });
-            });
+
+            waitForFunc("jscolor", (jscolor) => jscolor.init());
         })
     }
 
@@ -336,7 +337,7 @@
     ]);
 
     // INJECTING MENU ITEMS
- 
+
     injectMenus([
         ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image']
     ])
