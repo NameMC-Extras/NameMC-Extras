@@ -1,12 +1,6 @@
 (async () => {
-  var apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlc29sZ3BraGp5enBycmVqcXpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU0NTMxMTcsImV4cCI6MjAyMTAyOTExN30.kQO7yzcNRTHUIjC-xIQPVNK2HPSqWl_kh1PrZHvdifI';
-
   async function fetchSupabase(endPoints) {
-    return Promise.all(endPoints.map(async endPoint => await fetch(`https://cesolgpkhjyzprrejqzn.supabase.co/rest/v1${endPoint}`, {
-      headers: {
-        apiKey
-      }
-    })));
+    return Promise.all(endPoints.map(async endPoint => await fetch(`https://raw.githubusercontent.com/NameMC-Extras/data/main/${endPoint}.json`)));
   };
 
   function initBooleanKey(key) {
@@ -14,15 +8,15 @@
   }
 
   var endPoints = {
-    "badges": "/badges?select=*",
-    "capes": "/capes?select=*",
-    "nmc_capes": "/capes_nmc?select=*",
-    "categories": "/cape_categories?select=*",
-    "tester_categories": "/tester_categories?select=*",
-    "tester_capes": "/tester_capes?select=*",
-    "user_badges": "/user_badges?select=*",
-    "user_capes": "/user_capes?select=*",
-    "user_emoji_overrides": "/user_emoji_overrides?select=*",
+    "badges": "badges",
+    "capes": "capes",
+    "nmc_capes": "capes_nmc",
+    "categories": "cape_categories",
+    "tester_categories": "tester_categories",
+    "tester_capes": "tester_capes",
+    "user_badges": "user_badges",
+    "user_capes": "user_capes",
+    "user_emoji_overrides": "user_emoji_overrides",
   };
   
   async function storeResults(results) {
