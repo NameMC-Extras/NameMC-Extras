@@ -69,7 +69,7 @@ div:has(> [id^="nn_"]),
     --bs-card-bg: rgba(255, 255, 255, 0.05)!important;
 }
 
-.checkered {
+.customTheme .checkered {
     background-color: var(--ne-checkered);
     background-blend-mode: exclusion;
 }
