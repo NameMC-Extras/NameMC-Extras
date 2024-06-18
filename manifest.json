@@ -7,12 +7,12 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "manifest_version": 2,
-  "version": "3.1.0",
+  "manifest_version": 3,
+  "version": "3.1.5",
   "content_scripts": [
     {
       "js": [
-        "js/supabase-preload.js",
+        "js/data-preload.js",
         "js/page-injector.js"
       ],
       "matches": [
@@ -89,9 +89,13 @@
     }
   ],
   "web_accessible_resources": [
+    {
+      "resources": [
         "/*"
-  ],
-  "permissions": [
-    "https://cesolgpkhjyzprrejqzn.supabase.co/*"
+      ],
+      "matches": [
+        "*://*.namemc.com/*"
+      ]
+    }
   ]
 }

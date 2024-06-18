@@ -125,6 +125,30 @@ const createElytraBtn = () => {
   });
 }
 
+const createStealBtn = () => {
+  waitForSelector('#play-pause-btn', () => {
+    var pauseBtn = document.querySelector('#play-pause-btn');
+    if (!document.querySelector("#steal-btn")) {
+      var stealBtn = document.createElement('button');
+      stealBtn.id = 'steal-btn';
+      stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+      stealBtn.classList.add('p-0');
+      stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:92.5px!important;`)
+      stealBtn.title = "Steal Cape";
+      stealIcon = document.createElement('i');
+      stealIcon.classList.add('fas');
+      stealIcon.classList.add('fa-user-secret');
+      stealBtn.innerHTML = stealIcon.outerHTML;
+      pauseBtn.outerHTML += stealBtn.outerHTML;
+
+      document.querySelector('#steal-btn').onclick = () => {
+        const url = `${location.origin}/extras/skin-cape-test?cape=${location.pathname.split("/").slice(-1)[0].split("?")[0]}`;
+        window.location.href = url;
+      }
+    }
+  });
+}
+
 
 /*
  * UNIVERSAL VARIABLES
@@ -166,7 +190,32 @@ waitForSelector(".col-md-6", () => {
       }
     };
 
-    description.textContent = cape.description.toString();
+    var descText = cape.description.toString();
+    var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
+
+    description.innerHTML = descText;
+
+    if (hasMdLink) {
+      var textAreaTag = document.createElement("textarea");
+      textAreaTag.textContent = descText;
+      descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
+      
+      var elements = descText.match(/\[.*?\)/g);
+      if (elements && elements.length > 0){
+        for(el of elements){
+          let text = el.match(/\[(.*?)\]/)[1];
+          let url = el.match(/\((.*?)\)/)[1];
+          let aTag = document.createElement("a");
+          let urlHref = new URL(url);
+          urlHref.protocol = "https:";
+          aTag.href = urlHref;
+          aTag.textContent = text;
+          descText = descText.replace(el, aTag.outerHTML)
+        }
+      }
+  
+      description.innerHTML = descText;
+    }
   })
 
   // create skin viewer
@@ -184,6 +233,7 @@ waitForSelector(".col-md-6", () => {
     oldContainer.outerHTML = newContainer.outerHTML;
 
     createElytraBtn();
+    createStealBtn();
 
     const steveDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAABJlBMVEVMaXEAf38AqKgAmZmqfWaWX0EAaGhGOqUwKHIAr691Ry8qHQ1qQDA/Pz9ra2smIVuHVTuWb1sAYGBWScwoKCgmGgovHw8AzMw6MYkkGAgoGwoAW1sjIyMAnp5RMSWGUzQsHg4pHAyBUzkrHg0fEAsoGg0mGAstHQ6aY0QnGwstIBB3QjWcZ0gzJBEyIxBiQy8rHg6dak8mGgwsHhGKWTsoGwsjFwmEUjF0SC+iakd6TjOHWDokGAqDVTucY0WIWjk6KBQoHAsvIhGcaUz///+0hG27iXJSPYlSKCaaZEqfaEmPXj4vIA2AUzQ0JRJvRSxtQyqQXkOsdlo/KhWcY0aWX0Cze2K+iGytgG1CKhK1e2e9jnK9i3K2iWycclzGloC9jnS3gnKSJOIgAAAAAXRSTlMAQObYZgAAAvxJREFUWMPtlmebojAQx5cEkAiecHcgwrGArPW2997b9d779/8SN0nMruK6oL71//iYocyPmTA6MzPTla5X4VOdK3Y1M6r0quMAoFo0QiMMxwE4js0BT0DG6ICqQ3Nw9LEB4GvbziQA5i8A12MAbCe25yiAaQxAbIN0feTX6Hl2O17sdF4mzknVTvROZzFu254n6iIPwI7iZCFJkoVvH6KThSSObAro1kUmIGrY8fLGfpz8+vHn59/3r+P9jeXYbkSiLrIjqDcjrx2dyhfy19+XZ2enUduLmnVP1EWOFLzVzb3D44vzq++XV+fy8eHe5iqcFHWRA1BvrG0pRx8//zOMLzuvjpSttUadbiKvi+w98JpLK62w+O7TU9CLWjFsrSw1vUjURSYgDFvhvLK+/eZtrbZ7cLC7vf58/tl8C36QtC6KYa5aeAR6DBLHFV5LlYddifOoUkHGrDGbDeDlPACogCYFIPA3JkphAKBpZa0AgoWuriRJPg5qO7VaEIAtBQghQhDiNmErAd0Cyn2AgqSqEkIB+BMCtoro3QAAUyKIBPR6CqD1AdiNBAUYPMFWCRdiYMKg9wN8VfXheoDhi9uYIMwBENQ9EYDhglTf9zGmbhiD6TNvOFYUxZRBJhh07Qe4boHuBQWAj4r5QzHAVMIOEAdYsqyYdwF694ACIADEALAH1BsgJgdYDGBZPQBNG3gLAiCxTbwB0CdTgNkfgQBotwDCvAgWG0YFfhygpAClkgCUSg9AkipJGNMAOABstg0KB8gKjQRS6QFwR7FCKmUKLLgAoEXmughjt8ABlswiyQCwiICARXlj+KJPBj/LTEcw1VRTTTXKvICGdeXcAwdoIgAaNliMkkJuQO+84NI+AYL/+GBgLsgGlG8aTQBNQuq2+vwArdzbqdBAWx8FcOdcMBSQmheGzgXDAWU+L9wAREvLC0ilQAEWB5h9c0E2gKdiMgDrymbOCLQUQOEAMycgPS8o3dzpaENTyQHob/fsydYkAMjdsthocyfgP7DZYc3t4J05AAAAAElFTkSuQmCC";
 

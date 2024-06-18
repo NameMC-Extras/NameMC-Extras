@@ -60,3 +60,63 @@ div:has(> [id^="nn_"]),
     border-radius: 0 !important;
     margin: 0 !important;
 }
+
+.customTheme[data-bs-theme=light] .card {
+    --bs-card-bg: rgba(255, 255, 255, 0.9)!important;
+}
+
+.customTheme[data-bs-theme=dark] .card {
+    --bs-card-bg: rgba(255, 255, 255, 0.05)!important;
+}
+
+.customTheme .checkered {
+    background-color: var(--ne-checkered);
+}
+
+.customTheme[data-bs-theme=light] .checkered {
+    background-blend-mode: multiply;
+}
+
+.customTheme[data-bs-theme=dark] .checkered {
+    background-blend-mode: exclusion;
+}
+
+.customTheme .btn-primary {
+    background-color: rgba(var(--ne-primary-rgb), 1);
+    border: 1px solid rgba(var(--ne-primary-rgb), .5);
+    transition: background-color 400ms linear, border 400ms linear;
+}
+
+.customTheme .btn-primary:hover {
+    background-color: rgba(var(--ne-primary-rgb), .65);
+    border: 1px solid rgba(var(--ne-primary-rgb), .3);
+}
+
+.customTheme a:not([class]) {
+    color: rgba(var(--ne-primary-rgb), 1);
+    transition: color 200ms linear;
+}
+
+.customTheme a:not([class]):hover {
+    color: rgba(var(--ne-primary-rgb), .65);
+}
+
+.customTheme[data-bs-theme=light] .form-control, 
+.customTheme[data-bs-theme=light] .form-control:focus, .customTheme
+.customTheme[data-bs-theme=light] .form-select, 
+.customTheme[data-bs-theme=light] .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.9)!important;
+}
+
+.customTheme[data-bs-theme=dark] .form-control, 
+.customTheme[data-bs-theme=dark] .form-control:focus,
+.customTheme[data-bs-theme=dark] .form-select,
+.customTheme[data-bs-theme=dark] .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.05)!important;
+}
+
+.form-select option,
+.form-select optgroup {
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color)
+}

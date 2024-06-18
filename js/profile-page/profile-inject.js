@@ -10,14 +10,15 @@ function endsWithNumber(str) {
   return /[0-9]+$/.test(str);
 }
 
-const rows = 9
-const columns = 3
-const size = 32
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
 var isHidden = true;
-var skinArt = false;
+var skinArt = (localStorage.getItem("skinArt") == "true");
 var layer = true;
+
+var currentSkinId = null;
+var currentDataModel = "classic";
+var currentCape = null;
 
 if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
@@ -93,13 +94,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     }
   };
 
-  const downloadSkinArt = () => {
-    var a = document.createElement("a");
-    a.href = skinArtImage.toDataURL();
-    a.setAttribute("download", "skinart");
-    a.click();
-  }
-
   // toggle skin layers
   const toggleLayers = () => {
     var layerIcon = document.querySelector("#layer-btn i");
@@ -122,31 +116,29 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
   // fix pause button
   const fixPauseBtn = () => {
-    setTimeout(() => {
-      var pauseBtn = document.querySelector('#play-pause-btn');
-      var pauseIcon = pauseBtn.querySelector('i');
-      if (paused == true) {
+    var pauseBtn = document.querySelector('#play-pause-btn');
+    var pauseIcon = pauseBtn.querySelector('i');
+    if (paused == true) {
+      pauseIcon.classList.remove('fa-pause');
+      pauseIcon.classList.add('fa-play');
+    } else {
+      pauseIcon.classList.remove('fa-play');
+      pauseIcon.classList.add('fa-pause');
+    }
+    pauseBtn.setAttribute('onclick', '');
+    pauseBtn.onclick = () => {
+      if (paused == false) {
+        paused = true;
         pauseIcon.classList.remove('fa-pause');
         pauseIcon.classList.add('fa-play');
       } else {
+        paused = false;
         pauseIcon.classList.remove('fa-play');
         pauseIcon.classList.add('fa-pause');
       }
-      pauseBtn.setAttribute('onclick', '');
-      pauseBtn.onclick = () => {
-        if (paused == false) {
-          paused = true;
-          pauseIcon.classList.remove('fa-pause');
-          pauseIcon.classList.add('fa-play');
-        } else {
-          paused = false;
-          pauseIcon.classList.remove('fa-play');
-          pauseIcon.classList.add('fa-pause');
-        }
-        setCookie("animate", !paused);
-        skinViewer.animation.paused = paused;
-      }
-    })
+      setCookie("animate", !paused);
+      skinViewer.animation.paused = paused;
+    }
   }
 
   // add layer button
@@ -176,7 +168,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         elytraBtn.id = 'elytra-btn';
         elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
         elytraBtn.classList.add('p-0');
-        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important;')
+        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:135px!important;')
         elytraBtn.title = "Elytra";
         elytraIcon = document.createElement('i');
         elytraIcon.classList.add('fas');
@@ -201,6 +193,35 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             elytraIconEl.parentElement.title = "Elytra"
             skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
           }
+        }
+      }
+    });
+  }
+
+  // add steal button
+  const createStealBtn = () => {
+    waitForSelector('#play-pause-btn', () => {
+      var pauseBtn = document.querySelector('#play-pause-btn');
+      if (!document.querySelector("#steal-btn")) {
+        var stealBtn = document.createElement('button');
+        stealBtn.id = 'steal-btn';
+        stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+        stealBtn.classList.add('p-0');
+        stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:92.5px!important;`)
+        stealBtn.title = "Steal Skin/Cape";
+        stealIcon = document.createElement('i');
+        stealIcon.classList.add('fas');
+        stealIcon.classList.add('fa-user-secret');
+        stealBtn.innerHTML = stealIcon.outerHTML;
+        pauseBtn.outerHTML += stealBtn.outerHTML;
+
+        document.querySelector('#steal-btn').onclick = () => {
+          const queryParams = [];
+          if (currentSkinId) queryParams.push(`skin=${currentSkinId}`);
+          if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
+          if (currentCape) queryParams.push(`cape=${currentCape}`);
+          const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
+          window.open(url);
         }
       }
     });
@@ -238,43 +259,19 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   }
 
   // fix bug
-  waitForFunc("updateSkin", () => {
-    updateSkin = () => { }
-  })
-
   waitForFunc("animateSkin", () => {
     animateSkin = () => { }
-  })
+  });
+
+  waitForFunc("updateSkin", () => {
+    updateSkin = () => { }
+  });
 
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
     if (typeof json.data.accountType !== 'undefined') {
       var creationDate = json.data.creationDate;
-      var accountType = json.data.accountType;
-      var tooltip = json.data.tooltip;
-      var tooltipEl = document.createElement("tooltip");
-      var warningAccEl = document.createElement("i");
 
-      tooltipEl.textContent = accountType + " ";
-
-      warningAccEl.id = "warningacc";
-      warningAccEl.classList.add("fas");
-      warningAccEl.classList.add("fa-exclamation-circle");
-
-      acctype.innerHTML = tooltipEl.outerHTML + warningAccEl.outerHTML;
-
-      waitForTooltip(() => {
-        $('#acctype tooltip').tooltip({
-          "placement": "top",
-          "boundary": "viewport",
-          "title": tooltip
-        });
-        $('#warningacc').tooltip({
-          "placement": "top",
-          "boundary": "viewport",
-          "title": "Due to the removal of the name history API this may be inaccurate."
-        });
-      })
       if (creationDate !== 'null') {
         var warningCdEl = document.createElement("i")
 
@@ -303,22 +300,18 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     var cardBody = document.querySelector('.card-body');
 
     // create layer button
-    createLayerBtn()
+    setTimeout(createLayerBtn)
 
     document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove()
 
     views.outerHTML += `
-      <div class="row g-0">
-        <div class="col col-lg-3"><strong>Created As</strong></div>
-        <div id="acctype" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
-      </div>
       <div class="row g-0">
         <div class="col col-lg-3"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>
       <div class="row g-0">
         <div class="col order-lg-1 col-lg-3"><strong>Links</strong></div>
-        <div class="col-12 order-lg-2 col-lg"><a href="https://mcuserna.me/${uuid}" target="_blank">mcuserna.me</a>, <a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
+        <div class="col-12 order-lg-2 col-lg"><a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://plancke.io/hypixel/player/stats/${uuid}" target="_blank">Plancke</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
       </div>
     `;
 
@@ -341,7 +334,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             "placement": "top",
             "boundary": "viewport",
             "title": emojiOverride.tooltip_text
-          }); 
+          });
         });
         usernameEl.append(emojiImg);
       }
@@ -396,6 +389,31 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       }
     });
 
+    // replace (edit) and Copy with icons
+    var editLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "edit");
+    editLinks.forEach(editLink => {
+      editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
+      editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
+      editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
+      editLink.classList.add("text-white");
+      editLink.title = "Edit";
+
+      // move to far right
+      if (editLink.parentElement.tagName == "STRONG") {
+        editLink.parentElement.parentElement.append(editLink);
+        editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
+      }
+    });
+
+    var copyLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "Copy");
+    copyLinks.forEach(copyLink => {
+      copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
+      copyLink.classList.add("text-white");
+
+      // fix title
+      setTimeout(() => copyLink.title = "Copy", 1000)
+    });
+
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';
@@ -417,98 +435,103 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         el.parentElement.appendChild(verifyEl);
       })
     }
-    
+
     waitForSVSelector('.skin-2d.skin-button', () => {
+      setTimeout(createStealBtn);
+
       var skins = [...document.querySelectorAll(".skin-2d.skin-button")]
       var hasMultipleSkins = skins.length > 1;
       if (hasMultipleSkins) {
         const skinsContainer = document.querySelector('.skin-2d.skin-button').parentElement.parentElement;
         var skinsTitle = skinsContainer.parentElement.parentElement.querySelector('.card-header');
-        skinsTitle.querySelector("strong").innerHTML += ' (<a href="javascript:void(0)" id="borderBtn">hide borders</a>)';
+        var skinEdit = skinsTitle.querySelector(".fa-edit");
+
+        skinsTitle.innerHTML += `<div>
+          <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders">
+            ${skinArt ? '<i class="far fa-fw fa-border-all">' : '<i class="far fa-fw fa-border-style">'}</i>
+          </a>
+          ${skinEdit ? skinEdit?.parentElement?.outerHTML : ""}
+        </div>`;
+
+        skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
+
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
-        skinsTitle.innerHTML += '<a href="javascript:void(0)" id="skinArtBtn" style="color:white"><i class="fas fa-arrow-alt-to-bottom"></i></a>';
 
-        waitForImage(() => {
-          var skinArtCanvas = document.createElement("canvas");
-          skinArtCanvas.id = "skinArtImage";
-          skinArtCanvas.width = rows * size;
-          skinArtCanvas.height = columns * size;
-          skinArtCanvas.style.display = "none";
-
-          document.body.append(skinArtCanvas)
-
-          var ctx = skinArtImage.getContext("2d");
-          var skinArtImages = []
-
-          skins.forEach((skin) => {
-            var img = new Image();
-            img.onload = () => {
-              skinArtImages.push(img)
-
-              if (skinArtImages.length == skins.length) {
-                for (let i = 0; i < skinArtImages.length; i += rows) {
-                  const chunk = skinArtImages.slice(i, i + rows);
-                  chunk.forEach((image, j, array) => {
-                    if (array.length == rows) {
-                      ctx.drawImage(image, size * j, size * (i / rows))
-                    } else {
-                      var padding = ((rows - array.length) / 2) * size
-                      ctx.drawImage(image, padding + (size * j), size * (i / rows))
-                    }
-                  })
-                }
-              }
-            };
-
-            img.src = skin.toDataURL();
-          })
-
-          skinArtBtn.onclick = downloadSkinArt;
-        }, skins.at(-1).getAttribute("data-id"))
+        if (skinArt) {
+          skinsContainer.style.width = '312px';
+          skinsContainer.style.margin = '6px auto';
+          document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
+            skin.classList.add('skinart');
+          });
+        }
 
         borderBtn.onclick = () => {
           if (skinArt == false) {
-            skinsContainer.style.width = '312px'
-            skinsContainer.style.margin = '6px auto'
+            skinsContainer.style.width = '312px';
+            skinsContainer.style.margin = '6px auto';
             document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
               skin.classList.add('skinart');
-            })
+            });
             skinArt = true;
-            borderBtn.textContent = 'show borders';
+            localStorage.setItem("skinArt", "true");
+            borderBtn.innerHTML = '<i class="far fa-fw fa-border-all">';
           } else {
             skinsContainer.style.width = '324px';
             skinsContainer.style.margin = 'auto';
             document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
               skin.classList.remove('skinart');
-            })
+            });
             skinArt = false;
-            borderBtn.textContent = 'hide borders';
+            localStorage.setItem("skinArt", "false");
+            borderBtn.innerHTML = '<i class="far fa-fw fa-border-style">';
           }
         }
       }
     })
 
     setTimeout(() => {
+      var historyTitle = document.querySelectorAll('.card-header')[1];
+      historyTitle.style.cssText = "display:flex;justify-content:space-between";
+
       var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
       if (hasHidden) {
         hideHidden();
 
         // add show hidden button
-        var historyTitle = document.querySelectorAll('.card-header')[1]
-        historyTitle.innerHTML += ' (<a href="javascript:void(0)" id="histBtn">show hidden</a>)';
+        historyTitle.innerHTML += `<div>
+          <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
+        </div>`;
 
         histBtn.onclick = () => {
           if (isHidden == true) {
             showHidden();
             isHidden = false;
-            histBtn.textContent = 'hide hidden';
+            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
+            histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
           } else {
             hideHidden();
             isHidden = true;
-            histBtn.textContent = 'show hidden';
+            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
+            histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
           }
         }
+      } else {
+        historyTitle.innerHTML += `<div>
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
+        </div>`;
       }
+
+      // fix title
+      setTimeout(() => copyHist.title = "Copy", 1000)
+
+      // make it so when holding shift and copy is copies name changes instead
+      window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-lg-none)')].length - 1) : null)
+      window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")))
+
+      historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
     });
 
     waitForSVSelector('.skin-3d', () => {
@@ -569,11 +592,14 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
+
       waitForImage(() => {
         // has ears
         if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
 
         // load skin
+        currentSkinId = skinHash;
+        currentDataModel = model;
         skinViewer.loadSkin(window.namemc.images[skinHash].src, {
           ears: hasEars,
           model: model
@@ -582,16 +608,28 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         // load cape
         if (capeHash !== '') {
           waitForImage(() => {
+            currentCape = capeHash;
             skinViewer.loadCape(window.namemc.images[capeHash].src);
+
+            if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
+              if (document.querySelector(".dropdown-toggle .skin-2d")) {
+                var loggedInUsername = document.querySelector(".dropdown-toggle .skin-2d")?.parentElement.innerText.split(" ")[0];
+                fetch("https://gadgets.faav.top/check?name=" + loggedInUsername, {
+                  "method": "POST"
+                }).then(res => {
+                  if (res.status == 200) skinViewer.loadCape("https://raw.githubusercontent.com/NameMC-Extras/assets/main/capes/nmce/marc.png");
+                })
+              }
+            }
+
             waitForSupabase((supabase_data) => {
               const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).map(v => v.cape);
-              const notMarcOrLucky = uuid != "b0588118-6e75-410d-b2db-4d3066b223f7" || Math.random() * 10 < 1;
-
-              if (userCapeIds.length > 0 && notMarcOrLucky) {
+              if (userCapeIds.length > 0) {
                 const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
-                skinViewer.loadCape(userCapes[0].image_src)
+                skinViewer.loadCape(userCapes[0].image_src);
               }
             })
+
             setTimeout(createElytraBtn);
           }, capeHash);
         }
@@ -612,9 +650,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         // make layer button work
         document.querySelector("#layer-btn").onclick = toggleLayers;
 
-        // fix pause button
-        fixPauseBtn()
-
         // skins
         document.querySelectorAll('.skin-2d').forEach((el) => {
           el.onmouseover = () => {
@@ -624,9 +659,14 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             el.classList.add('skin-button-selected');
             waitForImage(() => {
               skinViewer.loadSkin(window.namemc.images[el.getAttribute('data-id')].src);
+              currentSkinId = el.getAttribute('data-id');
+              currentDataModel = el.getAttribute('data-model');
             }, el.getAttribute('data-id'));
           }
         });
+
+        // fix pause button
+        setTimeout(fixPauseBtn, 1000)
 
         // capes
         document.querySelectorAll('.cape-2d').forEach((el) => {
@@ -635,6 +675,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               el.classList.remove('skin-button-selected');
             });
             el.classList.add('skin-button-selected');
+            currentCape = el.getAttribute('data-cape');
             waitForImage(() => {
               if (elytraOn == true) {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
@@ -643,9 +684,9 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               } else {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src);
               }
-              createElytraBtn();
+              setTimeout(createElytraBtn);
             }, el.getAttribute('data-cape'));
-            fixPauseBtn();
+            setTimeout(fixPauseBtn);
           }
         });
       }, skinHash);

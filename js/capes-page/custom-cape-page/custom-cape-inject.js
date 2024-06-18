@@ -118,6 +118,16 @@ const fixElytraBtn = () => {
   })
 }
 
+const fixStealBtn = () => {
+  setTimeout(() => {
+    document.querySelector('#steal-btn').onclick = () => {
+      // get cape id (last "/" of url... account for query params)
+      const capeId = location.pathname.split("/").slice(-1)[0].split("?")[0];
+      window.location.href = `${location.origin}/extras/skin-cape-test?cape=${capeId}&nmceCape=1`;
+    }
+  })
+}
+
 
 /*
  * UNIVERSAL VARIABLES
@@ -155,7 +165,7 @@ class CustomCape {
  * FUNCTIONS
  */
 
-function loadPage(mainDiv) {
+async function loadPage(mainDiv) {
   console.log("Loading page!")
 
   mainDiv.style["margin-top"] = "1rem";
@@ -198,6 +208,9 @@ function loadPage(mainDiv) {
             <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:50px!important;" title="Elytra">
               <i class="fas fa-dove"></i>
             </button>
+            <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Steal Cape">
+              <i class="fas fa-user-secret"></i>
+            </button>
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${capeOwners.length}★</h5>
           </div>
         </div>
@@ -221,19 +234,7 @@ function loadPage(mainDiv) {
           <div class="card mb-3">
             <div class="d-flex flex-column" style="max-height: 25rem">
               <div class="card-header py-1"><strong>Profiles (${capeOwners.length})</strong></div>
-              <div class="card-body player-list py-2">
-                ${capeOwners.map(u => {
-      var userEl = document.createElement("a");
-      userEl.textContent = u.user;
-      userEl.href = "/profile/" + u.user;
-      userEl.translate = "no";
-      if (u.note) {
-        userEl.setAttribute("data-note", "");
-        userEl.title = u.note;
-      }
-
-      return userEl.outerHTML;
-    }).join("")}
+              <div class="card-body player-list py-2"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
               </div>
             </div>
           </div>
@@ -294,9 +295,28 @@ function loadPage(mainDiv) {
 
     fixPauseBtn()
     waitForCape(fixElytraBtn);
+    waitForCape(fixStealBtn);
   })
 
   window.addEventListener('DOMContentLoaded', () => $("[data-note]").tooltip());
+
+  var badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
+    const resp = await fetch("https://sessionserver.mojang.club/session/minecraft/profile/" + badge.user);
+    return await resp.json();
+  }))).map(a=>a.name);
+
+  document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
+    var userEl = document.createElement("a");
+    userEl.textContent = badgeOwnerNames[i];
+    userEl.href = "/profile/" + u.user;
+    userEl.translate = "no";
+    if (u.note) {
+      userEl.setAttribute("data-note", "");
+      userEl.title = u.note;
+    }
+
+    return userEl.outerHTML;
+  }).join(" ");
 }
 
 
