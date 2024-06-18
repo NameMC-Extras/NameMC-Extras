@@ -30,6 +30,7 @@
     var customThemeOn = (localStorage.getItem("customTheme") == "true");
     var customBg = localStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
     var customText = localStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
+    var customPrimary = localStorage.getItem("customPrimary") || "#7ba7ce";
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
 
     function hexToRgb(hex) {
@@ -77,15 +78,19 @@
                                     <option value="light">Light</option>
                                     <option value="dark" ${(customBase == "dark") ? "selected" : ""}>Dark</option>
                                 </select>
-                                <span class="input-group-text" id="basic-addon2">Base Theme</span>
+                                <span class="input-group-text">Base Theme</span>
                             </div>
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor>
-                                <span class="input-group-text" id="basic-addon2">Background Color</span>
+                                <span class="input-group-text">Background Color</span>
                             </div>
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor>
-                                <span class="input-group-text" id="basic-addon2">Text Color</span>
+                                <span class="input-group-text">Text Color</span>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customPrimary}" aria-label="Custom Primary Color" id="customprimarycolor" data-jscolor>
+                                <span class="input-group-text">Primary Color</span>
                             </div>
                         </div>
                     </div>
@@ -99,8 +104,11 @@
                 document.body.insertAdjacentHTML('beforeend', modalHTML);
     
                 if (customThemeOn) {
+                    var rgbColor = hexToRgb(customprimarycolor.value);
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+                    document.body.style.setProperty("--ne-primary", customprimarycolor.value);
+                    document.body.style.setProperty("--bs-link-color-rgb", `${rgbColor["r"]}, ${rgbColor["g"]}, ${rgbColor["b"]}`);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
                                         
@@ -113,10 +121,13 @@
                 }
     
                 customTheme.onclick = () => {
+                    var rgbColor = hexToRgb(customprimarycolor.value);
                     localStorage.customTheme = true;
                     customThemeOn = true;
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+                    document.body.style.setProperty("--ne-primary", customprimarycolor.value);
+                    document.body.style.setProperty("--bs-link-color-rgb", `${rgbColor["r"]}, ${rgbColor["g"]}, ${rgbColor["b"]}`);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
 
@@ -130,6 +141,8 @@
                     customThemeOn = false;
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
+                    document.body.style.removeProperty("--ne-primary");
+                    document.body.style.removeProperty("--bs-link-color-rgb");
                     document.documentElement.classList.remove("customTheme");
                     document.documentElement.setAttribute("data-bs-theme", "light");
 
@@ -154,6 +167,8 @@
                     customThemeOn = false;
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
+                    document.body.style.removeProperty("--ne-primary");
+                    document.body.style.removeProperty("--bs-link-color-rgb");
                     document.documentElement.classList.remove("customTheme");
                     document.documentElement.setAttribute("data-bs-theme", "dark");
 
@@ -185,6 +200,17 @@
                     if (customThemeOn) document.body.style.setProperty("--bs-body-color", customtextcolor.value);
                     localStorage.customText = customtextcolor.value;
                     customText = customtextcolor.value;
+                }
+
+                customprimarycolor.onchange = () => {
+                    if (customThemeOn) { 
+                        var rgbColor = hexToRgb(customprimarycolor.value);
+                        document.body.style.setProperty("--ne-primary", customprimarycolor.value);
+                        document.body.style.setProperty("--bs-link-color-rgb", `${rgbColor["r"]}, ${rgbColor["g"]}, ${rgbColor["b"]}`);
+                    }
+                    
+                    localStorage.customPrimary = customprimarycolor.value;
+                    customPrimary = customprimarycolor.value;
                 }
 
                 selectBase.onchange = () => {
@@ -314,7 +340,7 @@
     ]);
 
     // INJECTING MENU ITEMS
-
+ 
     injectMenus([
         ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image']
     ])
