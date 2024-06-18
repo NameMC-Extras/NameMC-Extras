@@ -148,7 +148,7 @@
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         localStorage.customBg = "#EEF0F2";
                         localStorage.customText = "#212529";
-                        localStorage.custombase = "light";
+                        localStorage.customBase = "light";
                         customBg = "#EEF0F2";
                         customText = "#212529";
                         customBase = "light";
