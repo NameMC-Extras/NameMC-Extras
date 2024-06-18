@@ -44,14 +44,14 @@ const waitForImage = function (callback, hash) {
 };
 
 const waitForFunc = function (func, callback) {
-  if (window[func]) {
-    setTimeout(() => {
-      callback();
-    });
+  if (window[func] ?? window.wrappedJSObject?.[func]) {
+      setTimeout(() => {
+          callback(window[func] ?? window.wrappedJSObject?.[func]);
+      });
   } else {
-    setTimeout(() => {
-      waitForFunc(func, callback);
-    });
+      setTimeout(() => {
+          waitForFunc(func, callback);
+      });
   }
 };
 
