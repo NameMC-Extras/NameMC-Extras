@@ -81,7 +81,7 @@ div:has(> [id^="nn_"]),
 }
 
 .customTheme .btn-primary:hover {
-    background-color: rgba(var(--ne-primary-rgb), .55);
+    background-color: rgba(var(--ne-primary-rgb), .65);
     border: 1px solid rgba(var(--ne-primary-rgb), .3);
 }
 
@@ -91,7 +91,7 @@ div:has(> [id^="nn_"]),
 }
 
 .customTheme a:not([class]):hover {
-    color: rgba(var(--ne-primary-rgb), .5);
+    color: rgba(var(--ne-primary-rgb), .65);
 }
 
 .customTheme[data-bs-theme=light] .form-control, 

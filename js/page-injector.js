@@ -30,7 +30,7 @@
     var customThemeOn = (localStorage.getItem("customTheme") == "true");
     var customBg = localStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
     var customText = localStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
-    var customPrimary = localStorage.getItem("customPrimary") || "#7ba7ce";
+    var customPrimary = localStorage.getItem("customPrimary") || "#2C88DD";
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
 
     function hexToRgb(hex) {
@@ -89,7 +89,7 @@
                                 <span class="input-group-text">Text Color</span>
                             </div>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customPrimary}" aria-label="Custom Primary Color" id="customprimarycolor" data-jscolor>
+                                <input type="text" class="form-control" placeholder="#2C88DD" value="${customPrimary}" aria-label="Custom Primary Color" id="customprimarycolor" data-jscolor>
                                 <span class="input-group-text">Primary Color</span>
                             </div>
                         </div>
