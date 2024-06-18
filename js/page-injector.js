@@ -163,8 +163,8 @@
                         customBg = "#EEF0F2";
                         customText = "#212529";
                         customBase = "light";
-                        custombgcolor.value = "#EEF0F2";
-                        customtextcolor.value = "#212529";
+                        custombgcolor.jscolor.fromString("#EEF0F2");
+                        customtextcolor.jscolor.fromString("#212529");
                         selectBase.value = "light";
                     }
                 }
@@ -188,8 +188,8 @@
                         customBg = "#12161A";
                         customText = "#dee2e6";
                         customBase = "dark";
-                        custombgcolor.value = "#12161A";
-                        customtextcolor.value = "#dee2e6";
+                        custombgcolor.jscolor.fromString("#12161A");
+                        customtextcolor.jscolor.fromString("#dee2e6");
                         selectBase.value = "dark";
                     }
                 }
