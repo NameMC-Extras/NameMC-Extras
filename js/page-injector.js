@@ -104,11 +104,10 @@
                 document.body.insertAdjacentHTML('beforeend', modalHTML);
     
                 if (customThemeOn) {
-                    var rgbColor = hexToRgb(customprimarycolor.value);
+                    var primaryRgb = hexToRgb(customprimarycolor.value);
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
-                    document.body.style.setProperty("--ne-primary", customprimarycolor.value);
-                    document.body.style.setProperty("--bs-link-color-rgb", `${rgbColor["r"]}, ${rgbColor["g"]}, ${rgbColor["b"]}`);
+                    document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
                                         
@@ -121,13 +120,12 @@
                 }
     
                 customTheme.onclick = () => {
-                    var rgbColor = hexToRgb(customprimarycolor.value);
+                    var primaryRgb = hexToRgb(customprimarycolor.value);
                     localStorage.customTheme = true;
                     customThemeOn = true;
                     document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
                     document.body.style.setProperty("--bs-body-color", customtextcolor.value);
-                    document.body.style.setProperty("--ne-primary", customprimarycolor.value);
-                    document.body.style.setProperty("--bs-link-color-rgb", `${rgbColor["r"]}, ${rgbColor["g"]}, ${rgbColor["b"]}`);
+                    document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
 
@@ -141,8 +139,7 @@
                     customThemeOn = false;
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
-                    document.body.style.removeProperty("--ne-primary");
-                    document.body.style.removeProperty("--bs-link-color-rgb");
+                    document.body.style.removeProperty("--ne-primary-rgb");
                     document.documentElement.classList.remove("customTheme");
                     document.documentElement.setAttribute("data-bs-theme", "light");
 
@@ -167,8 +164,7 @@
                     customThemeOn = false;
                     document.body.style.removeProperty("--bs-body-bg");
                     document.body.style.removeProperty("--bs-body-color");
-                    document.body.style.removeProperty("--ne-primary");
-                    document.body.style.removeProperty("--bs-link-color-rgb");
+                    document.body.style.removeProperty("--ne-primary-rgb");
                     document.documentElement.classList.remove("customTheme");
                     document.documentElement.setAttribute("data-bs-theme", "dark");
 
@@ -203,11 +199,8 @@
                 }
 
                 customprimarycolor.onchange = () => {
-                    if (customThemeOn) { 
-                        var rgbColor = hexToRgb(customprimarycolor.value);
-                        document.body.style.setProperty("--ne-primary", customprimarycolor.value);
-                        document.body.style.setProperty("--bs-link-color-rgb", `${rgbColor["r"]}, ${rgbColor["g"]}, ${rgbColor["b"]}`);
-                    }
+                    var primaryRgb = hexToRgb(customprimarycolor.value);
+                    if (customThemeOn) document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
                     
                     localStorage.customPrimary = customprimarycolor.value;
                     customPrimary = customprimarycolor.value;

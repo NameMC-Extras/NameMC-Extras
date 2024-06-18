@@ -75,8 +75,23 @@ div:has(> [id^="nn_"]),
 }
 
 .customTheme .btn-primary {
-    background-color: var(--ne-primary);
-    border: 1px solid var(--ne-primary)
+    background-color: rgba(var(--ne-primary-rgb), 1);
+    border: 1px solid rgba(var(--ne-primary-rgb), .5);
+    transition: background-color 400ms linear, border 400ms linear;
+}
+
+.customTheme .btn-primary:hover {
+    background-color: rgba(var(--ne-primary-rgb), .55);
+    border: 1px solid rgba(var(--ne-primary-rgb), .3);
+}
+
+.customTheme a:not([class]) {
+    color: rgba(var(--ne-primary-rgb), 1);
+    transition: color 200ms linear;
+}
+
+.customTheme a:not([class]):hover {
+    color: rgba(var(--ne-primary-rgb), .5);
 }
 
 .customTheme[data-bs-theme=light] .form-control, 

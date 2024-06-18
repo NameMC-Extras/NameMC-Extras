@@ -20,7 +20,6 @@
   };
   
   async function storeResults(results) {
-    var inject = document.createElement('iframe');
     var datas = Promise.all(results.map(async (result, i) => {
       return [Object.keys(endPoints)[i], await result.json()];
     }));
