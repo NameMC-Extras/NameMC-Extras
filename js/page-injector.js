@@ -110,6 +110,7 @@
                     document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
+                    localStorage.theme = selectBase.value;
                                         
                     var rgbBg = hexToRgb(custombgcolor.value);
                     document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .5)`); 
@@ -128,6 +129,7 @@
                     document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
                     document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     document.documentElement.classList.add("customTheme");
+                    localStorage.theme = selectBase.value;
 
                     var rgbBg = hexToRgb(custombgcolor.value);
                     document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"]*1.75}, ${rgbBg["g"]*1.75}, ${rgbBg["b"]*1.75}, .5)`); 
@@ -209,6 +211,7 @@
                 selectBase.onchange = () => {
                     if (customThemeOn) document.documentElement.setAttribute("data-bs-theme", selectBase.value);
                     localStorage.customBase = selectBase.value;
+                    localStorage.theme = selectBase.value;
                     customBase = selectBase.value;
                 }
             })
