@@ -163,9 +163,14 @@
                         customBg = "#EEF0F2";
                         customText = "#212529";
                         customBase = "light";
-                        custombgcolor.jscolor.fromString("#EEF0F2");
-                        customtextcolor.jscolor.fromString("#212529");
+                        custombgcolor = "#EEF0F2";
+                        customtextcolor.value = "#212529";
                         selectBase.value = "light";
+
+                        if (jscolor) {
+                            custombgcolor.jscolor.fromString("#EEF0F2");
+                            customtextcolor.jscolor.fromString("#212529");
+                        }
                     }
                 }
 
@@ -188,9 +193,14 @@
                         customBg = "#12161A";
                         customText = "#dee2e6";
                         customBase = "dark";
-                        custombgcolor.jscolor.fromString("#12161A");
-                        customtextcolor.jscolor.fromString("#dee2e6");
+                        custombgcolor.value = "#12161A";
+                        customtextcolor.value = "#dee2e6";
                         selectBase.value = "dark";
+
+                        if (jscolor) {
+                            custombgcolor.jscolor.fromString("#12161A");
+                            customtextcolor.jscolor.fromString("#dee2e6");
+                        }
                     }
                 }
 
