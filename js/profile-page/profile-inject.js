@@ -93,7 +93,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       });
     }
   };
-  
+
   // toggle skin layers
   const toggleLayers = () => {
     var layerIcon = document.querySelector("#layer-btn i");
@@ -260,11 +260,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
   // fix bug
   waitForFunc("animateSkin", () => {
-    animateSkin = () => {}
+    animateSkin = () => { }
   });
 
   waitForFunc("updateSkin", () => {
-    updateSkin = () => {}
+    updateSkin = () => { }
   });
 
   window.addEventListener("message", (json) => {
@@ -334,7 +334,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             "placement": "top",
             "boundary": "viewport",
             "title": emojiOverride.tooltip_text
-          }); 
+          });
         });
         usernameEl.append(emojiImg);
       }
@@ -390,7 +390,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     });
 
     // replace (edit) and Copy with icons
-    var editLinks = [...document.querySelectorAll("a")].filter(a=>a.innerText=="edit");
+    var editLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "edit");
     editLinks.forEach(editLink => {
       editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
       editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
@@ -405,15 +405,15 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       }
     });
 
-    var copyLinks = [...document.querySelectorAll("a")].filter(a=>a.innerText=="Copy");
+    var copyLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "Copy");
     copyLinks.forEach(copyLink => {
       copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
       copyLink.classList.add("text-white");
 
       // fix title
-      setTimeout(()=>copyLink.title = "Copy", 1000)
+      setTimeout(() => copyLink.title = "Copy", 1000)
     });
-    
+
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';
@@ -435,7 +435,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         el.parentElement.appendChild(verifyEl);
       })
     }
-    
+
     waitForSVSelector('.skin-2d.skin-button', () => {
       setTimeout(createStealBtn);
 
@@ -454,7 +454,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         </div>`;
 
         skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
-        
+
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
 
         if (skinArt) {
@@ -500,7 +500,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         // add show hidden button
         historyTitle.innerHTML += `<div>
           <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
-          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
 
@@ -508,28 +508,28 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           if (isHidden == true) {
             showHidden();
             isHidden = false;
-            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n"));
+            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
           } else {
             hideHidden();
             isHidden = true;
-            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n"));
+            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
           }
         }
       } else {
         historyTitle.innerHTML += `<div>
-          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
       }
 
       // fix title
-      setTimeout(()=>copyHist.title = "Copy", 1000)
+      setTimeout(() => copyHist.title = "Copy", 1000)
 
       // make it so when holding shift and copy is copies name changes instead
-      window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-lg-none)')].length-1) : null)
-      window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a=>a.innerText.split("\t")[0]+" "+a.innerText.split("\t")[1]).join("\n")))
+      window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-lg-none)')].length - 1) : null)
+      window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")))
 
       historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
     });
@@ -610,23 +610,23 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           waitForImage(() => {
             currentCape = capeHash;
             skinViewer.loadCape(window.namemc.images[capeHash].src);
+
+            if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
+              if (document.querySelector(".dropdown-toggle .skin-2d")) {
+                var loggedInUsername = document.querySelector(".dropdown-toggle .skin-2d")?.parentElement.innerText.split(" ")[0];
+                fetch("https://gadgets.faav.top/check?name=" + loggedInUsername, {
+                  "method": "POST"
+                }).then(res => {
+                  if (res.status == 200) skinViewer.loadCape("https://cesolgpkhjyzprrejqzn.supabase.co/storage/v1/object/public/capes/nmce/marc.png");
+                })
+              }
+            }
+
             waitForSupabase((supabase_data) => {
               const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).map(v => v.cape);
               if (userCapeIds.length > 0) {
                 const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
-
-                if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
-                  if (document.querySelector(".dropdown-toggle .skin-2d")) {
-                    var loggedInUsername = document.querySelector(".dropdown-toggle .skin-2d")?.parentElement.innerText.split(" ")[0];
-                    fetch("https://gadgets.faav.top/check?name=" + loggedInUsername, {
-                      "method": "POST"
-                    }).then(res => {
-                      if (res.status == 200) skinViewer.loadCape("https://cesolgpkhjyzprrejqzn.supabase.co/storage/v1/object/public/capes/nmce/marc.png");
-                    })
-                  }
-                } else {
-                  skinViewer.loadCape(userCapes[0].image_src);
-                }
+                skinViewer.loadCape(userCapes[0].image_src);
               }
             })
 
