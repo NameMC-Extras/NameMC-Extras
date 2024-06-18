@@ -114,3 +114,8 @@ div:has(> [id^="nn_"]),
 .customTheme[data-bs-theme=dark] .form-select:focus {
     background-color: rgba(255, 255, 255, 0.05)!important;
 }
+
+.form-select option {
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color)
+}
