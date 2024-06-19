@@ -157,20 +157,23 @@
                     document.body.style.setProperty("--ne-checkered", "unset");
 
                     if (customBg == "#12161A" && customText == "#dee2e6") {
+                        var iframeEl = document.createElement("iframe");
+                        iframeEl.srcdoc = `<script>
+                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
+                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
+                        </script>`;
+                        document.body.append(iframeEl);
+                        setTimeout(() => iframeEl.remove(), 50)
+
                         localStorage.customBg = "#EEF0F2";
                         localStorage.customText = "#212529";
                         localStorage.customBase = "light";
                         customBg = "#EEF0F2";
                         customText = "#212529";
                         customBase = "light";
-                        custombgcolor = "#EEF0F2";
+                        custombgcolor.value = "#EEF0F2";
                         customtextcolor.value = "#212529";
                         selectBase.value = "light";
-
-                        if (jscolor) {
-                            custombgcolor.jscolor.fromString("#EEF0F2");
-                            customtextcolor.jscolor.fromString("#212529");
-                        }
                     }
                 }
 
@@ -187,6 +190,14 @@
                     document.body.style.setProperty("--ne-checkered", "unset");
 
                     if (customBg == "#EEF0F2" && customText == "#212529") {
+                        var iframeEl = document.createElement("iframe");
+                        iframeEl.srcdoc = `<script>
+                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
+                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
+                        </script>`;
+                        document.body.append(iframeEl);
+                        setTimeout(() => iframeEl.remove(), 50)
+
                         localStorage.customBg = "#12161A";
                         localStorage.customText = "#dee2e6";
                         localStorage.customBase = "dark";
@@ -196,11 +207,6 @@
                         custombgcolor.value = "#12161A";
                         customtextcolor.value = "#dee2e6";
                         selectBase.value = "dark";
-
-                        if (jscolor) {
-                            custombgcolor.jscolor.fromString("#12161A");
-                            customtextcolor.jscolor.fromString("#dee2e6");
-                        }
                     }
                 }
 
