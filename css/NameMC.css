@@ -81,30 +81,36 @@ div:has(> [id^="nn_"]),
     background-blend-mode: exclusion;
 }
 
-.customTheme .btn-primary {
-    background-color: rgba(var(--ne-primary-rgb), 1);
-    border: 1px solid rgba(var(--ne-primary-rgb), .5);
+.customTheme .btn-primary,
+.customTheme .text-bg-info,
+.customTheme .active .page-link {
+    background-color: rgba(var(--ne-primary-rgb), 1)!important;
+    border: 1px solid rgba(var(--ne-primary-rgb), .5)!important;
     transition: background-color 400ms linear, border 400ms linear;
 }
 
 .customTheme .btn-primary:hover {
-    background-color: rgba(var(--ne-primary-rgb), .65);
-    border: 1px solid rgba(var(--ne-primary-rgb), .3);
+    background-color: rgba(var(--ne-primary-rgb), .75)!important;
+    border: 1px solid rgba(var(--ne-primary-rgb), .3)!important;
 }
 
 .customTheme a:not([class]),
 .customTheme a[class=""],
-.customTheme a[class="fw-bold"]:hover,
-.customTheme a[class="copy-button"] {
-    color: rgba(var(--ne-primary-rgb), 1);
+.customTheme a[class="fw-bold"],
+.customTheme a[class="copy-button"],
+.customTheme a[class="text-nowrap"],
+.customTheme a[class="nn-cmp-show"],
+.customTheme ul:not(.navbar-nav) > a:not(.navbar-brand) {
+    color: rgba(var(--ne-primary-rgb), 1)!important;
     transition: color 200ms linear;
 }
 
 .customTheme a:not([class]):hover,
 .customTheme a[class=""]:hover,
 .customTheme a[class="fw-bold"]:hover,
+.customTheme a[class="fw-bold"]:hover,
 .customTheme a[class="copy-button"]:hover {
-    color: rgba(var(--ne-primary-rgb), .65);
+    color: rgba(var(--ne-primary-rgb), .75)!important;
 }
 
 .customTheme[data-bs-theme=light] .form-control, 
@@ -123,6 +129,10 @@ div:has(> [id^="nn_"]),
 
 .form-select option,
 .form-select optgroup {
-    background: var(--bs-body-bg);
-    color: var(--bs-body-color)
+    background: var(--bs-body-bg)!important;
+    color: var(--bs-body-color)!important;
+}
+
+.customTheme * {
+    accent-color: rgba(var(--ne-primary-rgb), 1);
 }
