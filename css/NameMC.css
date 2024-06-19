@@ -101,6 +101,7 @@ div:has(> [id^="nn_"]),
 
 .customTheme a:not([class]):hover,
 .customTheme a[class=""]:hover,
+.customTheme a[class="fw-bold"]:hover,
 .customTheme a[class="copy-button"]:hover {
     color: rgba(var(--ne-primary-rgb), .65);
 }
