@@ -82,7 +82,7 @@ div:has(> [id^="nn_"]),
 }
 
 .customTheme .btn-primary,
-.customTheme .text-bg-info,
+.customTheme .badge,
 .customTheme ul:not(.navbar-nav) > li > a.active,
 .customTheme ul:not(.navbar-nav) > li.active > a,
 .customTheme ul:not(.navbar-nav) > li > .page-link.active,
