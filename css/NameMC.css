@@ -83,7 +83,11 @@ div:has(> [id^="nn_"]),
 
 .customTheme .btn-primary,
 .customTheme .text-bg-info,
-.customTheme .active .page-link {
+.customTheme ul:not(.navbar-nav) > li > a.active,
+.customTheme ul:not(.navbar-nav) > li.active > a,
+.customTheme ul:not(.navbar-nav) > li > .page-link.active,
+.customTheme ul:not(.navbar-nav) > li.active > .page-link,
+.customTheme button.active {
     background-color: rgba(var(--ne-primary-rgb), 1)!important;
     border: 1px solid rgba(var(--ne-primary-rgb), .5)!important;
     transition: background-color 400ms linear, border 400ms linear;
@@ -94,22 +98,30 @@ div:has(> [id^="nn_"]),
     border: 1px solid rgba(var(--ne-primary-rgb), .3)!important;
 }
 
+.customTheme .btn-link,
+.customTheme a.copy-button,
 .customTheme a:not([class]),
 .customTheme a[class=""],
 .customTheme a[class="fw-bold"],
-.customTheme a[class="copy-button"],
 .customTheme a[class="text-nowrap"],
 .customTheme a[class="nn-cmp-show"],
-.customTheme ul:not(.navbar-nav) > a:not(.navbar-brand) {
+.customTheme a[class="namemc-rank namemc-rank-0"],
+.customTheme ul:not(.navbar-nav):not(.pagination) > li > a:not(.navbar-brand):not(.active),
+.customTheme ul:not(.navbar-nav):not(.pagination) > li > button:not(.navbar-brand):not(.active) {
     color: rgba(var(--ne-primary-rgb), 1)!important;
     transition: color 200ms linear;
 }
 
+.customTheme .btn-link:hover,
+.customTheme a.copy-button:hover,
 .customTheme a:not([class]):hover,
 .customTheme a[class=""]:hover,
 .customTheme a[class="fw-bold"]:hover,
-.customTheme a[class="fw-bold"]:hover,
-.customTheme a[class="copy-button"]:hover {
+.customTheme a[class="text-nowrap"]:hover,
+.customTheme a[class="nn-cmp-show"]:hover,
+.customTheme a[class="namemc-rank namemc-rank-0"]:hover,
+.customTheme ul:not(.navbar-nav):not(.pagination) > li > a:not(.navbar-brand):not(.active):hover,
+.customTheme ul:not(.navbar-nav):not(.pagination) > li > button:not(.navbar-brand):not(.active):hover {
     color: rgba(var(--ne-primary-rgb), .75)!important;
 }
 
@@ -127,10 +139,46 @@ div:has(> [id^="nn_"]),
     background-color: rgba(255, 255, 255, 0.05)!important;
 }
 
-.form-select option,
-.form-select optgroup {
+select,
+select * {
     background: var(--bs-body-bg)!important;
     color: var(--bs-body-color)!important;
+}
+
+select {
+  --selectHoverCol: #999;
+  --selectedCol: red;
+  width: 100%;
+  font-size: 1em;
+  padding: 0.3em;
+  background-color: #fff;
+}
+
+select:focus {
+  border-radius: 0px;
+  border-color: red;
+  background: #fff;
+  outline: none;
+}
+
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap:focus-within select {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10
+}
+
+option:hover {
+  background-color: var(--selectHoverCol);
+  color: #fff;
+}
+
+option:checked {
+  box-shadow: 0 0 1em 100px var(--selectedCol) inset;
 }
 
 .customTheme * {
