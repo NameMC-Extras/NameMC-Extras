@@ -87,7 +87,7 @@ div:has(> [id^="nn_"]),
 .customTheme ul:not(.navbar-nav) > li.active > a,
 .customTheme ul:not(.navbar-nav) > li > .page-link.active,
 .customTheme ul:not(.navbar-nav) > li.active > .page-link,
-.customTheme button.active {
+.customTheme button.active:not(.nav-link) {
     background-color: rgba(var(--ne-primary-rgb), 1)!important;
     border: 1px solid rgba(var(--ne-primary-rgb), .5)!important;
     transition: background-color 400ms linear, border 400ms linear;
@@ -98,30 +98,30 @@ div:has(> [id^="nn_"]),
     border: 1px solid rgba(var(--ne-primary-rgb), .3)!important;
 }
 
-.customTheme .btn-link,
-.customTheme a.copy-button,
-.customTheme a:not([class]),
-.customTheme a[class=""],
-.customTheme a[class="fw-bold"],
-.customTheme a[class="text-nowrap"],
-.customTheme a[class="nn-cmp-show"],
-.customTheme a[class="namemc-rank namemc-rank-0"],
-.customTheme ul:not(.navbar-nav):not(.pagination) > li > a:not(.navbar-brand):not(.active),
-.customTheme ul:not(.navbar-nav):not(.pagination) > li > button:not(.navbar-brand):not(.active) {
+.customTheme .btn-link:not(.text-white),
+.customTheme a.copy-button:not(.text-white),
+.customTheme a:not([class]):not(.text-white),
+.customTheme a[class=""]:not(.text-white),
+.customTheme a[class="fw-bold"]:not(.text-white),
+.customTheme a[class="text-nowrap"]:not(.text-white),
+.customTheme a[class="nn-cmp-show"]:not(.text-white),
+.customTheme a[class="namemc-rank namemc-rank-0"]:not(.text-white),
+.customTheme ul:not(.navbar-nav):not(.pagination) > li > a:not(.navbar-brand):not(.active):not(.text-white),
+.customTheme ul:not(.navbar-nav):not(.pagination) > li > button:not(.navbar-brand):not(.active):not(.text-white) {
     color: rgba(var(--ne-primary-rgb), 1)!important;
     transition: color 200ms linear;
 }
 
-.customTheme .btn-link:hover,
-.customTheme a.copy-button:hover,
-.customTheme a:not([class]):hover,
-.customTheme a[class=""]:hover,
-.customTheme a[class="fw-bold"]:hover,
-.customTheme a[class="text-nowrap"]:hover,
-.customTheme a[class="nn-cmp-show"]:hover,
-.customTheme a[class="namemc-rank namemc-rank-0"]:hover,
-.customTheme ul:not(.navbar-nav):not(.pagination) > li > a:not(.navbar-brand):not(.active):hover,
-.customTheme ul:not(.navbar-nav):not(.pagination) > li > button:not(.navbar-brand):not(.active):hover {
+.customTheme .btn-link:not(.text-white):hover,
+.customTheme a.copy-button:not(.text-white):hover,
+.customTheme a:not([class]):not(.text-white):hover,
+.customTheme a[class=""]:not(.text-white):hover,
+.customTheme a[class="fw-bold"]:not(.text-white):hover,
+.customTheme a[class="text-nowrap"]:not(.text-white):hover,
+.customTheme a[class="nn-cmp-show"]:not(.text-white):hover,
+.customTheme a[class="namemc-rank namemc-rank-0"]:not(.text-white):hover,
+.customTheme ul:not(.navbar-nav):not(.pagination) > li > a:not(.navbar-brand):not(.active):not(.text-white):hover,
+.customTheme ul:not(.navbar-nav):not(.pagination) > li > button:not(.navbar-brand):not(.active):not(.text-white):hover {
     color: rgba(var(--ne-primary-rgb), .75)!important;
 }
 
