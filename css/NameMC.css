@@ -106,6 +106,7 @@ div:has(> [id^="nn_"]),
 .customTheme a[class="text-nowrap"]:not(.text-white),
 .customTheme a[class="nn-cmp-show"]:not(.text-white),
 .customTheme a[class="namemc-rank namemc-rank-0"]:not(.text-white),
+.customTheme a[class="position-absolute top-0 end-0 px-3 py-1"]:not(.text-white),
 .customTheme ul:not(.navbar-nav):not(.pagination) > li > a:not(.navbar-brand):not(.active):not(.text-white),
 .customTheme ul:not(.navbar-nav):not(.pagination) > li > button:not(.navbar-brand):not(.active):not(.text-white) {
     color: rgba(var(--ne-primary-rgb), 1)!important;
@@ -120,6 +121,7 @@ div:has(> [id^="nn_"]),
 .customTheme a[class="text-nowrap"]:not(.text-white):hover,
 .customTheme a[class="nn-cmp-show"]:not(.text-white):hover,
 .customTheme a[class="namemc-rank namemc-rank-0"]:not(.text-white):hover,
+.customTheme a[class="position-absolute top-0 end-0 px-3 py-1"]:not(.text-white):hover,
 .customTheme ul:not(.navbar-nav):not(.pagination) > li > a:not(.navbar-brand):not(.active):not(.text-white):hover,
 .customTheme ul:not(.navbar-nav):not(.pagination) > li > button:not(.navbar-brand):not(.active):not(.text-white):hover {
     color: rgba(var(--ne-primary-rgb), .75)!important;
