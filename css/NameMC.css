@@ -92,12 +92,16 @@ div:has(> [id^="nn_"]),
     border: 1px solid rgba(var(--ne-primary-rgb), .3);
 }
 
-.customTheme a:not([class]) {
+.customTheme a:not([class]),
+.customTheme a[class=""],
+.customTheme a[class="copy-button"] {
     color: rgba(var(--ne-primary-rgb), 1);
     transition: color 200ms linear;
 }
 
-.customTheme a:not([class]):hover {
+.customTheme a:not([class]):hover,
+.customTheme a[class=""]:hover,
+.customTheme a[class="copy-button"]:hover {
     color: rgba(var(--ne-primary-rgb), .65);
 }
 
