@@ -42,6 +42,20 @@
         } : null;
     }
 
+    function setCustomTheme() {
+        var primaryRgb = hexToRgb(customPrimary);
+        document.documentElement.style.setProperty("--bs-body-bg", customBg);
+        document.documentElement.style.setProperty("--bs-body-color", customText);
+        document.documentElement.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
+        document.documentElement.setAttribute("data-bs-theme", customBase);
+        document.documentElement.classList.add("customTheme");
+        localStorage.theme = customBase;
+
+        var rgbBg = hexToRgb(customBg);
+        document.documentElement.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
+    }
+
+    if (customThemeOn) setCustomTheme()
 
     const createSettingsButton = () => {
         const modalHTML = `
@@ -72,7 +86,9 @@
                             </div>
                             <br>
                             <br>
-                            <label for="customTheme" class="form-label">Custom Theme</label>
+                            <label for="customTheme" class="form-label" style="display:flex;">
+                                Custom Theme <a class="color-inherit" title="Reset back to base colors" style="margin-left:.25rem" id="resetcustom" href="javascript:void(0)"><i class="fas fa-fw fa-undo-alt"></i></a>
+                            </label>
                             <div class="input-group mb-3">
                                 <select class="form-select" id="selectBase">
                                     <option value="light">Light</option>
@@ -99,9 +115,9 @@
         `;
 
         waitForSelector("[data-bs-theme]", () => {
-            waitForSelector("body", () => {
+            waitForSelector("html", () => {
                 // inject modal html
-                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                document.documentElement.insertAdjacentHTML('beforeend', modalHTML);
 
                 // firefox support
                 var customTheme = document.querySelector("#customTheme");
@@ -111,50 +127,29 @@
                 var customtextcolor = document.querySelector("#customtextcolor");
                 var customprimarycolor = document.querySelector("#customprimarycolor");
                 var selectBase = document.querySelector("#selectBase");
-
-                if (customThemeOn) {
-                    var primaryRgb = hexToRgb(customprimarycolor.value);
-                    document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
-                    document.body.style.setProperty("--bs-body-color", customtextcolor.value);
-                    document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
-                    document.documentElement.setAttribute("data-bs-theme", selectBase.value);
-                    document.documentElement.classList.add("customTheme");
-                    localStorage.theme = selectBase.value;
-
-                    var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
-                }
+                var resetcustom = document.querySelector("#resetcustom");
 
                 if (typeof localStorage.customBase == "undefined") {
                     localStorage.customBase = customBase;
                 }
 
                 customTheme.onclick = () => {
-                    var primaryRgb = hexToRgb(customprimarycolor.value);
                     localStorage.customTheme = true;
                     customThemeOn = true;
-                    document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
-                    document.body.style.setProperty("--bs-body-color", customtextcolor.value);
-                    document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
-                    document.documentElement.setAttribute("data-bs-theme", selectBase.value);
-                    document.documentElement.classList.add("customTheme");
-                    localStorage.theme = selectBase.value;
-
-                    var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
+                    setCustomTheme()
                 }
 
                 lightTheme.onclick = () => {
                     localStorage.customTheme = false;
                     localStorage.theme = "light";
                     customThemeOn = false;
-                    document.body.style.removeProperty("--bs-body-bg");
-                    document.body.style.removeProperty("--bs-body-color");
-                    document.body.style.removeProperty("--ne-primary-rgb");
+                    document.documentElement.style.removeProperty("--bs-body-bg");
+                    document.documentElement.style.removeProperty("--bs-body-color");
+                    document.documentElement.style.removeProperty("--ne-primary-rgb");
                     document.documentElement.classList.remove("customTheme");
                     document.documentElement.setAttribute("data-bs-theme", "light");
 
-                    document.body.style.setProperty("--ne-checkered", "unset");
+                    document.documentElement.style.setProperty("--ne-checkered", "unset");
 
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         var iframeEl = document.createElement("iframe");
@@ -162,7 +157,7 @@
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
                         </script>`;
-                        document.body.append(iframeEl);
+                        document.documentElement.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 50)
 
                         localStorage.customBg = "#EEF0F2";
@@ -181,13 +176,13 @@
                     localStorage.customTheme = false;
                     localStorage.theme = "dark";
                     customThemeOn = false;
-                    document.body.style.removeProperty("--bs-body-bg");
-                    document.body.style.removeProperty("--bs-body-color");
-                    document.body.style.removeProperty("--ne-primary-rgb");
+                    document.documentElement.style.removeProperty("--bs-body-bg");
+                    document.documentElement.style.removeProperty("--bs-body-color");
+                    document.documentElement.style.removeProperty("--ne-primary-rgb");
                     document.documentElement.classList.remove("customTheme");
                     document.documentElement.setAttribute("data-bs-theme", "dark");
 
-                    document.body.style.setProperty("--ne-checkered", "unset");
+                    document.documentElement.style.setProperty("--ne-checkered", "unset");
 
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         var iframeEl = document.createElement("iframe");
@@ -195,7 +190,7 @@
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
                         </script>`;
-                        document.body.append(iframeEl);
+                        document.documentElement.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 50)
 
                         localStorage.customBg = "#12161A";
@@ -211,23 +206,23 @@
                 }
 
                 custombgcolor.onchange = () => {
-                    if (customThemeOn) document.body.style.setProperty("--bs-body-bg", custombgcolor.value);
+                    if (customThemeOn) document.documentElement.style.setProperty("--bs-body-bg", custombgcolor.value);
                     localStorage.customBg = custombgcolor.value;
                     customBg = custombgcolor.value;
 
                     var rgbBg = hexToRgb(custombgcolor.value);
-                    document.body.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
+                    document.documentElement.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
                 }
 
                 customtextcolor.onchange = () => {
-                    if (customThemeOn) document.body.style.setProperty("--bs-body-color", customtextcolor.value);
+                    if (customThemeOn) document.documentElement.style.setProperty("--bs-body-color", customtextcolor.value);
                     localStorage.customText = customtextcolor.value;
                     customText = customtextcolor.value;
                 }
 
                 customprimarycolor.onchange = () => {
                     var primaryRgb = hexToRgb(customprimarycolor.value);
-                    if (customThemeOn) document.body.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
+                    if (customThemeOn) document.documentElement.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
 
                     localStorage.customPrimary = customprimarycolor.value;
                     customPrimary = customprimarycolor.value;
@@ -239,10 +234,57 @@
                     localStorage.theme = selectBase.value;
                     customBase = selectBase.value;
                 }
+
+                resetcustom.onclick = () => {
+                    if (customBase == "dark") {
+                        var iframeEl = document.createElement("iframe");
+                        iframeEl.srcdoc = `<script>
+                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
+                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
+                            window.top.document.querySelector("#customprimarycolor").jscolor.fromString("#2C88DD");
+                        </script>`;
+                        document.documentElement.append(iframeEl);
+                        setTimeout(() => iframeEl.remove(), 50)
+
+                        localStorage.customBg = "#12161A";
+                        localStorage.customText = "#dee2e6";
+                        localStorage.customPrimary = "#2C88DD";
+                        customBg = "#12161A";
+                        customText = "#dee2e6";
+                        customPrimary = "#2C88DD";
+                        custombgcolor.value = "#12161A";
+                        customtextcolor.value = "#dee2e6";
+                        customprimarycolor.value = "#2C88DD";
+
+                        setCustomTheme()
+                    } else {
+                        var iframeEl = document.createElement("iframe");
+                        iframeEl.srcdoc = `<script>
+                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
+                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
+                            window.top.document.querySelector("#customprimarycolor").jscolor.fromString("#2C88DD");
+                        </script>`;
+                        document.documentElement.append(iframeEl);
+                        setTimeout(() => iframeEl.remove(), 50)
+
+                        localStorage.customBg = "#EEF0F2";
+                        localStorage.customText = "#212529";
+                        localStorage.customPrimary = "#2C88DD";
+                        customBg = "#EEF0F2";
+                        customText = "#212529";
+                        customPrimary = "#2C88DD";
+                        custombgcolor.value = "#EEF0F2";
+                        customtextcolor.value = "#212529";
+                        customprimarycolor.value = "#2C88DD";
+
+                        setCustomTheme()
+                    }
+                }
+
+                waitForFunc("jscolor", (jscolor) => jscolor.init());
             })
 
-            // get element in following path (settings button): nav (single) -> ul (last) -> li (last)
-            waitForSelector('[data-bs-theme-value]',
+            waitForSelector('a[data-bs-theme-value]',
                 /**
                  * @param {HTMLElement} themeButton 
                  */
@@ -257,8 +299,6 @@
                     `;
                 }
             )
-
-            waitForFunc("jscolor", (jscolor) => jscolor.init());
         })
     }
 
@@ -342,24 +382,48 @@
     }
 
     // INJECT SETTINGS BUTTON
-
     createSettingsButton();
 
-    // INJECTING PAGES
-
+    // INJECT PAGES
     injectPages([
         ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait'],
         ['badges', 'Badges', 'Badges', 'fas fa-award']
     ]);
 
-    // INJECTING MENU ITEMS
-
+    // INJECT MENU ITEMS
     injectMenus([
         ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image']
     ])
 
-    // Credits
+    // REPLACE WITH ICONS
+    waitForSelector("body", () => {
+        // replace (edit) and Copy with icons
+        var editLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "edit");
+        editLinks.forEach(editLink => {
+            editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
+            editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
+            editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
+            editLink.classList.add("color-inherit");
+            editLink.title = "Edit";
 
+            // move to far right
+            if (editLink.parentElement.tagName == "STRONG") {
+                editLink.parentElement.parentElement.append(editLink);
+                editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
+            }
+        });
+
+        var copyLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "Copy");
+        copyLinks.forEach(copyLink => {
+            copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
+            copyLink.classList.add("color-inherit");
+
+            // fix title
+            setTimeout(() => copyLink.title = "Copy", 1000)
+        });
+    })
+
+    // INJECT CREDITS
     waitForSelector("footer .row", (footer) => {
         var creditsRange = document.createRange();
         var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://github.com/NameMC-Extras/NameMC-Extras" target="_blank">NameMC Extras</a></small></div>`);
