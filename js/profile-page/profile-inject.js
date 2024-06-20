@@ -59,15 +59,15 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
   const waitForFunc = function (func, callback) {
     if (window[func] ?? window.wrappedJSObject?.[func]) {
-        setTimeout(() => {
-            callback(window[func] ?? window.wrappedJSObject?.[func]);
-        });
+      setTimeout(() => {
+        callback(window[func] ?? window.wrappedJSObject?.[func]);
+      });
     } else {
-        setTimeout(() => {
-            waitForFunc(func, callback);
-        });
+      setTimeout(() => {
+        waitForFunc(func, callback);
+      });
     }
-};
+  };
 
   const waitForSupabase = function (callback) {
     var supabase_data = window.localStorage.getItem("supabase_data");
@@ -386,6 +386,22 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             "boundary": "viewport"
           });
         })
+      }
+    });
+
+    // replace (edit) and Copy with icons
+    var editLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "edit");
+    editLinks.forEach(editLink => {
+      editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
+      editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
+      editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
+      editLink.classList.add("color-inherit");
+      editLink.title = "Edit";
+
+      // move to far right
+      if (editLink.parentElement.tagName == "STRONG") {
+        editLink.parentElement.parentElement.append(editLink);
+        editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
       }
     });
 

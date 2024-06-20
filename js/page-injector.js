@@ -30,7 +30,8 @@
     var customThemeOn = (localStorage.getItem("customTheme") == "true");
     var customBg = localStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
     var customText = localStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
-    var customPrimary = localStorage.getItem("customPrimary") || "#2C88DD";
+    var customLink = localStorage.getItem("customLink") || "#7ba7ce";
+    var customBtn = localStorage.getItem("customBtn") || "#848BB0";
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
 
     function hexToRgb(hex) {
@@ -43,16 +44,18 @@
     }
 
     function setCustomTheme() {
-        var primaryRgb = hexToRgb(customPrimary);
+        var linkRgb = hexToRgb(customLink);
+        var btnRgb = hexToRgb(customBtn);
         document.documentElement.style.setProperty("--bs-body-bg", customBg);
         document.documentElement.style.setProperty("--bs-body-color", customText);
-        document.documentElement.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
+        document.documentElement.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
+        document.documentElement.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
         document.documentElement.setAttribute("data-bs-theme", customBase);
         document.documentElement.classList.add("customTheme");
         localStorage.theme = customBase;
 
-        var rgbBg = hexToRgb(customBg);
-        document.documentElement.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
+        var bgRgb = hexToRgb(customBg);
+        document.documentElement.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * 1.75}, ${bgRgb["g"] * 1.75}, ${bgRgb["b"] * 1.75}, .5)`);
     }
 
     if (customThemeOn) setCustomTheme()
@@ -87,26 +90,39 @@
                             <br>
                             <br>
                             <label for="customTheme" class="form-label" style="display:flex;">
-                                Custom Theme <a class="color-inherit" title="Reset back to base colors" style="margin-left:.25rem" id="resetcustom" href="javascript:void(0)"><i class="fas fa-fw fa-undo-alt"></i></a>
+                                Custom Theme
+                                <a class="color-inherit" title="Reset back to base colors" style="margin-left:.3rem" id="resetcustom" href="javascript:void(0)">
+                                    <i class="fas fa-fw fa-undo-alt"></i>
+                                </a>
+                                <a class="color-inherit" title="Export custom theme" style="margin-left:.3rem" id="exportcustom" href="javascript:void(0)">
+                                    <i class="fas fa-fw fa-download"></i>
+                                </a>
+                                <a class="color-inherit" title="Import custom theme" style="margin-left:.3rem" id="importcustom" href="javascript:void(0)">
+                                    <i class="fas fa-fw fa-upload"></i>
+                                </a>
                             </label>
                             <div class="input-group mb-3">
+                                <span class="input-group-text">Base Theme</span>
                                 <select class="form-select" id="selectBase">
                                     <option value="light">Light</option>
                                     <option value="dark" ${(customBase == "dark") ? "selected" : ""}>Dark</option>
                                 </select>
-                                <span class="input-group-text">Base Theme</span>
                             </div>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor>
                                 <span class="input-group-text">Background Color</span>
+                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right'}" >
                             </div>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor>
                                 <span class="input-group-text">Text Color</span>
+                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right'}" >
                             </div>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control" placeholder="#2C88DD" value="${customPrimary}" aria-label="Custom Primary Color" id="customprimarycolor" data-jscolor>
-                                <span class="input-group-text">Primary Color</span>
+                                <span class="input-group-text">Link Color</span>
+                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right'}" >
+                            </div>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">Button Color</span>
+                                <input type="text" class="form-control" placeholder="#848BB0" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}" >
                             </div>
                         </div>
                     </div>
@@ -125,9 +141,12 @@
                 var darkTheme = document.querySelector("#darkTheme");
                 var custombgcolor = document.querySelector("#custombgcolor");
                 var customtextcolor = document.querySelector("#customtextcolor");
-                var customprimarycolor = document.querySelector("#customprimarycolor");
+                var customlinkcolor = document.querySelector("#customlinkcolor");
+                var custombtncolor = document.querySelector("#custombtncolor");
                 var selectBase = document.querySelector("#selectBase");
                 var resetcustom = document.querySelector("#resetcustom");
+                var exportcustom = document.querySelector("#exportcustom");
+                var importcustom = document.querySelector("#importcustom");
 
                 if (typeof localStorage.customBase == "undefined") {
                     localStorage.customBase = customBase;
@@ -136,7 +155,7 @@
                 customTheme.onclick = () => {
                     localStorage.customTheme = true;
                     customThemeOn = true;
-                    setCustomTheme()
+                    setCustomTheme();
                 }
 
                 lightTheme.onclick = () => {
@@ -145,7 +164,8 @@
                     customThemeOn = false;
                     document.documentElement.style.removeProperty("--bs-body-bg");
                     document.documentElement.style.removeProperty("--bs-body-color");
-                    document.documentElement.style.removeProperty("--ne-primary-rgb");
+                    document.documentElement.style.removeProperty("--ne-link-rgb");
+                    document.documentElement.style.removeProperty("--ne-btn-rgb");
                     document.documentElement.classList.remove("customTheme");
                     document.documentElement.setAttribute("data-bs-theme", "light");
 
@@ -178,7 +198,8 @@
                     customThemeOn = false;
                     document.documentElement.style.removeProperty("--bs-body-bg");
                     document.documentElement.style.removeProperty("--bs-body-color");
-                    document.documentElement.style.removeProperty("--ne-primary-rgb");
+                    document.documentElement.style.removeProperty("--ne-link-rgb");
+                    document.documentElement.style.removeProperty("--ne-btn-rgb");
                     document.documentElement.classList.remove("customTheme");
                     document.documentElement.setAttribute("data-bs-theme", "dark");
 
@@ -220,12 +241,20 @@
                     customText = customtextcolor.value;
                 }
 
-                customprimarycolor.onchange = () => {
-                    var primaryRgb = hexToRgb(customprimarycolor.value);
-                    if (customThemeOn) document.documentElement.style.setProperty("--ne-primary-rgb", `${primaryRgb["r"]}, ${primaryRgb["g"]}, ${primaryRgb["b"]}`);
+                customlinkcolor.onchange = () => {
+                    var linkRgb = hexToRgb(customlinkcolor.value);
+                    if (customThemeOn) document.documentElement.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
 
-                    localStorage.customPrimary = customprimarycolor.value;
-                    customPrimary = customprimarycolor.value;
+                    localStorage.customLink = customlinkcolor.value;
+                    customLink = customlinkcolor.value;
+                }
+
+                custombtncolor.onchange = () => {
+                    var btnRgb = hexToRgb(custombtncolor.value);
+                    if (customThemeOn) document.documentElement.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
+
+                    localStorage.customBtn = custombtncolor.value;
+                    customBtn = custombtncolor.value;
                 }
 
                 selectBase.onchange = () => {
@@ -236,48 +265,107 @@
                 }
 
                 resetcustom.onclick = () => {
-                    if (customBase == "dark") {
+                    if (confirm("Are you sure you want to reset your custom theme?")) {
+                        if (customBase == "dark") {
+                            var iframeEl = document.createElement("iframe");
+                            iframeEl.srcdoc = `<script>
+                                window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
+                                window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
+                                window.top.document.querySelector("#customlinkcolor").jscolor.fromString("#7ba7ce");
+                                window.top.document.querySelector("#custombtncolor").jscolor.fromString("#848BB0");
+                            </script>`;
+                            document.documentElement.append(iframeEl);
+                            setTimeout(() => iframeEl.remove(), 50)
+
+                            localStorage.customBg = "#12161A";
+                            localStorage.customText = "#dee2e6";
+                            localStorage.customLink = "#7ba7ce";
+                            localStorage.customBtn = "#848BB0";
+                            customBg = "#12161A";
+                            customText = "#dee2e6";
+                            customLink = "#7ba7ce";
+                            customBtn = "#848BB0";
+                            custombgcolor.value = "#12161A";
+                            customtextcolor.value = "#dee2e6";
+                            customlinkcolor.value = "#7ba7ce";
+                            custombtncolor.value = "#848BB0";
+                        } else {
+                            var iframeEl = document.createElement("iframe");
+                            iframeEl.srcdoc = `<script>
+                                window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
+                                window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
+                                window.top.document.querySelector("#customlinkcolor").jscolor.fromString("#7ba7ce");
+                                window.top.document.querySelector("#custombtncolor").jscolor.fromString("#848BB0");
+                            </script>`;
+                            document.documentElement.append(iframeEl);
+                            setTimeout(() => iframeEl.remove(), 50)
+
+                            localStorage.customBg = "#EEF0F2";
+                            localStorage.customText = "#212529";
+                            localStorage.customLink = "#7ba7ce";
+                            localStorage.customBtn = "#848BB0";
+                            customBg = "#EEF0F2";
+                            customText = "#212529";
+                            customLink = "#7ba7ce";
+                            customBtn = "#848BB0";
+                            custombgcolor.value = "#EEF0F2";
+                            customtextcolor.value = "#212529";
+                            customlinkcolor.value = "#7ba7ce";
+                            custombtncolor.value = "#848BB0";
+                        }
+
+                        if (customThemeOn) setCustomTheme();
+                    }
+                }
+
+                exportcustom.onclick = () => {
+                    var code = `${customBg};${customText};${customLink};${customBtn}`;
+                    prompt("You can copy this custom theme code below: ", code)
+                }
+
+                importcustom.onclick = () => {
+                    var code = prompt("You can paste this custom theme code below: ");
+                    code = code.split(";");
+
+                    if (code.length == 4) {
                         var iframeEl = document.createElement("iframe");
+                        var hexRegex = /^#?([a-f0-9]{6}|[a-f0-9]{3})$/;
+
+                        if (customBase == "dark") {
+                            if (!hexRegex.test(code[0])) code[0] = "#12161A";
+                            if (!hexRegex.test(code[1])) code[1] = "#dee2e6";
+                            if (!hexRegex.test(code[2])) code[2] = "#7ba7ce";
+                            if (!hexRegex.test(code[3])) code[3] = "#848BB0";
+                        } else {
+                            if (!hexRegex.test(code[0])) code[0] = "#EEF0F2";
+                            if (!hexRegex.test(code[1])) code[1] = "#212529";
+                            if (!hexRegex.test(code[2])) code[2] = "#7ba7ce";
+                            if (!hexRegex.test(code[3])) code[3] = "#848BB0";
+                        }
+
                         iframeEl.srcdoc = `<script>
-                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
-                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
-                            window.top.document.querySelector("#customprimarycolor").jscolor.fromString("#2C88DD");
+                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("${code[0].replace('"', '')}");
+                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("${code[1].replace('"', '')}");
+                            window.top.document.querySelector("#customlinkcolor").jscolor.fromString("${code[2].replace('"', '')}");
+                            window.top.document.querySelector("#custombtncolor").jscolor.fromString("${code[3].replace('"', '')}");
                         </script>`;
                         document.documentElement.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 50)
 
-                        localStorage.customBg = "#12161A";
-                        localStorage.customText = "#dee2e6";
-                        localStorage.customPrimary = "#2C88DD";
-                        customBg = "#12161A";
-                        customText = "#dee2e6";
-                        customPrimary = "#2C88DD";
-                        custombgcolor.value = "#12161A";
-                        customtextcolor.value = "#dee2e6";
-                        customprimarycolor.value = "#2C88DD";
+                        localStorage.customBg = code[0];
+                        localStorage.customText = code[1];
+                        localStorage.customLink = code[2];
+                        localStorage.customBtn = code[3];
+                        customBg = code[0];
+                        customText = code[1];
+                        customLink = code[2];
+                        customBtn = code[3];
+                        custombgcolor.value = code[0];
+                        customtextcolor.value = code[1];
+                        customlinkcolor.value = code[2];
+                        custombtncolor.value = code[3];
 
-                        setCustomTheme()
-                    } else {
-                        var iframeEl = document.createElement("iframe");
-                        iframeEl.srcdoc = `<script>
-                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
-                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
-                            window.top.document.querySelector("#customprimarycolor").jscolor.fromString("#2C88DD");
-                        </script>`;
-                        document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 50)
-
-                        localStorage.customBg = "#EEF0F2";
-                        localStorage.customText = "#212529";
-                        localStorage.customPrimary = "#2C88DD";
-                        customBg = "#EEF0F2";
-                        customText = "#212529";
-                        customPrimary = "#2C88DD";
-                        custombgcolor.value = "#EEF0F2";
-                        customtextcolor.value = "#212529";
-                        customprimarycolor.value = "#2C88DD";
-
-                        setCustomTheme()
+                        if (customThemeOn) setCustomTheme();
                     }
                 }
 
@@ -395,24 +483,8 @@
         ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image']
     ])
 
-    // REPLACE WITH ICONS
+    // REPLACE COPY BUTTON
     waitForSelector("body", () => {
-        // replace (edit) and Copy with icons
-        var editLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "edit");
-        editLinks.forEach(editLink => {
-            editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
-            editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
-            editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
-            editLink.classList.add("color-inherit");
-            editLink.title = "Edit";
-
-            // move to far right
-            if (editLink.parentElement.tagName == "STRONG") {
-                editLink.parentElement.parentElement.append(editLink);
-                editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
-            }
-        });
-
         var copyLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "Copy");
         copyLinks.forEach(copyLink => {
             copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';

@@ -107,6 +107,33 @@ const fixPauseBtn = () => {
   })
 }
 
+const downloadCape = () => {
+  var a = document.createElement("a");
+  a.href = skinViewer.capeCanvas.toDataURL();
+  a.setAttribute("download", "cape");
+  a.click();
+}
+
+// add download button
+const createDownloadBtn = () => {
+  waitForSelector('#play-pause-btn', () => {
+    var pauseBtn = document.querySelector('#play-pause-btn');
+    var downloadBtn = document.createElement('button');
+    downloadBtn.id = 'download-btn';
+    downloadBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+    downloadBtn.classList.add('p-0');
+    downloadBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
+    downloadBtn.title = "Download Cape";
+    downloadIcon = document.createElement('i');
+    downloadIcon.classList.add('fas');
+    downloadIcon.classList.add('fa-download');
+    downloadBtn.innerHTML = downloadIcon.outerHTML;
+    pauseBtn.outerHTML += downloadBtn.outerHTML;
+    
+    document.querySelector('#download-btn').onclick = downloadCape;
+  });
+}
+
 // add elytra button
 const createElytraBtn = () => {
   waitForSelector('#play-pause-btn', () => {
@@ -115,7 +142,7 @@ const createElytraBtn = () => {
     elytraBtn.id = 'elytra-btn';
     elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
     elytraBtn.classList.add('p-0');
-    elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
+    elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important;')
     elytraBtn.title = "Elytra";
     elytraIcon = document.createElement('i');
     elytraIcon.classList.add('fas');
@@ -133,7 +160,7 @@ const createStealBtn = () => {
       stealBtn.id = 'steal-btn';
       stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
       stealBtn.classList.add('p-0');
-      stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:92.5px!important;`)
+      stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:135px!important;`)
       stealBtn.title = "Steal Cape";
       stealIcon = document.createElement('i');
       stealIcon.classList.add('fas');
@@ -232,6 +259,7 @@ waitForSelector(".col-md-6", () => {
     newContainer.id = 'skin_container';
     oldContainer.outerHTML = newContainer.outerHTML;
 
+    createDownloadBtn();
     createElytraBtn();
     createStealBtn();
 
