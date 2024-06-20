@@ -344,10 +344,10 @@
                         }
 
                         iframeEl.srcdoc = `<script>
-                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("${code[0].replace('"', '')}");
-                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("${code[1].replace('"', '')}");
-                            window.top.document.querySelector("#customlinkcolor").jscolor.fromString("${code[2].replace('"', '')}");
-                            window.top.document.querySelector("#custombtncolor").jscolor.fromString("${code[3].replace('"', '')}");
+                            window.top.document.querySelector("#custombgcolor").jscolor.fromString("${code[0].replace(/"/g, '')}");
+                            window.top.document.querySelector("#customtextcolor").jscolor.fromString("${code[1].replace(/"/g, '')}");
+                            window.top.document.querySelector("#customlinkcolor").jscolor.fromString("${code[2].replace(/"/g, '')}");
+                            window.top.document.querySelector("#custombtncolor").jscolor.fromString("${code[3].replace(/"/g, '')}");
                         </script>`;
                         document.documentElement.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 50)
