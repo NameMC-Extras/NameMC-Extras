@@ -389,31 +389,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       }
     });
 
-    // replace (edit) and Copy with icons
-    var editLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "edit");
-    editLinks.forEach(editLink => {
-      editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
-      editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
-      editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
-      editLink.classList.add("text-white");
-      editLink.title = "Edit";
-
-      // move to far right
-      if (editLink.parentElement.tagName == "STRONG") {
-        editLink.parentElement.parentElement.append(editLink);
-        editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
-      }
-    });
-
-    var copyLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "Copy");
-    copyLinks.forEach(copyLink => {
-      copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
-      copyLink.classList.add("text-white");
-
-      // fix title
-      setTimeout(() => copyLink.title = "Copy", 1000)
-    });
-
     var gadgetIf = document.createElement('iframe');
     gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.id = 'nmcIf';
@@ -421,7 +396,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       gadgetIf.remove();
     };
 
-    document.body.append(gadgetIf);
+    document.documentElement.append(gadgetIf);
 
     // give developers verification
     if (uuid == '2ce90d65-f253-4e3c-8e4b-3d5fb1e4c927' || uuid == '88e152f3-e545-4681-8cec-3e8f85175902') {
@@ -447,7 +422,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         var skinEdit = skinsTitle.querySelector(".fa-edit");
 
         skinsTitle.innerHTML += `<div>
-          <a href="javascript:void(0)" id="borderBtn" class="text-white" title="Show/Hide Borders">
+          <a href="javascript:void(0)" id="borderBtn" class="color-inherit" title="Show/Hide Borders">
             ${skinArt ? '<i class="far fa-fw fa-border-all">' : '<i class="far fa-fw fa-border-style">'}</i>
           </a>
           ${skinEdit ? skinEdit?.parentElement?.outerHTML : ""}
@@ -498,9 +473,9 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         hideHidden();
 
         // add show hidden button
-        historyTitle.innerHTML += `<div>
-          <a href="javascript:void(0)" class="text-white" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
-          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+        historyTitle.innerHTML += `<div style="margin-right:.25rem;">
+          <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
+          <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
 
@@ -518,8 +493,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           }
         }
       } else {
-        historyTitle.innerHTML += `<div>
-          <a href="javascript:void(0)" class="text-white copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+        historyTitle.innerHTML += `<div style="margin-right:.25rem;">
+          <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
       }
