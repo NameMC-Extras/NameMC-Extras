@@ -328,7 +328,6 @@
                     code = code.split(";");
 
                     if (code.length == 4 || code.length == 5) {
-                        var iframeEl = document.createElement("iframe");
                         var hexRegex = /^#?([a-f0-9]{6}|[a-f0-9]{3})$/;
 
                         if (customBase == "dark") {
@@ -343,6 +342,7 @@
                             if (!hexRegex.test(code[3])) code[3] = "#848BB0";
                         }
 
+                        var iframeEl = document.createElement("iframe");
                         iframeEl.srcdoc = `<script>
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("${code[0].replace(/"/g, '')}");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("${code[1].replace(/"/g, '')}");
@@ -383,7 +383,22 @@
                     }
                 }
 
-                waitForFunc("jscolor", (jscolor) => jscolor.init());
+                if (!customThemeOn) {
+                    if (document.documentElement.getAttribute("data-bs-theme") == "dark") {
+                        darkTheme.onclick();
+                    } else {
+                        lightTheme.onclick();
+                    }
+                }
+
+                waitForSelector("body", () => {
+                    var iframeEl = document.createElement("iframe");
+                    iframeEl.srcdoc = `<script>
+                        window.top.jscolor.init();
+                    </script>`;
+                    document.documentElement.append(iframeEl);
+                    setTimeout(() => iframeEl.remove(), 50)
+                })
             })
 
             waitForSelector('a[data-bs-theme-value]',
