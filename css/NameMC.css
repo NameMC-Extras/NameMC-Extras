@@ -82,20 +82,22 @@ div:has(> [id^="nn_"]),
 }
 
 .customTheme .btn-primary,
+.customTheme .btn-secondary,
 .customTheme .badge,
 .customTheme ul:not(.navbar-nav)>li>a.active,
 .customTheme ul:not(.navbar-nav)>li.active>a,
 .customTheme ul:not(.navbar-nav)>li>.page-link.active,
 .customTheme ul:not(.navbar-nav)>li.active>.page-link,
 .customTheme button.active:not(.nav-link) {
-    background-color: rgba(var(--ne-primary-rgb), 1) !important;
-    border: 1px solid rgba(var(--ne-primary-rgb), .5) !important;
+    background-color: rgba(var(--ne-btn-rgb), 1) !important;
+    border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
     transition: background-color 400ms linear, border 400ms linear;
 }
 
-.customTheme .btn-primary:hover {
-    background-color: rgba(var(--ne-primary-rgb), .75) !important;
-    border: 1px solid rgba(var(--ne-primary-rgb), .3) !important;
+.customTheme .btn-primary:hover,
+.customTheme .btn-secondary:hover {
+    background-color: rgba(var(--ne-btn-rgb), .75) !important;
+    border: 1px solid rgba(var(--ne-btn-rgb), .3) !important;
 }
 
 .customTheme .btn-link,
@@ -109,7 +111,7 @@ div:has(> [id^="nn_"]),
 .customTheme a[class="position-absolute top-0 end-0 px-3 py-1"],
 .customTheme ul:not(.navbar-nav):not(.pagination)>li>a:not(.navbar-brand):not(.active),
 .customTheme ul:not(.navbar-nav):not(.pagination)>li>button:not(.navbar-brand):not(.active) {
-    color: rgba(var(--ne-primary-rgb), 1) !important;
+    color: rgba(var(--ne-link-rgb), 1) !important;
     transition: color 200ms linear;
 }
 
@@ -124,7 +126,7 @@ div:has(> [id^="nn_"]),
 .customTheme a[class="position-absolute top-0 end-0 px-3 py-1"]:hover,
 .customTheme ul:not(.navbar-nav):not(.pagination)>li>a:not(.navbar-brand):not(.active):hover,
 .customTheme ul:not(.navbar-nav):not(.pagination)>li>button:not(.navbar-brand):not(.active):hover {
-    color: rgba(var(--ne-primary-rgb), .75) !important;
+    color: rgba(var(--ne-link-rgb), .75) !important;
 }
 
 .customTheme[data-bs-theme=light] .form-control,
@@ -184,7 +186,7 @@ option:checked {
 }
 
 .customTheme * {
-    accent-color: rgba(var(--ne-primary-rgb), 1);
+    accent-color: rgba(var(--ne-link-rgb), 1);
 }
 
 .color-inherit {
