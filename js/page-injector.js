@@ -319,7 +319,7 @@
                 }
 
                 exportcustom.onclick = () => {
-                    var code = `${customBg};${customText};${customLink};${customBtn}`;
+                    var code = `${customBg};${customText};${customLink};${customBtn};${customBase == "dark" ? 1 : 0}`;
                     prompt("You can copy this custom theme code below: ", code)
                 }
 
@@ -327,7 +327,7 @@
                     var code = prompt("You can paste this custom theme code below: ");
                     code = code.split(";");
 
-                    if (code.length == 4) {
+                    if (code.length == 4 || code.length == 5) {
                         var iframeEl = document.createElement("iframe");
                         var hexRegex = /^#?([a-f0-9]{6}|[a-f0-9]{3})$/;
 
@@ -365,7 +365,21 @@
                         customlinkcolor.value = code[2];
                         custombtncolor.value = code[3];
 
+                        if (code[4] && code[4].length > 0) {
+                            if (code[4] == "1") {
+                                localStorage.customBase = "dark";
+                                customBase = "dark";
+                                selectBase.value = "dark";
+                            } else {
+                                localStorage.customBase = "light";
+                                customBase = "light";
+                                selectBase.value = "light";
+                            }
+                        }
+
                         if (customThemeOn) setCustomTheme();
+                    } else {
+                        alert("You entered a invalid custom theme code!")
                     }
                 }
 
