@@ -67,6 +67,13 @@ const waitForCape = function (callback) {
   }
 };
 
+const downloadCape = () => {
+  var a = document.createElement("a");
+  a.href = skinViewer.capeCanvas.toDataURL();
+  a.setAttribute("download", "cape");
+  a.click();
+}
+
 const fixPauseBtn = () => {
   setTimeout(() => {
     var pauseBtn = document.querySelector('#play-pause-btn');
@@ -128,6 +135,11 @@ const fixStealBtn = () => {
   })
 }
 
+const fixDownloadBtn = () => {
+  setTimeout(() => {
+    document.querySelector('#download-btn').onclick = downloadCape;
+  })
+}
 
 /*
  * UNIVERSAL VARIABLES
@@ -205,10 +217,13 @@ async function loadPage(mainDiv) {
             <button id="play-pause-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;">
               <i class="fas fa-play"></i>
             </button>
-            <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:50px!important;" title="Elytra">
+            <button id="download-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:50px!important;" title="Download Cape">
+              <i class="fas fa-download"></i>
+            </button>
+            <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Elytra">
               <i class="fas fa-dove"></i>
             </button>
-            <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Steal Cape">
+            <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:135px!important;" title="Steal Cape">
               <i class="fas fa-user-secret"></i>
             </button>
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${capeOwners.length}★</h5>
@@ -294,6 +309,7 @@ async function loadPage(mainDiv) {
     );
 
     fixPauseBtn()
+    waitForCape(fixDownloadBtn)
     waitForCape(fixElytraBtn);
     waitForCape(fixStealBtn);
   })
