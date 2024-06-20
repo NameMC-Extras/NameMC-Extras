@@ -55,7 +55,7 @@ if (profiles.length > 0) {
     </div>
     `);
 
-    document.body.append(modalHTML);
+    document.documentElement.append(modalHTML);
 
     waitForModal(() => $("#modalClose").click(() => {
         $("#profilesImageModal").modal("hide");
