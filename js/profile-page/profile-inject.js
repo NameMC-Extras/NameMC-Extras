@@ -296,7 +296,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   waitForSelector('.order-lg-2', () => {
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
     var uuid = document.querySelector('.order-lg-2').innerText;
-    var views = document.querySelector('.card-body > :nth-child(3)');
+    var views = document.querySelector('.card-body > :nth-child(2)');
     var cardBody = document.querySelector('.card-body');
 
     // create layer button
