@@ -414,8 +414,10 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     });
 
     var gadgetIf = document.createElement('iframe');
-    gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
+    gadgetIf.width = 0;
+    gadgetIf.height = 0;
     gadgetIf.id = 'nmcIf';
+    gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.onload = () => {
       gadgetIf.remove();
     };
