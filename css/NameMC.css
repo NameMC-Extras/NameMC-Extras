@@ -4,7 +4,11 @@ div:has(> [id^="nn_"]),
 #nmcIf,
 .mt-0:has(+ .ad-container),
 [id*=celtra],
-[class*=celtra] {
+[class*=celtra],
+[id*=jpx],
+[class*=jpx],
+iframe,
+.notranslate:has(iframe) {
     display: none !important
 }
 
