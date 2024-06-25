@@ -298,6 +298,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     
     var uuid_select = document.querySelector('#uuid-select');
     var uuid = uuid_select.options[uuid_select.selectedIndex].text;
+
+    // fix uuid select
+    document.querySelector("#uuid-select").onclick = (e) => {
+      if (e.pointerType == 0 ) e.target.blur();
+    }
     
     var views = document.querySelector('.card-body > :nth-child(2)');
     var cardBody = document.querySelector('.card-body');
