@@ -1,14 +1,18 @@
 /* copyright 2024 | Faav | github.com/bribes */
 div:has(> [id^="nn_"]),
-[id^="nn_"],
 .ad-container,
 #nmcIf,
 .mt-0:has(+ .ad-container),
+[id*=nn_],
+[class*=nn_],
 [id*=celtra],
 [class*=celtra],
 [id*=jpx],
 [class*=jpx],
-iframe,
+[id*=lb1_],
+[class*=lb1_],
+[id*=ads_],
+[class*=ads_],
 .notranslate:has(iframe) {
     display: none !important
 }
