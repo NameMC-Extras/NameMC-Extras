@@ -297,7 +297,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
     
     var uuid_select = document.querySelector('#uuid-select');
-    var uuid = uuid_select.options[uuid_select.selectedIndex].text;
+    var uuid = uuid_select.children[0].innerText;
 
     // fix uuid select
     document.querySelector("#uuid-select").onclick = (e) => {
