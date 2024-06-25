@@ -297,11 +297,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
     
     var uuid_select = document.querySelector('#uuid-select');
-    var uuid = uuid_select.options[uuid_select.selectedIndex].text;
+    var uuid = uuid_select.children[0].innerText;
 
     // fix uuid select
     document.querySelector("#uuid-select").onclick = (e) => {
-      if (e.pointerType == 0 || e.target.tagName == "OPTION") document.querySelector("#uuid-select").blur();
+      if (e.pointerType == 0 ) e.target.blur();
     }
     
     var views = document.querySelector('.card-body > :nth-child(2)');
