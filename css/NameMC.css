@@ -2,7 +2,9 @@
 div:has(> [id^="nn_"]),
 .ad-container,
 #nmcIf,
-.mt-0:has(+ .ad-container) {
+.mt-0:has(+ .ad-container),
+[id*=celtra],
+[class*=celtra] {
     display: none !important
 }
 
