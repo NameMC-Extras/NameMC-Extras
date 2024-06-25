@@ -301,7 +301,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     // fix uuid select
     document.querySelector("#uuid-select").onclick = (e) => {
-      if (e.pointerType == 0 ) e.target.blur();
+      if (e.pointerType == 0 || e.target.tagName == "OPTION") document.querySelector("#uuid-select").blur();
     }
     
     var views = document.querySelector('.card-body > :nth-child(2)');
