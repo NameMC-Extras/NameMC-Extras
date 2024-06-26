@@ -154,6 +154,11 @@ div:has(> [id^="nn_"]),
     background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
+.customTheme .skin-button-selected {
+    box-shadow: 0 0 6px rgb(var(--ne-btn-rgb))!important;
+    background-color: rgb(var(--ne-btn-rgb))!important;
+}
+
 select:not(#uuid-select),
 select:not(#uuid-select) * {
     background: var(--bs-body-bg) !important;
