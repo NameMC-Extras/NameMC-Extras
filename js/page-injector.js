@@ -407,15 +407,17 @@
                 }
 
                 waitForSelector("[data-jscolor]", () => {
-                    var iframeEl = document.createElement("iframe");
-		    iframeEl.width = 0;
-		    iframeEl.height = 0;
-		    iframeEl.id = "nmcIf";
-                    iframeEl.srcdoc = `<script>
-                        window.top.jscolor?.install();
-                    </script>`;
-                    document.documentElement.append(iframeEl);
-                    setTimeout(() => iframeEl.remove(), 50)
+                    waitForFunc("jscolor", () => {
+                        var iframeEl = document.createElement("iframe");
+		        iframeEl.width = 0;
+		        iframeEl.height = 0;
+		        iframeEl.id = "nmcIf";
+                        iframeEl.srcdoc = `<script>
+                            window.top.jscolor.install();
+                        </script>`;
+                        document.documentElement.append(iframeEl);
+                        setTimeout(() => iframeEl.remove(), 50)
+                    })
                 })
             })
 
