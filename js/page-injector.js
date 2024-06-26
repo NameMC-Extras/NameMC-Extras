@@ -413,7 +413,7 @@
 		        iframeEl.height = 0;
 		        iframeEl.id = "nmcIf";
                         iframeEl.srcdoc = `<script>
-                            window.top.jscolor.install();
+                            window.top.jscolor.init();
                         </script>`;
                         document.documentElement.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 50)
