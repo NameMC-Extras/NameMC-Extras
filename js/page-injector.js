@@ -407,17 +407,14 @@
                 }
 
                 waitForSelector("[data-jscolor]", () => {
-                    waitForFunc("jscolor", () => {
+                    setTimeout(() => {
                         var iframeEl = document.createElement("iframe");
-		        iframeEl.width = 0;
-		        iframeEl.height = 0;
-		        iframeEl.id = "nmcIf";
                         iframeEl.srcdoc = `<script>
                             window.top.jscolor.init();
                         </script>`;
                         document.documentElement.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 50)
-                    })
+                    }, 1000)
                 })
             })
 
