@@ -80,6 +80,15 @@
     },
     {
       "js": [
+        "js/skin-page/official-skin-page/official-skin-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/skin/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
         "js/profile-page/profile-injector.js"
       ],
       "matches": [
