@@ -414,8 +414,10 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     });
 
     var gadgetIf = document.createElement('iframe');
-    gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
+    gadgetIf.width = 0;
+    gadgetIf.height = 0;
     gadgetIf.id = 'nmcIf';
+    gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
     gadgetIf.onload = () => {
       gadgetIf.remove();
     };
@@ -497,7 +499,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         hideHidden();
 
         // add show hidden button
-        historyTitle.innerHTML += `<div style="margin-right:.25rem;">
+        historyTitle.innerHTML += `<div>
           <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
           <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
@@ -517,12 +519,15 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           }
         }
       } else {
-        historyTitle.innerHTML += `<div style="margin-right:.25rem;">
+        historyTitle.innerHTML += `<div>
           <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
       }
-
+      
+      // fix alignment
+      document.querySelectorAll("a.px-1").forEach(a=>a.classList.remove("px-1"))
+      
       // fix title
       setTimeout(() => copyHist.title = "Copy", 1000)
 

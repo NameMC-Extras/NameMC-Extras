@@ -1,14 +1,18 @@
 /* copyright 2024 | Faav | github.com/bribes */
 div:has(> [id^="nn_"]),
-[id^="nn_"],
 .ad-container,
 #nmcIf,
 .mt-0:has(+ .ad-container),
+[id*=nn_],
+[class*=nn_],
 [id*=celtra],
 [class*=celtra],
 [id*=jpx],
 [class*=jpx],
-iframe,
+[id*=lb1_],
+[class*=lb1_],
+[id*=ads_],
+[class*=ads_],
 .notranslate:has(iframe) {
     display: none !important
 }
@@ -148,6 +152,11 @@ iframe,
 .customTheme[data-bs-theme=dark] .form-select,
 .customTheme[data-bs-theme=dark] .form-select:focus {
     background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.customTheme .skin-button-selected {
+    box-shadow: 0 0 6px rgb(var(--ne-btn-rgb))!important;
+    background-color: rgb(var(--ne-btn-rgb))!important;
 }
 
 select:not(#uuid-select),
