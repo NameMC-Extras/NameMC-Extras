@@ -543,7 +543,7 @@
             copyLink.classList.add("color-inherit");
 
             // fix title
-            setTimeout(() => copyLink.title = "Copy", 10000)
+            setTimeout(() => copyLink.title = "Copy", 1000)
         });
     })
 
