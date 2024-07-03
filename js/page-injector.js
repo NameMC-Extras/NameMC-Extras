@@ -181,7 +181,7 @@
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
                         </script>`;
                         document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 50)
+                        setTimeout(() => iframeEl.remove(), 1000)
 
                         localStorage.customBg = "#EEF0F2";
                         localStorage.customText = "#212529";
@@ -218,7 +218,7 @@
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
                         </script>`;
                         document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 50)
+                        setTimeout(() => iframeEl.remove(), 1000)
 
                         localStorage.customBg = "#12161A";
                         localStorage.customText = "#dee2e6";
@@ -284,7 +284,7 @@
                                 window.top.document.querySelector("#custombtncolor").jscolor.fromString("#848BB0");
                             </script>`;
                             document.documentElement.append(iframeEl);
-                            setTimeout(() => iframeEl.remove(), 50)
+                            setTimeout(() => iframeEl.remove(), 1000)
 
                             localStorage.customBg = "#12161A";
                             localStorage.customText = "#dee2e6";
@@ -310,7 +310,7 @@
                                 window.top.document.querySelector("#custombtncolor").jscolor.fromString("#848BB0");
                             </script>`;
                             document.documentElement.append(iframeEl);
-                            setTimeout(() => iframeEl.remove(), 50)
+                            setTimeout(() => iframeEl.remove(), 1000)
 
                             localStorage.customBg = "#EEF0F2";
                             localStorage.customText = "#212529";
@@ -337,10 +337,12 @@
 
                 importcustom.onclick = () => {
                     var code = prompt("You can paste this custom theme code below: ");
-                    code = code.split(";");
+                    
+                    if (code) {
+                        code = code.split(";");
 
                     if (code.length == 4 || code.length == 5) {
-                        var hexRegex = /#([a-f0-9]{3}|[a-f0-9]{4}(?:[a-f0-9]{2}){0,2})\b/gi;
+                        var hexRegex = new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
 
                         if (customBase == "dark") {
                             if (!hexRegex.test(code[0])) code[0] = "#12161A";
@@ -365,7 +367,7 @@
                             window.top.document.querySelector("#custombtncolor").jscolor.fromString("${code[3].replace(/"/g, '')}");
                         </script>`;
                         document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 50)
+                        setTimeout(() => iframeEl.remove(), 1000)
 
                         localStorage.customBg = code[0];
                         localStorage.customText = code[1];
@@ -396,6 +398,7 @@
                     } else {
                         alert("You entered a invalid custom theme code!")
                     }
+                    }
                 }
 
                 if (!customThemeOn) {
@@ -409,11 +412,14 @@
                 waitForSelector("[data-jscolor]", () => {
                     setTimeout(() => {
                         var iframeEl = document.createElement("iframe");
+                        iframeEl.width = 0;
+                        iframeEl.height = 0;
+                        iframeEl.id = "nmcIf";
                         iframeEl.srcdoc = `<script>
                             window.top.jscolor.init();
                         </script>`;
                         document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 50)
+                        setTimeout(() => iframeEl.remove(), 1000)
                     }, 1000)
                 })
             })
@@ -537,7 +543,7 @@
             copyLink.classList.add("color-inherit");
 
             // fix title
-            setTimeout(() => copyLink.title = "Copy", 1000)
+            setTimeout(() => copyLink.title = "Copy", 10000)
         });
     })
 
