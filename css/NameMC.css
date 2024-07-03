@@ -95,11 +95,11 @@ div:has(> [id^="nn_"]),
 .customTheme .btn-primary,
 .customTheme .btn-secondary,
 .customTheme .badge,
-.customTheme ul:not(.navbar-nav)>li>a.active,
-.customTheme ul:not(.navbar-nav)>li.active>a,
-.customTheme ul:not(.navbar-nav)>li>.page-link.active,
-.customTheme ul:not(.navbar-nav)>li.active>.page-link,
-.customTheme button.active:not(.nav-link) {
+.customTheme ul.nav-pills>li>a.active,
+.customTheme ul.nav-pills>li.active>a,
+.customTheme ul.nav-pills>li>.page-link.active,
+.customTheme ul.nav-pills>li.active>.page-link,
+.customTheme ul.nav-pills button.active {
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
     border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
     transition: background-color 400ms linear, border 400ms linear;
@@ -111,7 +111,11 @@ div:has(> [id^="nn_"]),
     border: 1px solid rgba(var(--ne-btn-rgb), .3) !important;
 }
 
-.customTheme .btn-link,
+.customTheme .btn-link {
+    color: rgba(var(--ne-btn-rgb), 1) !important;
+    transition: color 200ms linear;
+}
+
 .customTheme a.copy-button:not(.color-inherit),
 .customTheme a:not([class]),
 .customTheme a[class=""],
@@ -120,8 +124,8 @@ div:has(> [id^="nn_"]),
 .customTheme a[class="nn-cmp-show"],
 .customTheme a[class="namemc-rank namemc-rank-0"],
 .customTheme a[class="position-absolute top-0 end-0 px-3 py-1"],
-.customTheme ul:not(.navbar-nav):not(.pagination)>li>a:not(.navbar-brand):not(.active),
-.customTheme ul:not(.navbar-nav):not(.pagination)>li>button:not(.navbar-brand):not(.active) {
+.customTheme ul.nav-pills:not(.pagination)>li>a:not(.navbar-brand):not(.active),
+.customTheme ul.nav-pills:not(.pagination)>li>button:not(.navbar-brand):not(.active) {
     color: rgba(var(--ne-link-rgb), 1) !important;
     transition: color 200ms linear;
 }
@@ -135,8 +139,8 @@ div:has(> [id^="nn_"]),
 .customTheme a[class="nn-cmp-show"]:hover,
 .customTheme a[class="namemc-rank namemc-rank-0"]:hover,
 .customTheme a[class="position-absolute top-0 end-0 px-3 py-1"]:hover,
-.customTheme ul:not(.navbar-nav):not(.pagination)>li>a:not(.navbar-brand):not(.active):hover,
-.customTheme ul:not(.navbar-nav):not(.pagination)>li>button:not(.navbar-brand):not(.active):hover {
+.customTheme ul.nav-pills:not(.pagination)>li>a:not(.navbar-brand):not(.active):hover,
+.customTheme ul.nav-pills:not(.pagination)>li>button:not(.navbar-brand):not(.active):hover {
     color: rgba(var(--ne-link-rgb), .75) !important;
 }
 
@@ -202,7 +206,7 @@ option:checked {
 }
 
 .customTheme * {
-    accent-color: rgba(var(--ne-link-rgb), 1);
+    accent-color: rgba(var(--ne-btn-rgb), 1);
 }
 
 .color-inherit {
