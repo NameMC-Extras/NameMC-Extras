@@ -17,6 +17,10 @@ div:has(> [id^="nn_"]),
     display: none !important
 }
 
+body main {
+    padding-top: 1rem !important;
+}
+
 .player-list {
     word-break: break-all
 }
@@ -95,11 +99,12 @@ div:has(> [id^="nn_"]),
 .customTheme .btn-primary,
 .customTheme .btn-secondary,
 .customTheme .badge,
+.customTheme ul.nav-pills button.active,
 .customTheme ul.nav-pills>li>a.active,
 .customTheme ul.nav-pills>li.active>a,
 .customTheme ul.nav-pills>li>.page-link.active,
 .customTheme ul.nav-pills>li.active>.page-link,
-.customTheme ul.nav-pills button.active {
+.customTheme ul.pagination>li.active>.page-link {
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
     border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
     transition: background-color 400ms linear, border 400ms linear;
