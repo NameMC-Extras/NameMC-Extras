@@ -200,8 +200,6 @@ function getOfficialCapes(supabase_data) {
 }
 
 waitForSelector('main', (main) => {
-    main.style["margin-top"] = "1rem";
-
     main.innerHTML = `<h1 class="text-center">Skin & Cape Tester</h1>
         <hr class="mt-0">
         <div class="row">
