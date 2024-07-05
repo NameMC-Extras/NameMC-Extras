@@ -180,8 +180,6 @@ class CustomCape {
 async function loadPage(mainDiv) {
   console.log("Loading page!")
 
-  mainDiv.style["margin-top"] = "1rem";
-
   // get cape and update page title
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
   const cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
