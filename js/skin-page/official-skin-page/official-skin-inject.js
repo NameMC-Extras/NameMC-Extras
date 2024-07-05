@@ -15,7 +15,7 @@ const waitForSelector = function (selector, callback) {
 
 
 const createStealBtn = () => {
-  waitForSelector('[value=like]', (likeBtn) => {
+  waitForSelector('button > .fa-heart', (likeIcon) => {
     if (!document.querySelector("#steal-btn")) {
       var stealBtn = document.createElement('button');
       stealBtn.id = 'steal-btn';
@@ -29,7 +29,7 @@ const createStealBtn = () => {
       stealIcon.classList.add('fas');
       stealIcon.classList.add('fa-user-secret');
       stealBtn.innerHTML = stealIcon.outerHTML;
-      likeBtn.parentElement.parentElement.before(stealBtn);
+      likeIcon.parentElement.parentElement.parentElement.before(stealBtn);
 
       document.querySelector('#steal-btn').onclick = () => {
         const url = `${location.origin}/extras/skin-cape-test?skin=${location.pathname.split("/").slice(-1)[0].split("?")[0]}`;
