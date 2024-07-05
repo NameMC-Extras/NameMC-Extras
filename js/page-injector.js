@@ -83,7 +83,7 @@
                                     Dark
                                 </button>
                                 <button type="button" class="btn btn-secondary" id="customTheme">
-                                    <img class="emoji" draggable="false" src="https://raw.githubusercontent.com/googlefonts/noto-emoji/41e31b110b4eb929dffb410264694a06205b7ad7/svg/emoji_u1f308.svg" alt=" ">
+                                    <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/1f308.svg" alt=" ">
                                     Custom
                                 </button>
                             </div>
