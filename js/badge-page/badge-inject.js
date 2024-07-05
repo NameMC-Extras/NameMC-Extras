@@ -72,7 +72,6 @@ const badgeId = location.pathname.split("/")[3];
 async function loadPage(mainDiv) {
   console.log("Loading page!")
 
-  mainDiv.style["margin-top"] = "1rem";
   mainDiv.innerHTML = "";
 
   // get badge and update page title
