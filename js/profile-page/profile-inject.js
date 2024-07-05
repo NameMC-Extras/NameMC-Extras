@@ -232,7 +232,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
           if (currentCape) queryParams.push(`cape=${currentCape}`);
           const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
-          window.open(url);
+          window.location.href = url;
         }
       }
     });
