@@ -1,4 +1,4 @@
-console.log("Creating custom cape page...");
+console.log("Injecting official cape page...");
 
 // only use for getting animate cookie
 function getCookie(name) {

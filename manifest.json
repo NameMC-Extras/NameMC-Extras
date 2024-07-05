@@ -7,7 +7,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "manifest_version": 2,
+  "manifest_version": 3,
   "version": "3.3.2",
   "content_scripts": [
     {
@@ -80,6 +80,15 @@
     },
     {
       "js": [
+        "js/skin-page/official-skin-page/official-skin-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/skin/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
         "js/profile-page/profile-injector.js"
       ],
       "matches": [
@@ -89,9 +98,13 @@
     }
   ],
   "web_accessible_resources": [
+    {
+      "resources": [
         "/*"
-  ],
-  "permissions": [
-    "https://raw.githubusercontent.com/*"
+      ],
+      "matches": [
+        "*://*.namemc.com/*"
+      ]
+    }
   ]
 }
