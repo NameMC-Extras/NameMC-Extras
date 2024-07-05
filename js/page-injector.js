@@ -537,7 +537,7 @@
 
     // REPLACE COPY BUTTON
     waitForSelector("body", () => {
-        var copyLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "Copy");
+        var copyLinks = [...document.querySelectorAll("a[href*='javascript:']")].filter(a => a.innerText == "Copy");
         copyLinks.forEach(copyLink => {
             copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
             copyLink.classList.add("color-inherit");
