@@ -93,7 +93,6 @@ function getBadgeCardHTML(badge, userCount) {
 function addBadges(main) {
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
 
-  main.style["margin-top"] = "1rem";
   main.innerHTML = "";
 
   // get user count
