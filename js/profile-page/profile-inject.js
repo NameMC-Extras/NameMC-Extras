@@ -10,6 +10,10 @@ function endsWithNumber(str) {
   return /[0-9]+$/.test(str);
 }
 
+const rows = 9
+const columns = 3
+const size = 32
+
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
 var isHidden = true;
@@ -93,6 +97,13 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       });
     }
   };
+
+  const downloadSkinArt = () => {
+    var a = document.createElement("a");
+    a.href = skinArtImage.toDataURL();
+    a.setAttribute("download", "skinart");
+    a.click();
+  }
 
   // toggle skin layers
   const toggleLayers = () => {
@@ -304,8 +315,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       if (e.pointerType == 0 || e.target.tagName == "OPTION") document.querySelector("#uuid-select").blur();
     }
     
-    var views = document.querySelector('.card-body > :nth-child(2)');
-    var cardBody = document.querySelector('.card-body');
+    var cardBody = uuid_select.parentElement.parentElement.parentElement;
+    var views = cardBody.querySelector('.card-body > :nth-child(2)');
 
     // create layer button
     setTimeout(createLayerBtn)
@@ -448,6 +459,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         var skinEdit = skinsTitle.querySelector(".fa-edit");
 
         skinsTitle.innerHTML += `<div>
+          <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-fw fa-arrow-alt-to-bottom"></i></a>
           <a href="javascript:void(0)" id="borderBtn" class="color-inherit" title="Show/Hide Borders">
             ${skinArt ? '<i class="far fa-fw fa-border-all">' : '<i class="far fa-fw fa-border-style">'}</i>
           </a>
@@ -457,6 +469,44 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
 
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
+
+        waitForImage(() => {
+          var skinArtCanvas = document.createElement("canvas");
+          skinArtCanvas.id = "skinArtImage";
+          skinArtCanvas.width = rows * size;
+          skinArtCanvas.height = columns * size;
+          skinArtCanvas.style.display = "none";
+
+          document.body.append(skinArtCanvas)
+
+          var ctx = skinArtImage.getContext("2d");
+          var skinArtImages = []
+
+          skins.forEach((skin) => {
+            var img = new Image();
+            img.onload = () => {
+              skinArtImages.push(img)
+
+              if (skinArtImages.length == skins.length) {
+                for (let i = 0; i < skinArtImages.length; i += rows) {
+                  const chunk = skinArtImages.slice(i, i + rows);
+                  chunk.forEach((image, j, array) => {
+                    if (array.length == rows) {
+                      ctx.drawImage(image, size * j, size * (i / rows))
+                    } else {
+                      var padding = ((rows - array.length) / 2) * size
+                      ctx.drawImage(image, padding + (size * j), size * (i / rows))
+                    }
+                  })
+                }
+              }
+            };
+
+            img.src = skin.toDataURL();
+          })
+
+          skinArtBtn.onclick = downloadSkinArt;
+        }, skins.at(-1).getAttribute("data-id"))
 
         if (skinArt) {
           skinsContainer.style.width = '312px';
