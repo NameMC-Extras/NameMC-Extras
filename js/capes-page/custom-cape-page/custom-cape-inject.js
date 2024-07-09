@@ -315,7 +315,7 @@ async function loadPage(mainDiv) {
   window.addEventListener('DOMContentLoaded', () => $("[data-note]").tooltip());
 
   var badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
-    const resp = await fetch("https://sessionserver.mojang.club/session/minecraft/profile/" + badge.user);
+    const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
     return await resp.json();
   }))).map(a=>a.name);
 
