@@ -154,7 +154,7 @@ async function loadPage(mainDiv) {
   mainDiv.append(badgeHTML)
 
   var badgeOwnerNames = (await Promise.all(badgeOwners.map(async badge => {
-    const resp = await fetch("https://sessionserver.mojang.club/session/minecraft/profile/" + badge.user);
+    const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
     return await resp.json();
   }))).map(a => a.name);
 
