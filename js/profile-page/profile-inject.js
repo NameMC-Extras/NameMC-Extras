@@ -10,9 +10,9 @@ function endsWithNumber(str) {
   return /[0-9]+$/.test(str);
 }
 
-const rows = 9
-const columns = 3
-const size = 32
+const rows = 9;
+const columns = 3;
+const size = 32;
 
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
@@ -23,6 +23,7 @@ var layer = true;
 var currentSkinId = null;
 var currentDataModel = "classic";
 var currentCape = null;
+var nmceCape = false;
 
 if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
@@ -179,7 +180,12 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         elytraBtn.id = 'elytra-btn';
         elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
         elytraBtn.classList.add('p-0');
-        elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:135px!important;')
+
+        if (document.querySelectorAll(".skin-2d.skin-button").length > 0) elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:135px!important');
+        else {
+          elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important');
+        }
+
         elytraBtn.title = "Elytra";
         elytraIcon = document.createElement('i');
         elytraIcon.classList.add('fas');
@@ -213,6 +219,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   const createStealBtn = () => {
     waitForSelector('#play-pause-btn', () => {
       var pauseBtn = document.querySelector('#play-pause-btn');
+      var username = document.querySelector('.text-nowrap[translate=no]').innerText;
+
       if (!document.querySelector("#steal-btn")) {
         var stealBtn = document.createElement('button');
         stealBtn.id = 'steal-btn';
@@ -231,6 +239,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           if (currentSkinId) queryParams.push(`skin=${currentSkinId}`);
           if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
           if (currentCape) queryParams.push(`cape=${currentCape}`);
+          if (username) queryParams.push(`username=${username}`);
+          if (nmceCape) queryParams.push(`nmceCape=${nmceCape}`);
           const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
           window.location.href = url;
         }
@@ -409,7 +419,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     });
 
     // replace (edit) and Copy with icons
-    var editLinks = [...document.querySelectorAll("a")].filter(a => a.innerText == "edit");
+    var editLinks = [...document.querySelectorAll("a[href*=switch]")].filter(a => a.innerText == "edit");
     editLinks.forEach(editLink => {
       editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
       editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
@@ -663,6 +673,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         if (capeHash !== '') {
           waitForImage(() => {
             currentCape = capeHash;
+            nmceCape = false;
             skinViewer.loadCape(window.namemc.images[capeHash].src);
 
             if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
@@ -681,6 +692,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
               if (userCapeIds.length > 0) {
                 const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
                 skinViewer.loadCape(userCapes[0].image_src);
+                currentCape = userCapes[0].id;
+                nmceCape = true;
               }
             })
 
@@ -730,6 +743,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             });
             el.classList.add('skin-button-selected');
             currentCape = el.getAttribute('data-cape');
+            nmceCape = false;
             waitForImage(() => {
               if (elytraOn == true) {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
