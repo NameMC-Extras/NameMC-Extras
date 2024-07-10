@@ -31,6 +31,7 @@ var noElytra = [
     "b69e02edd267ea9bd7bf3f67f2a5cfff0f5aa8caf7c081e2d7221ac78277970a",
     "b698cefe18ac367f930332dd77f4a6d390be7adb36380e568761df4683562f84"
 ]
+var UUIDRegex = /([0-9a-f]{8})(?:-|)([0-9a-f]{4})(?:-|)(4[0-9a-f]{3})(?:-|)([89ab][0-9a-f]{3})(?:-|)([0-9a-f]{12})/;
 
 const waitForSelector = function (selector, callback) {
     query = document.querySelector(selector)
@@ -176,6 +177,16 @@ const createElytraBtn = () => {
     });
 }
 
+const getSkinFromId = async (uuid) => {
+    var sessionAPI = await fetch("https://api.gapple.pw/cors/sessionserver/"+encodeURIComponent(uuid));
+    if (sessionAPI.status == 200) {
+        const sessionJSON = await sessionAPI.json();
+        var sessionData = JSON.parse(atob(sessionJSON.properties[0].value));
+        var skinTextureURL = sessionData.textures.SKIN.url;
+        return skinTextureURL;
+    }
+}
+
 // get/cache special capes
 function getSpecialCapes(supabase_data) {
     if (Object.keys(specialCapes).length > 0) return specialCapes;
@@ -232,14 +243,16 @@ waitForSelector('main', (main) => {
               <div class="card-body">
                 <div id="settings">
                   <div class="row g-1 mb-3">
-                    <label class="col-4 col-form-label" for="skin"><strong>Choose a Skin:</strong></label>
+                    <label class="col-3 col-form-label" for="skin"><strong>Choose a Skin:</strong></label>
                     <br>
                     <div class="col">
                       <div class="input-group">
                         <input class="form-control" id="skin" name="skin" type="text"
-                          placeholder="UUID / Texture ID / NameMC ID"><br>
+                          placeholder="Name / UUID / Texture ID / NameMC ID">
                       </div>
-                      <small id="skinHelp" class="form-text text-muted">Note: You can't input a Username.</small>
+                      <div class="input-group" style="margin-top:.5rem">
+                        <input class="form-control" id="uploadskin" name="uploadskin" type="file" accept="image/*">
+                      </div>
                     </div>
                     <div class="col-12"></div>
                     <div class="form-group">
@@ -258,8 +271,12 @@ waitForSelector('main', (main) => {
                         <label class="custom-control-label" for="optifine">OptiFine</label>
                       </div>
                       <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" id="special" name="customRadioInline" class="custom-control-input" disabled>
+                        <input type="radio" id="special" name="customRadioInline" class="custom-control-input">
                         <label class="custom-control-label" for="special">Third-Party</label>
+                      </div>
+                      <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="upload" name="customRadioInline" class="custom-control-input">
+                        <label class="custom-control-label" for="upload">Upload</label>
                       </div>
                     </div>
                     <div class="form-group" id="capemenu" style="display:none;"></div>
@@ -334,20 +351,55 @@ waitForSelector('main', (main) => {
         capture.onclick = captureSkin;
         download.onclick = downloadSkin;
 
-        apply.onclick = () => {
+        var skinValue = "";
+
+        skin.onchange = () => skinValue = skin.value;
+        uploadskin.onchange = () => {
+            const skinFile = document.querySelector("#uploadskin").files[0];
+            const skinReader = new FileReader();
+          
+            skinReader.addEventListener(
+              "load",
+              () => {
+                skinValue = skinReader.result;
+              },
+              false,
+            );
+          
+            if (skinFile) {
+                skinReader.readAsDataURL(skinFile)
+            }
+        }
+
+        apply.onclick = async () => {
             const isNameMCID = /^[a-f0-9]{16}$/i;
             if (elytraOn && !noElytra.includes(currentCape.split("/").at(-1))) {
                 skinViewer.loadCape(currentCape, {
                     backEquipment: "elytra"
-                })
+                });
             } else {
-                skinViewer.loadCape(currentCape)
+                skinViewer.loadCape(currentCape);
             }
 
-            if (isNameMCID.test(skin.value)) {
-                skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${skin.value}`)
-            } else if (skin.value.length > 0) {
-                skinViewer.loadSkin('https://nmsr.nickac.dev/skin/' + skin.value)
+            if (isNameMCID.test(skinValue)) {
+                skinViewer.loadSkin("https://cors.faav.top/namemc/texture/"+encodeURIComponent(skinValue));
+            } else if (skinValue.startsWith("data:")) {
+                try {
+                    await skinViewer.loadSkin(skinValue);
+                } catch {
+                    alert("The skin you uploaded is invalid.");
+                }
+            } else if (skinValue.length > 0) {
+                if (UUIDRegex.test(skinValue)) {
+                    skinViewer.loadSkin(await getSkinFromId(skinValue));
+                } else {
+                    const nameAPI = await fetch("https://api.gapple.pw/cors/username/"+encodeURIComponent(skinValue));
+                    if (nameAPI.status == 200) {
+                        const nameJSON = await nameAPI.json();
+
+                        skinViewer.loadSkin(await getSkinFromId(nameJSON.id));
+                    }
+                }
             }
 
             if (currentCape && !noElytra.includes(currentCape.split("/").at(-1))) {
@@ -411,7 +463,7 @@ waitForSelector('main', (main) => {
 
                         opticapestealuser.onchange = () => {
                             if (opticapestealuser.value.length > 0) {
-                                currentCape = "https://cors.faav.top/optifine/stealCape?username=" + opticapestealuser.value;
+                                currentCape = "https://cors.faav.top/optifine/stealCape?username=" + encodeURIComponent(opticapestealuser.value);
                             } else {
                                 currentCape = null;
                             }
@@ -485,7 +537,7 @@ waitForSelector('main', (main) => {
                             onChange: () => currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
                         });
 
-                        jscolor.init()
+                        jscolor.init();
 
                         document.getElementById('optibanner').onchange = () => {
                             currentCape = `https://api.mcuserna.me/cors/optifinenet/showBanner?format=${document.getElementById('optibanner').value}&colTop=${ofBannerTop.toHEXString().replace('#', '')}&colBottom=${ofBannerBottom.toHEXString().replace('#', '')}&valign=m`
@@ -497,12 +549,43 @@ waitForSelector('main', (main) => {
             }
         }
 
+        upload.onchange = () => {
+            if (upload.checked == true) {
+                capemenu.innerHTML = `<label class="col-4 col-form-label" for="uploadcape"><strong>Upload Cape:</strong></label>
+                <div class="form-group">
+                    <div class="input-group">
+                        <input class="form-control" id="uploadcape" name="uploadcape" type="file" accept="image/*">
+                      </div>
+            </div>`;
+
+                capemenu.style.display = 'unset';
+
+                uploadcape.onchange = () => {
+                    const capeFile = document.querySelector("#uploadcape").files[0];
+                    const capeReader = new FileReader();
+
+                    capeReader.addEventListener(
+                      "load",
+                      () => {
+                        currentCape = capeReader.result;
+                      },
+                      false,
+                    );
+                  
+                    if (capeFile) {
+                        capeReader.readAsDataURL(capeFile)
+                    }
+                }
+            }
+        }
+
         // get url params for applying skin/cape
         const urlParams = new URLSearchParams(window.location.search);
         const skinParam = urlParams.get('skin');
         const capeParam = urlParams.get('cape');
         const nmceCapeParam = urlParams.get('nmceCape');
         const modelParam = urlParams.get('model');
+        const nameParam = urlParams.get('username');
         
         // apply skin
         if (skinParam) {
@@ -556,13 +639,17 @@ waitForSelector('main', (main) => {
             // load official cape if a url param is present
             if (capeParam && !nmceCapeParam) {
                 skinViewer.loadCape(`https://cors.faav.top/namemc/texture/${encodeURIComponent(capeParam)}`);
-                vanilla.checked = true;
-                vanilla.onchange();
+                createElytraBtn();
+                document.querySelector("#vanilla").checked = true;
+                document.querySelector("#vanilla").onchange();
                 const optionEl = document.getElementById(capeParam);
                 if (optionEl) optionEl.selected = true;
                 else {
-                    optifine.checked = true;
-                    optifine.onchange();
+                    document.querySelector("#optifine").checked = true;
+                    document.querySelector("#optifine").onchange();
+
+                    if (nameParam) document.querySelector("#opticapestealuser").value = nameParam;
+                    document.querySelector("#opticapestealuser").onchange();
                 }
             }
 
@@ -609,6 +696,7 @@ waitForSelector('main', (main) => {
 
             // apply special cape if a url param is present
             if (nmceCapeParam) {
+                console.log(nmceCapeParam)
                 const cape = supabase_data.capes.find(cape => cape.id == capeParam);
                 if (cape) {
                     skinViewer.loadCape(cape.image_src);
