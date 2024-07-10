@@ -686,7 +686,7 @@ waitForSelector('main', (main) => {
                     </div>
                 `;
 
-                    currentCape = document.querySelector("#specialcapes option:checked").value;
+                    currentCape = document.querySelector("#specialcapes").value;
 
                     capemenu.style.display = 'unset';
 
@@ -700,14 +700,15 @@ waitForSelector('main', (main) => {
 
             // apply special cape if a url param is present
             if (nmceCapeParam) {
-                console.log(nmceCapeParam)
                 const cape = supabase_data.capes.find(cape => cape.id == capeParam);
                 if (cape) {
                     skinViewer.loadCape(cape.image_src);
+                    createElytraBtn();
+                    special.checked = true;
+                    special.onchange();
+                    document.getElementById(capeParam).selected = true;
+                    currentCape = document.querySelector("#specialcapes").value;
                 }
-                special.checked = true;
-                special.onchange();
-                document.getElementById(capeParam).selected = true;
             }
         });
     });
