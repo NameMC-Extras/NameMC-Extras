@@ -374,9 +374,13 @@ waitForSelector('main', (main) => {
         apply.onclick = async () => {
             const isNameMCID = /^[a-f0-9]{16}$/i;
             if (elytraOn && !noElytra.includes(currentCape.split("/").at(-1))) {
-                skinViewer.loadCape(currentCape, {
-                    backEquipment: "elytra"
-                });
+                try {
+                    await skinViewer.loadCape(currentCape, {
+                        backEquipment: "elytra"
+                    });
+                } catch {
+                    alert("The cape you uploaded is invalid.");
+                }
             } else {
                 try {
                     await skinViewer.loadCape(currentCape);
@@ -598,6 +602,14 @@ waitForSelector('main', (main) => {
             });
             document.getElementById("skin").value = skinParam;
         }
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.target.blur();
+                apply.click();
+                e.target.focus();
+            }
+        });
 
         waitForSupabase((supabase_data) => {
             // load official capes
