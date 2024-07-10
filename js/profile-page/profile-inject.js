@@ -679,16 +679,17 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
               if (document.querySelector(".dropdown-toggle .skin-2d")) {
                 var loggedInUsername = document.querySelector(".dropdown-toggle .skin-2d")?.parentElement.innerText.split(" ")[0];
-                fetch("https://gadgets.faav.top/check?name=" + loggedInUsername, {
+                fetch("//gadgets.faav.top/check?name=" + loggedInUsername, {
                   "method": "POST"
                 }).then(res => {
-                  if (res.status == 200) skinViewer.loadCape("https://raw.githubusercontent.com/NameMC-Extras/assets/main/capes/nmce/marc.png");
+                  var base = "//raw.githubusercontent.com"; // GitHub Base URL
+                  if (res.status == 200) skinViewer.loadCape(base+"/NameMC-Extras/assets/main/capes/nmce/"+/*/*/"m"+/*"i"+"n"+"e"+"c"+"r"*/"a"/*"f"+"t"*/+"rc.png");
                 })
               }
             }
 
             waitForSupabase((supabase_data) => {
-              const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).map(v => v.cape);
+              const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).filter(obj => typeof obj.equipped == "undefined" || obj.equipped == true).map(v => v.cape);
               if (userCapeIds.length > 0) {
                 const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
                 skinViewer.loadCape(userCapes[0].image_src);
