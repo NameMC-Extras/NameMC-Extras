@@ -21,13 +21,13 @@ const waitForSelector = function (selector, callback) {
 
 const waitForFunc = function (func, callback) {
   if (window[func] ?? window.wrappedJSObject?.[func]) {
-      setTimeout(() => {
-          callback(window[func] ?? window.wrappedJSObject?.[func]);
-      });
+    setTimeout(() => {
+      callback(window[func] ?? window.wrappedJSObject?.[func]);
+    });
   } else {
-      setTimeout(() => {
-          waitForFunc(func, callback);
-      });
+    setTimeout(() => {
+      waitForFunc(func, callback);
+    });
   }
 };
 
@@ -312,12 +312,10 @@ async function loadPage(mainDiv) {
     waitForCape(fixStealBtn);
   })
 
-  window.addEventListener('DOMContentLoaded', () => $("[data-note]").tooltip());
-
   var badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
     const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
     return await resp.json();
-  }))).map(a=>a.name);
+  }))).map(a => a.name);
 
   document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
     var userEl = document.createElement("a");
@@ -331,6 +329,18 @@ async function loadPage(mainDiv) {
 
     return userEl.outerHTML;
   }).join(" ");
+
+  waitForTooltip(() => {
+    var iframeEl = document.createElement("iframe");
+    iframeEl.width = 0;
+    iframeEl.height = 0;
+    iframeEl.id = "nmcIf";
+    iframeEl.srcdoc = `<script>
+            window.top.$("[data-note]").tooltip()
+        </script>`;
+    document.documentElement.append(iframeEl);
+    setTimeout(() => iframeEl.remove(), 1000)
+  });
 }
 
 
