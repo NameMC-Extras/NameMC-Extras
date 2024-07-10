@@ -378,7 +378,11 @@ waitForSelector('main', (main) => {
                     backEquipment: "elytra"
                 });
             } else {
-                skinViewer.loadCape(currentCape);
+                try {
+                    await skinViewer.loadCape(currentCape);
+                } catch {
+                    alert("The cape you uploaded is invalid.");
+                }
             }
 
             if (isNameMCID.test(skinValue)) {
