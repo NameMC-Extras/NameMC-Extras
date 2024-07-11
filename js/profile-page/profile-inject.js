@@ -559,7 +559,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         hideHidden();
 
         // add show hidden button
-        historyTitle.innerHTML += `<div>
+        historyTitle.innerHTML += `<div id="historyButtons">
           <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
           <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
@@ -579,12 +579,44 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           }
         }
       } else {
-        historyTitle.innerHTML += `<div>
+        historyTitle.innerHTML += `<div id="historyButtons">
           <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
       }
-      
+
+      const moveBtn = (btn) => {
+        document.getElementById("historyButtons").append(btn);
+      }
+
+      var removeAllBtn = historyTitle.querySelector(".fa-trash")?.parentElement;
+      if (removeAllBtn) {
+        // check type
+        if (removeAllBtn && typeof removeAllBtn.onclick != "undefined" && removeAllBtn.onclick) {
+          console.log("Check", 1);
+          var removeOnClick = removeAllBtn.onclick;
+          moveBtn(removeAllBtn);
+          document.querySelector("#historyButtons").lastElementChild.onclick = removeOnClick;
+        } else {
+          if (removeAllBtn.parentElement.tagName == "FORM") {
+            console.log("Check", 2);
+            moveBtn(removeAllBtn.parentElement);
+          } else if (removeAllBtn.parentElement.parentElement.tagName == "FORM") {
+            console.log("Check", 3);
+            moveBtn(removeAllBtn.parentElement.parentElement);
+          } else if (removeAllBtn.parentElement.parentElement.parentElement.tagName == "FORM") {
+            console.log("Check", 4);
+            moveBtn(removeAllBtn.parentElement.parentElement.parentElement);
+          } else if (removeAllBtn.parentElement.parentElement.parentElement.parentElement.tagName == "FORM") {
+            console.log("Check", 5);
+            moveBtn(removeAllBtn.parentElement.parentElement.parentElement.parentElement);
+          } else {
+            console.log("Check", 6);
+            moveBtn(removeAllBtn);
+          }
+        }
+      }
+
       // fix alignment
       document.querySelectorAll("a.px-1").forEach(a=>a.classList.remove("px-1"))
       
@@ -657,7 +689,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
 
-      waitForImage(() => {
+      waitForImage(async () => {
         // has ears
         if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
 
@@ -671,35 +703,49 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
         // load cape
         if (capeHash !== '') {
-          waitForImage(() => {
+          waitForImage(async () => {
             currentCape = capeHash;
             nmceCape = false;
-            skinViewer.loadCape(window.namemc.images[capeHash].src);
-
-            if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
-              if (document.querySelector(".dropdown-toggle .skin-2d")) {
-                var loggedInUsername = document.querySelector(".dropdown-toggle .skin-2d")?.parentElement.innerText.split(" ")[0];
-                fetch("//gadgets.faav.top/check?name=" + loggedInUsername, {
-                  "method": "POST"
-                }).then(res => {
-                  var base = "//raw.githubusercontent.com"; // GitHub Base URL
-                  if (res.status == 200) skinViewer.loadCape(base+"/NameMC-Extras/assets/main/capes/nmce/"+/*/*/"m"+/*"i"+"n"+"e"+"c"+"r"*/"a"/*"f"+"t"*/+"rc.png");
-                })
-              }
-            }
-
-            waitForSupabase((supabase_data) => {
-              const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).filter(obj => typeof obj.equipped == "undefined" || obj.equipped == true).map(v => v.cape);
-              if (userCapeIds.length > 0) {
-                const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
-                skinViewer.loadCape(userCapes[0].image_src);
-                currentCape = userCapes[0].id;
-                nmceCape = true;
-              }
-            })
+            await skinViewer.loadCape(window.namemc.images[capeHash].src);
 
             setTimeout(createElytraBtn);
           }, capeHash);
+        }
+
+        waitForSupabase(async (supabase_data) => {
+          const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).filter(obj => typeof obj.equipped == "undefined" || obj.equipped == true).map(v => v.cape);
+          if (userCapeIds.length > 0) {
+            document.querySelectorAll('.cape-2d').forEach((el) => {
+              el.classList.remove('skin-button-selected');
+            });
+
+            const userCapes = supabase_data.capes.filter(b => userCapeIds.includes(b.id));
+            await skinViewer.loadCape(userCapes[0].image_src);
+            currentCape = userCapes[0].id;
+            nmceCape = true;
+
+            setTimeout(createElytraBtn);
+          }
+        });
+
+        if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
+          if (document.querySelector(".dropdown-toggle .skin-2d")) {
+            var loggedInUsername = document.querySelector(".dropdown-toggle .skin-2d")?.parentElement.innerText.split(" ")[0];
+            await fetch("//gadgets.faav.top/check?name=" + loggedInUsername, {
+              "method": "POST"
+            }).then(async res => {
+              var base = "//raw.githubusercontent.com"; // GitHub Base URL
+              if (res.status == 200) {
+                document.querySelectorAll('.cape-2d').forEach((el) => {
+                  el.classList.remove('skin-button-selected');
+                });
+
+                await skinViewer.loadCape(base+"/NameMC-Extras/assets/main/capes/nmce/"+/*/*/"m"+/*"i"+"n"+"e"+"c"+"r"*/"a"/*"f"+"t"*/+"rc.png");
+
+                setTimeout(createElytraBtn);
+              };
+            })
+          }
         }
 
         // upside down gang
