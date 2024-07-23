@@ -211,7 +211,7 @@ async function loadPage(mainDiv) {
       <div class="col-md-6">
         <div class="card mb-3">
           <div class="card-body position-relative text-center p-0 checkered animation-paused">
-            <canvas class="skin-3d drop-shadow auto-size align-top" width="300" height="400" style="cursor:move;width:300px"></canvas>
+            <canvas class="drop-shadow auto-size align-top" width="300" height="400" style="touch-action: none; width: 300px; height: 400px;"></canvas>
             <button id="play-pause-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;">
               <i class="fas fa-play"></i>
             </button>
