@@ -612,6 +612,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             moveBtn(removeAllBtn.parentElement.parentElement.parentElement.parentElement);
           } else {
             console.log("Check", 6);
+            removeAllBtn.classList.remove("position-absolute");
+            removeAllBtn.classList.remove("pe-3");
             moveBtn(removeAllBtn);
           }
         }
