@@ -316,7 +316,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
   waitForSelector('.order-lg-2', () => {
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
-    
+
     var uuid_select = document.querySelector('#uuid-select');
     var uuid = uuid_select.children[0].innerText;
 
@@ -324,7 +324,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     document.querySelector("#uuid-select").onclick = (e) => {
       if (e.pointerType == 0 || e.target.tagName == "OPTION") document.querySelector("#uuid-select").blur();
     }
-    
+
     var cardBody = uuid_select.parentElement.parentElement.parentElement;
     var views = cardBody.querySelector('.card-body > :nth-child(2)');
 
@@ -419,7 +419,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     });
 
     // replace (edit) and Copy with icons
-    var editLinks = [...document.querySelectorAll("a[href*=switch]")].filter(a => a.innerText == "edit");
+    var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
     editLinks.forEach(editLink => {
       editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
       editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
@@ -612,16 +612,14 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             moveBtn(removeAllBtn.parentElement.parentElement.parentElement.parentElement);
           } else {
             console.log("Check", 6);
-            removeAllBtn.classList.remove("position-absolute");
-            removeAllBtn.classList.remove("pe-3");
             moveBtn(removeAllBtn);
           }
         }
       }
 
       // fix alignment
-      document.querySelectorAll("a.px-1").forEach(a=>a.classList.remove("px-1"))
-      
+      document.querySelectorAll("a.px-1").forEach(a => a.classList.remove("px-1"))
+
       // fix title
       setTimeout(() => copyHist.title = "Copy", 1000)
 
@@ -742,7 +740,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
                   el.classList.remove('skin-button-selected');
                 });
 
-                await skinViewer.loadCape(base+"/NameMC-Extras/assets/main/capes/nmce/"+/*/*/"m"+/*"i"+"n"+"e"+"c"+"r"*/"a"/*"f"+"t"*/+"rc.png");
+                await skinViewer.loadCape(base + "/NameMC-Extras/assets/main/capes/nmce/" +/*/*/"m" +/*"i"+"n"+"e"+"c"+"r"*/"a"/*"f"+"t"*/ + "rc.png");
 
                 setTimeout(createElytraBtn);
               };
