@@ -173,9 +173,9 @@
 
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         var iframeEl = document.createElement("iframe");
-			iframeEl.width = 0;
-			iframeEl.height = 0;
-			iframeEl.id = "nmcIf";
+                        iframeEl.width = 0;
+                        iframeEl.height = 0;
+                        iframeEl.id = "nmcIf";
                         iframeEl.srcdoc = `<script>
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
@@ -210,9 +210,9 @@
 
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         var iframeEl = document.createElement("iframe");
-			iframeEl.width = 0;
-			iframeEl.height = 0;
-			iframeEl.id = "nmcIf";
+                        iframeEl.width = 0;
+                        iframeEl.height = 0;
+                        iframeEl.id = "nmcIf";
                         iframeEl.srcdoc = `<script>
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
@@ -274,9 +274,9 @@
                     if (confirm("Are you sure you want to reset your custom theme?")) {
                         if (customBase == "dark") {
                             var iframeEl = document.createElement("iframe");
-			    iframeEl.width = 0;
-			    iframeEl.height = 0;
-			    iframeEl.id = "nmcIf";
+                            iframeEl.width = 0;
+                            iframeEl.height = 0;
+                            iframeEl.id = "nmcIf";
                             iframeEl.srcdoc = `<script>
                                 window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
                                 window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
@@ -300,9 +300,9 @@
                             custombtncolor.value = "#848BB0";
                         } else {
                             var iframeEl = document.createElement("iframe");
-			    iframeEl.width = 0;
-			    iframeEl.height = 0;
-			    iframeEl.id = "nmcIf";
+                            iframeEl.width = 0;
+                            iframeEl.height = 0;
+                            iframeEl.id = "nmcIf";
                             iframeEl.srcdoc = `<script>
                                 window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
                                 window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
@@ -337,67 +337,67 @@
 
                 importcustom.onclick = () => {
                     var code = prompt("You can paste this custom theme code below: ");
-                    
+
                     if (code) {
                         code = code.split(";");
 
-                    if (code.length == 4 || code.length == 5) {
-                        var hexRegex = new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
+                        if (code.length == 4 || code.length == 5) {
+                            var hexRegex = new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
 
-                        if (customBase == "dark") {
-                            if (!hexRegex.test(code[0])) code[0] = "#12161A";
-                            if (!hexRegex.test(code[1])) code[1] = "#dee2e6";
-                            if (!hexRegex.test(code[2])) code[2] = "#7ba7ce";
-                            if (!hexRegex.test(code[3])) code[3] = "#848BB0";
-                        } else {
-                            if (!hexRegex.test(code[0])) code[0] = "#EEF0F2";
-                            if (!hexRegex.test(code[1])) code[1] = "#212529";
-                            if (!hexRegex.test(code[2])) code[2] = "#7ba7ce";
-                            if (!hexRegex.test(code[3])) code[3] = "#848BB0";
-                        }
+                            if (customBase == "dark") {
+                                if (!hexRegex.test(code[0])) code[0] = "#12161A";
+                                if (!hexRegex.test(code[1])) code[1] = "#dee2e6";
+                                if (!hexRegex.test(code[2])) code[2] = "#7ba7ce";
+                                if (!hexRegex.test(code[3])) code[3] = "#848BB0";
+                            } else {
+                                if (!hexRegex.test(code[0])) code[0] = "#EEF0F2";
+                                if (!hexRegex.test(code[1])) code[1] = "#212529";
+                                if (!hexRegex.test(code[2])) code[2] = "#7ba7ce";
+                                if (!hexRegex.test(code[3])) code[3] = "#848BB0";
+                            }
 
-                        var iframeEl = document.createElement("iframe");
-			iframeEl.width = 0;
-			iframeEl.height = 0;
-			iframeEl.id = "nmcIf";
-                        iframeEl.srcdoc = `<script>
+                            var iframeEl = document.createElement("iframe");
+                            iframeEl.width = 0;
+                            iframeEl.height = 0;
+                            iframeEl.id = "nmcIf";
+                            iframeEl.srcdoc = `<script>
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("${code[0].replace(/"/g, '')}");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("${code[1].replace(/"/g, '')}");
                             window.top.document.querySelector("#customlinkcolor").jscolor.fromString("${code[2].replace(/"/g, '')}");
                             window.top.document.querySelector("#custombtncolor").jscolor.fromString("${code[3].replace(/"/g, '')}");
                         </script>`;
-                        document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 1000)
+                            document.documentElement.append(iframeEl);
+                            setTimeout(() => iframeEl.remove(), 1000)
 
-                        localStorage.customBg = code[0];
-                        localStorage.customText = code[1];
-                        localStorage.customLink = code[2];
-                        localStorage.customBtn = code[3];
-                        customBg = code[0];
-                        customText = code[1];
-                        customLink = code[2];
-                        customBtn = code[3];
-                        custombgcolor.value = code[0];
-                        customtextcolor.value = code[1];
-                        customlinkcolor.value = code[2];
-                        custombtncolor.value = code[3];
+                            localStorage.customBg = code[0];
+                            localStorage.customText = code[1];
+                            localStorage.customLink = code[2];
+                            localStorage.customBtn = code[3];
+                            customBg = code[0];
+                            customText = code[1];
+                            customLink = code[2];
+                            customBtn = code[3];
+                            custombgcolor.value = code[0];
+                            customtextcolor.value = code[1];
+                            customlinkcolor.value = code[2];
+                            custombtncolor.value = code[3];
 
-                        if (code[4] && code[4].length > 0) {
-                            if (code[4] == "1") {
-                                localStorage.customBase = "dark";
-                                customBase = "dark";
-                                selectBase.value = "dark";
-                            } else {
-                                localStorage.customBase = "light";
-                                customBase = "light";
-                                selectBase.value = "light";
+                            if (code[4] && code[4].length > 0) {
+                                if (code[4] == "1") {
+                                    localStorage.customBase = "dark";
+                                    customBase = "dark";
+                                    selectBase.value = "dark";
+                                } else {
+                                    localStorage.customBase = "light";
+                                    customBase = "light";
+                                    selectBase.value = "light";
+                                }
                             }
-                        }
 
-                        if (customThemeOn) setCustomTheme();
-                    } else {
-                        alert("You entered a invalid custom theme code!")
-                    }
+                            if (customThemeOn) setCustomTheme();
+                        } else {
+                            alert("You entered a invalid custom theme code!")
+                        }
                     }
                 }
 
@@ -537,14 +537,16 @@
 
     // REPLACE COPY BUTTON
     waitForSelector("body", () => {
-        var copyLinks = [...document.querySelectorAll("a[href*='javascript:']")].filter(a => a.innerText == "Copy");
-        copyLinks.forEach(copyLink => {
-            copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
-            copyLink.classList.add("color-inherit");
+        setTimeout(() => {
+            var copyLinks = [...document.querySelectorAll("a.copy-button[data-clipboard-text][href*='javascript:']")];
+            copyLinks.forEach(copyLink => {
+                copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
+                copyLink.classList.add("color-inherit");
 
-            // fix title
-            setTimeout(() => copyLink.title = "Copy", 1000)
-        });
+                // fix title
+                setTimeout(() => copyLink.title = "Copy", 1000)
+            });
+        }, 5)
     })
 
     // INJECT CREDITS
@@ -553,5 +555,4 @@
         var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://github.com/NameMC-Extras/NameMC-Extras" target="_blank">NameMC Extras</a></small></div>`);
         footer?.insertBefore(creditsHTML, footer?.lastElementChild)
     });
-
 })()
