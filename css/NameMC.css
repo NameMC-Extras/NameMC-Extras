@@ -1,10 +1,10 @@
 /* copyright 2024 | Faav | github.com/bribes */
-div:has(> [id^="nn_"]),
+div:has(> [id^="nn_"]):not(main):not(body):not(html),
 .ad-container,
 #nmcIf,
 .mt-0:has(+ .ad-container),
-[id*=nn_],
-[class*=nn_],
+[id*=nn_]:not(main):not(body):not(html),
+[class*=nn_]:not(main):not(body):not(html),
 [id*=celtra],
 [class*=celtra],
 [id*=jpx],
