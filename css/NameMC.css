@@ -14,7 +14,12 @@ div:has(> [id^="nn_"]):not(main):not(body):not(html),
 [id*=ads_],
 [class*=ads_],
 .notranslate:has(iframe) {
-    display: none !important
+    display: none !important;
+    visibility: hidden !important;
+    filter: opacity(0%) !important;
+    opacity: 0 !important;
+    transform: scale(0) !important;
+    clip-path: circle(0) !important;
 }
 
 body main {
