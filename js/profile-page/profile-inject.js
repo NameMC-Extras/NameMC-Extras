@@ -280,16 +280,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   }
 
   // fix bug
-  waitForFunc("nmci", () => {
-    window.nmci = () => {}
-  });
-
-  waitForFunc("animateSkin", () => {
-    window.animateSkin = () => {}
-  });
-
-  waitForFunc("updateSkin", () => {
-    window.updateSkin = () => {}
+  waitForFunc("initializeSkin", () => {
+    window.initializeSkin = () => { }
   });
 
   window.addEventListener("message", (json) => {
