@@ -13,6 +13,8 @@ div:has(> [id^="nn_"]):not(main):not(body):not(html),
 [class*=lb1_],
 [id*=ads_],
 [class*=ads_],
+[id*=gpt_],
+[class*=gpt_],
 .notranslate:has(iframe) {
     display: none !important;
     visibility: hidden !important;
