@@ -417,12 +417,11 @@ waitForSelector('main', (main) => {
                     document.querySelector("#elytra-btn").style.display="block";
                 } else {
                     createElytraBtn();
+                    fixPauseBtn();
                 }
             } else {
                 if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").style.display="none";
             }
-
-            fixPauseBtn();
         }
 
         none.onchange = () => {
@@ -673,6 +672,7 @@ waitForSelector('main', (main) => {
                     if (nameParam) document.querySelector("#opticapestealuser").value = nameParam;
                     document.querySelector("#opticapestealuser").onchange();
                 }
+                fixPauseBtn();
             }
 
             // load special capes
@@ -726,6 +726,7 @@ waitForSelector('main', (main) => {
                     special.onchange();
                     document.getElementById(capeParam).selected = true;
                     currentCape = document.querySelector("#specialcapes").value;
+                    fixPauseBtn();
                 }
             }
         });
