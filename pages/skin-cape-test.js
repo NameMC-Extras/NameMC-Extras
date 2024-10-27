@@ -357,6 +357,8 @@ waitForSelector('main', (main) => {
         uploadskin.onchange = () => {
             const skinFile = document.querySelector("#uploadskin").files[0];
             const skinReader = new FileReader();
+
+            uploadskin.value = '';
           
             skinReader.addEventListener(
               "load",
@@ -419,6 +421,8 @@ waitForSelector('main', (main) => {
             } else {
                 if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").style.display="none";
             }
+
+            fixPauseBtn();
         }
 
         none.onchange = () => {
@@ -571,6 +575,8 @@ waitForSelector('main', (main) => {
                 uploadcape.onchange = () => {
                     const capeFile = document.querySelector("#uploadcape").files[0];
                     const capeReader = new FileReader();
+
+                    uploadcape.value = '';
 
                     capeReader.addEventListener(
                       "load",
