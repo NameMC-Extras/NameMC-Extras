@@ -280,8 +280,14 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   }
 
   // fix bug
-  waitForFunc("initializeSkin", () => {
-    window.initializeSkin = () => { }
+  waitForFunc("updateSkin", () => {
+    window.updateSkin = () => { }
+  });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    console.log(document.querySelector(".skin-3d"));
+    document.querySelector(".skin-3d").id = "skin-3d";
+    document.querySelector(".skin-3d").classList.remove("skin-3d");
   });
 
   window.addEventListener("message", (json) => {
@@ -626,8 +632,8 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
     });
 
-    waitForSVSelector('.skin-3d', () => {
-      const oldContainer = document.querySelector('.skin-3d');
+    waitForSVSelector('#skin-3d', () => {
+      const oldContainer = document.querySelector('#skin-3d');
       oldContainer.classList.remove('skin-3d');
       const newContainer = document.createElement('canvas');
       newContainer.setAttribute('data-skin-hash', oldContainer.getAttribute('data-id'));
