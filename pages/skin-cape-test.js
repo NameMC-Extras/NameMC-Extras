@@ -12,7 +12,7 @@ var currentOptifineMode = "steal";
 var officialCapes = {};
 var officialCapesCategoryOrder = [];
 var specialCapes = {};
-var noElytra = [
+const noElytra = [
     "fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc",
     "2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211",
     "d1f20f8534f9f58a3a0a26586d5615f513add564809986334b7f247593425ee3",
@@ -31,7 +31,8 @@ var noElytra = [
     "b69e02edd267ea9bd7bf3f67f2a5cfff0f5aa8caf7c081e2d7221ac78277970a",
     "b698cefe18ac367f930332dd77f4a6d390be7adb36380e568761df4683562f84"
 ]
-var UUIDRegex = /([0-9a-f]{8})(?:-|)([0-9a-f]{4})(?:-|)(4[0-9a-f]{3})(?:-|)([89ab][0-9a-f]{3})(?:-|)([0-9a-f]{12})/;
+const UUIDRegex = /([0-9a-f]{8})(?:-|)([0-9a-f]{4})(?:-|)(4[0-9a-f]{3})(?:-|)([89ab][0-9a-f]{3})(?:-|)([0-9a-f]{12})/;
+var model = "auto-detect";
 
 const waitForSelector = function (selector, callback) {
     query = document.querySelector(selector)
@@ -253,30 +254,44 @@ waitForSelector('main', (main) => {
                       <div class="input-group" style="margin-top:.5rem">
                         <input class="form-control" id="uploadskin" name="uploadskin" type="file" accept="image/*">
                       </div>
+                      <div class="mt-2">
+                      <div class="custom-control custom-radio custom-control-inline">
+                          <input type="radio" id="auto" name="customRadioInline" class="custom-control-input" onchange="model='auto-detect'" checked>
+                          <label class="custom-control-label" for="auto">Auto</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                          <input type="radio" id="classic" name="customRadioInline" class="custom-control-input" onchange="model='default'">
+                          <label class="custom-control-label" for="classic">Classic</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                          <input type="radio" id="slim" name="customRadioInline" class="custom-control-input" onchange="model='slim'">
+                          <label class="custom-control-label" for="slim">Slim</label>
+                        </div>
+                      </div>
                     </div>
                     <div class="col-12"></div>
                     <div class="form-group">
-                      <label for="capeselection">Choose a Cape Type:</label>
+                      <label for="capeselection"><strong>Choose a Cape Type:</strong></label>
                       <br>
-                      <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" id="none" name="customRadioInline" class="custom-control-input" checked>
-                        <label class="custom-control-label" for="none">None</label>
+                      <div>
+                        <input type="radio" id="none" checked>
+                        <label for="none">None</label>
                       </div>
-                      <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" id="vanilla" name="customRadioInline" class="custom-control-input">
-                        <label class="custom-control-label" for="vanilla">Official</label>
+                      <div>
+                        <input type="radio" id="vanilla">
+                        <label for="vanilla">Official</label>
                       </div>
-                      <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" id="optifine" name="customRadioInline" class="custom-control-input">
-                        <label class="custom-control-label" for="optifine">OptiFine</label>
+                      <div>
+                        <input type="radio" id="optifine">
+                        <label for="optifine">OptiFine</label>
                       </div>
-                      <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" id="special" name="customRadioInline" class="custom-control-input">
-                        <label class="custom-control-label" for="special">Third-Party</label>
+                      <div>
+                        <input type="radio" id="special">
+                        <label for="special">Third-Party</label>
                       </div>
-                      <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" id="upload" name="customRadioInline" class="custom-control-input">
-                        <label class="custom-control-label" for="upload">Upload</label>
+                      <div>
+                        <input type="radio" id="upload">
+                        <label for="upload">Upload</label>
                       </div>
                     </div>
                     <div class="form-group" id="capemenu" style="display:none;"></div>
@@ -354,11 +369,12 @@ waitForSelector('main', (main) => {
         var skinValue = "";
 
         skin.onchange = () => skinValue = skin.value;
+
+        uploadskin.onclick = () => uploadskin.value = '';
+
         uploadskin.onchange = () => {
             const skinFile = document.querySelector("#uploadskin").files[0];
             const skinReader = new FileReader();
-
-            uploadskin.value = '';
           
             skinReader.addEventListener(
               "load",
@@ -392,22 +408,30 @@ waitForSelector('main', (main) => {
             }
 
             if (isNameMCID.test(skinValue)) {
-                skinViewer.loadSkin("https://cors.faav.top/namemc/texture/"+encodeURIComponent(skinValue));
+                skinViewer.loadSkin("https://cors.faav.top/namemc/texture/"+encodeURIComponent(skinValue), {
+                    model
+                });
             } else if (skinValue.startsWith("data:")) {
                 try {
-                    await skinViewer.loadSkin(skinValue);
+                    await skinViewer.loadSkin(skinValue, {
+                        model
+                    });
                 } catch {
                     alert("The skin you uploaded is invalid.");
                 }
             } else if (skinValue.length > 0) {
                 if (UUIDRegex.test(skinValue)) {
-                    skinViewer.loadSkin(await getSkinFromId(skinValue));
+                    skinViewer.loadSkin(await getSkinFromId(skinValue), {
+                        model
+                    });
                 } else {
                     const nameAPI = await fetch("https://api.gapple.pw/cors/username/"+encodeURIComponent(skinValue));
                     if (nameAPI.status == 200) {
                         const nameJSON = await nameAPI.json();
 
-                        skinViewer.loadSkin(await getSkinFromId(nameJSON.id));
+                        skinViewer.loadSkin(await getSkinFromId(nameJSON.id), {
+                            model
+                        });
                     }
                 }
             }
@@ -437,13 +461,13 @@ waitForSelector('main', (main) => {
             <label class="col-4 col-form-label" for="optifinecape"><strong>OptiFine Cape:</strong></label>
                 <div class="form-group" id="optifinecape">
                 <div class="custom-control custom-radio"> <input type="radio" id="stealopti" name="customRadio"
-                        class="custom-control-input" checked> <label class="custom-control-label"
+                        class="custom-control-input" checked> <label
                         for="stealopti">Steal a user's OptiFine cape design</label> </div>
                 <div class="custom-control custom-radio"> <input type="radio" id="ofdesign" name="customRadio"
-                        class="custom-control-input"> <label class="custom-control-label"
+                        class="custom-control-input"> <label
                         for="ofdesign">Edit "OF" design</label> </div>
                 <div class="custom-control custom-radio"> <input type="radio" id="banner" name="customRadio"
-                        class="custom-control-input"> <label class="custom-control-label" for="banner">Edit
+                        class="custom-control-input"> <label for="banner">Edit
                         OptiFine banner</label>
                 </div>
             </div>
@@ -571,11 +595,11 @@ waitForSelector('main', (main) => {
 
                 capemenu.style.display = 'unset';
 
+                uploadcape.onclick = () => uploadcape.value = '';
+
                 uploadcape.onchange = () => {
                     const capeFile = document.querySelector("#uploadcape").files[0];
                     const capeReader = new FileReader();
-
-                    uploadcape.value = '';
 
                     capeReader.addEventListener(
                       "load",
