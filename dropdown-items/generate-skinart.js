@@ -1,4 +1,4 @@
-import { downloadZip } from "https://cdn.jsdelivr.net/npm/client-zip/index.js";
+import { downloadZip } from "../js/client-zip.min.js";
 
 const waitForModal = function (callback) {
     if (typeof $ != 'undefined' && typeof $().modal != 'undefined') {
