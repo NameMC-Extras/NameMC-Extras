@@ -48,7 +48,7 @@ if (profiles.length > 0) {
                 </div>
                 <div class="modal-body"></div>
                 <div class="modal-footer">
-                    <p>Generated using NameMC Extras</p>
+                    <p>Generated with NameMC Extras</p>
                 </div>
             </div>  
         </div>
@@ -59,7 +59,7 @@ if (profiles.length > 0) {
 
     waitForModal(() => $("#modalClose").click(() => {
         $("#profilesImageModal").modal("hide");
-    }))
+    }));
 
     var ctx = profilesCanvas.getContext("2d");
     ctx.fillStyle = window.getComputedStyle(profileEls[0].parentElement.parentElement).backgroundColor;

@@ -487,7 +487,7 @@
         })
     }
 
-    const customMenuItem = (id, name, href, location, classes) => {
+    const customMenuItem = (id, name, href, location, classes, newTab = false) => {
         waitForSelector('[href="/my-account"]', (myAccountBtn) => {
             var dropDownMenu = myAccountBtn.parentElement;
             var menuItem = document.createElement("a")
@@ -502,14 +502,19 @@
                 menuItem.insertBefore(iconEl, menuItem.lastChild);
             }
 
-            dropDownMenu.insertBefore(menuItem, dropDownMenu.childNodes[location]);
+            if (newTab) {
+                menuItem.target = "_blank";
+            } else {
+                var inject1 = document.createElement('script');
+                inject1.src = chrome.runtime.getURL(`dropdown-items/${encodeURIComponent(id)}.js`);
+                inject1.type = "module";
+                inject1.onload = function () {
+                    this.remove();
+                };
+                (document.head || document.documentElement).appendChild(inject1);
+            }
 
-            var inject1 = document.createElement('script');
-            inject1.src = chrome.runtime.getURL(`dropdown-items/${encodeURIComponent(id)}.js`);
-            inject1.onload = function () {
-                this.remove();
-            };
-            (document.head || document.documentElement).appendChild(inject1);
+            dropDownMenu.insertBefore(menuItem, dropDownMenu.childNodes[location]);
         })
     }
 
@@ -532,7 +537,8 @@
 
     // INJECT MENU ITEMS
     injectMenus([
-        ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image']
+        ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image'],
+        ['generate-skinart', 'Generate Skin Art', 'javascript:void(0)', 18, 'far fa-palette']
     ])
 
     // REPLACE COPY BUTTON
