@@ -101,7 +101,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
   const downloadSkinArt = () => {
     var a = document.createElement("a");
-    a.href = skinArtImage.toDataURL();
+    a.href = resizedArt.toDataURL();
     a.setAttribute("download", "skinart");
     a.click();
   }
@@ -285,7 +285,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   });
 
   window.addEventListener("DOMContentLoaded", () => {
-    console.log(document.querySelector(".skin-3d"));
     document.querySelector(".skin-3d").id = "skin-3d";
     document.querySelector(".skin-3d").classList.remove("skin-3d");
   });
@@ -483,6 +482,14 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         skinsTitle.style.cssText = "display:flex;justify-content:space-between";
 
         waitForImage(() => {
+          var resizedArt = document.createElement("canvas");
+          resizedArt.id = "resizedArt";
+          resizedArt.width = 72;
+          resizedArt.height = 24;
+          resizedArt.style.display = "none";
+
+          document.body.append(resizedArt)
+
           var skinArtCanvas = document.createElement("canvas");
           skinArtCanvas.id = "skinArtImage";
           skinArtCanvas.width = rows * size;
@@ -512,12 +519,22 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
                   })
                 }
               }
+
+              if (skins.length == skinArtImages.length) {
+                var rectx = resizedArt.getContext("2d");
+
+                var img2 = new Image();
+                img2.onload = () => {
+                  rectx.drawImage(img2, 0, 0, 72, 24);
+                  skinArtBtn.onclick = downloadSkinArt;
+                }
+
+                img2.src = skinArtImage.toDataURL();
+              }
             };
 
             img.src = skin.toDataURL();
-          })
-
-          skinArtBtn.onclick = downloadSkinArt;
+          });
         }, skins.at(-1).getAttribute("data-id"))
 
         if (skinArt) {
@@ -595,25 +612,19 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       if (removeAllBtn) {
         // check type
         if (removeAllBtn && typeof removeAllBtn.onclick != "undefined" && removeAllBtn.onclick) {
-          console.log("Check", 1);
           var removeOnClick = removeAllBtn.onclick;
           moveBtn(removeAllBtn);
           document.querySelector("#historyButtons").lastElementChild.onclick = removeOnClick;
         } else {
           if (removeAllBtn.parentElement.tagName == "FORM") {
-            console.log("Check", 2);
             moveBtn(removeAllBtn.parentElement);
           } else if (removeAllBtn.parentElement.parentElement.tagName == "FORM") {
-            console.log("Check", 3);
             moveBtn(removeAllBtn.parentElement.parentElement);
           } else if (removeAllBtn.parentElement.parentElement.parentElement.tagName == "FORM") {
-            console.log("Check", 4);
             moveBtn(removeAllBtn.parentElement.parentElement.parentElement);
           } else if (removeAllBtn.parentElement.parentElement.parentElement.parentElement.tagName == "FORM") {
-            console.log("Check", 5);
             moveBtn(removeAllBtn.parentElement.parentElement.parentElement.parentElement);
           } else {
-            console.log("Check", 6);
             moveBtn(removeAllBtn);
           }
         }
