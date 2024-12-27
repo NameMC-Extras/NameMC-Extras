@@ -72,7 +72,9 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <label for="theme" class="form-label"><strong>Theme</strong></label>
+                            <label for="theme" class="form-label">
+                                <strong>Theme:</strong>
+                            </label>
                             <div class="btn-group w-100" role="group" aria-label="Theme">
                                 <button type="button" class="btn btn-light" data-bs-theme-value="light" id="lightTheme">
                                     <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/2600-fe0f.svg" alt="☀️">
@@ -90,7 +92,7 @@
                             <br>
                             <br>
                             <label for="customTheme" class="form-label" style="display:flex;">
-                                <strong>Custom Theme</strong>
+                                <strong>Custom Theme:</strong>
                                 <a class="color-inherit" title="Reset back to base colors" style="margin-left:.3rem" id="resetcustom" href="javascript:void(0)">
                                     <i class="fas fa-fw fa-undo-alt"></i>
                                 </a>
@@ -132,7 +134,7 @@
 
         waitForSelector("[data-bs-theme]", () => {
             if (document.querySelector(".no-js")) return;
-            
+
             waitForSelector("html", () => {
                 // inject modal html
                 document.documentElement.insertAdjacentHTML('beforeend', modalHTML);
