@@ -171,8 +171,8 @@ body main {
 }
 
 .customTheme .skin-button-selected {
-    box-shadow: 0 0 6px rgb(var(--ne-btn-rgb))!important;
-    background-color: rgb(var(--ne-btn-rgb))!important;
+    box-shadow: 0 0 6px rgb(var(--ne-btn-rgb)) !important;
+    background-color: rgb(var(--ne-btn-rgb)) !important;
 }
 
 select:not(#uuid-select),
@@ -226,9 +226,22 @@ option:checked {
 }
 
 #uuid-select {
-    background-color: transparent!important;
+    background-color: transparent !important;
 }
 
-#uuid-select > * {
-    background-color: var(--bs-body-bg)!important;
+#uuid-select>* {
+    background-color: var(--bs-body-bg) !important;
+}
+
+.custom-control-inline {
+    display: -ms-inline-flexbox;
+    display: inline-flex!important;
+    margin-right: 1rem;
+}
+
+.custom-control-label {
+    position: relative;
+    margin-bottom: 0;
+    vertical-align: top;
+    margin-left: .2rem;
 }
