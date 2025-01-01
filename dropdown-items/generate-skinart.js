@@ -46,7 +46,7 @@ var modalHTML = modalRange.createContextualFragment(`
             </div>  
         </div>
     </div>
-    `);
+`);
 
 document.documentElement.append(modalHTML);
 
@@ -95,14 +95,14 @@ gen.addEventListener("click", () => {
                         if (base.width == 64 && (base.height == 32 || base.height == 64)) {
                             var imagePieces = [];
                             var i = 0;
-                            for (var x = 0; x < 9; ++x) {
-                                for (var y = 0; y < 3; ++y) {
-                                    i++
+                            for (var y = 2; y >= 0; --y) { // Bottom to top
+                                for (var x = 8; x >= 0; --x) { // Right to left
+                                    i++;
                                     var canvas = document.createElement('canvas');
                                     canvas.width = 64;
                                     canvas.height = base.height;
                                     var context = canvas.getContext('2d');
-                                    context.drawImage(base, 0, 0, 64, base.height, 0, 0, 64, base.height)
+                                    context.drawImage(base, 0, 0, 64, base.height, 0, 0, 64, base.height);
                                     context.drawImage(image, x * 8, y * 8, 8, 8, 40, 8, 8, 8);
                                     imagePieces.push({
                                         name: "Skin-" + (28 - i) + ".png",
