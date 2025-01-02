@@ -105,7 +105,7 @@ gen.addEventListener("click", () => {
                                     context.drawImage(base, 0, 0, 64, base.height, 0, 0, 64, base.height);
                                     context.drawImage(image, x * 8, y * 8, 8, 8, 40, 8, 8, 8);
                                     imagePieces.push({
-                                        name: "Skin-" + (28 - i) + ".png",
+                                        name: "Skin-" + i + ".png",
                                         input: await new Promise(resolve => canvas.toBlob(resolve))
                                     });
                                 }
