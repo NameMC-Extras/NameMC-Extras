@@ -1,5 +1,3 @@
-/* copyright 2024 | Faav#6320 | github.com/bribes */
-
 // only use for getting animate cookie
 function getCookie(name) {
   let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));

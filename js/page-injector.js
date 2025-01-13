@@ -1,4 +1,3 @@
-/* copyright 2024 | Faav#6320 | github.com/bribes */
 (async () => {
     const waitForSelector = function (selector, callback) {
         query = document.querySelector(selector)

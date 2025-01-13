@@ -1,4 +1,3 @@
-/* copyright 2024 | Faav | github.com/bribes */
 div:has(> [id^="nn_"]):not(main):not(body):not(html),
 .ad-container,
 #nmcIf,
