@@ -256,15 +256,15 @@ waitForSelector('main', (main) => {
                       </div>
                       <div class="mt-2">
                       <div class="custom-control custom-radio custom-control-inline">
-                          <input type="radio" id="auto" name="customRadioInline" class="custom-control-input" onchange="model='auto-detect'" checked>
+                          <input type="radio" id="auto" name="modelRadio" onchange="model='auto-detect'" checked>
                           <label class="custom-control-label" for="auto">Auto</label>
                         </div>
                         <div class="custom-control custom-radio custom-control-inline">
-                          <input type="radio" id="classic" name="customRadioInline" class="custom-control-input" onchange="model='default'">
+                          <input type="radio" id="classic" name="modelRadio" onchange="model='default'">
                           <label class="custom-control-label" for="classic">Classic</label>
                         </div>
                         <div class="custom-control custom-radio custom-control-inline">
-                          <input type="radio" id="slim" name="customRadioInline" class="custom-control-input" onchange="model='slim'">
+                          <input type="radio" id="slim" name="modelRadio" onchange="model='slim'">
                           <label class="custom-control-label" for="slim">Slim</label>
                         </div>
                       </div>
@@ -274,25 +274,25 @@ waitForSelector('main', (main) => {
                       <label for="capeselection"><strong>Choose a Cape Type:</strong></label>
                       <br>
                       <div>
-                        <input type="radio" id="none" checked>
+                        <input type="radio" id="none" name="capeRadio" checked>
                         <label for="none">None</label>
                       </div>
                       <div>
-                        <input type="radio" id="vanilla">
+                        <input type="radio" id="vanilla" name="capeRadio">
                         <label for="vanilla">Official</label>
                       </div>
                       <div>
-                        <input type="radio" id="optifine">
+                        <input type="radio" id="optifine" name="capeRadio">
                         <label for="optifine">OptiFine</label>
                       </div>
                       <div>
-                        <input type="radio" id="special">
+                        <input type="radio" id="special" name="capeRadio">
                         <label for="special">Third-Party</label>
                       </div>
-                      <div>
-                        <input type="radio" id="upload">
+                    </div>
+                    <div>
+                        <input type="radio" id="upload" name="capeRadio">
                         <label for="upload">Upload</label>
-                      </div>
                     </div>
                     <div class="form-group" id="capemenu" style="display:none;"></div>
                   </div>
@@ -459,17 +459,19 @@ waitForSelector('main', (main) => {
             if (optifine.checked == true) {
                 capemenu.innerHTML = `<hr style="margin: 0.7rem 0;">
             <label class="col-4 col-form-label" for="optifinecape"><strong>OptiFine Cape:</strong></label>
-                <div class="form-group" id="optifinecape">
-                <div class="custom-control custom-radio"> <input type="radio" id="stealopti" name="customRadio"
-                        class="custom-control-input" checked> <label
-                        for="stealopti">Steal a user's OptiFine cape design</label> </div>
-                <div class="custom-control custom-radio"> <input type="radio" id="ofdesign" name="customRadio"
-                        class="custom-control-input"> <label
-                        for="ofdesign">Edit "OF" design</label> </div>
-                <div class="custom-control custom-radio"> <input type="radio" id="banner" name="customRadio"
-                        class="custom-control-input"> <label for="banner">Edit
-                        OptiFine banner</label>
-                </div>
+            <div class="form-group" id="optifinecape">
+              <div>
+                <input type="radio" id="stealopti" name="ofRadio" checked>
+                <label for="stealopti">Steal a user's OptiFine cape design</label>
+              </div>
+              <div>
+                <input type="radio" id="ofdesign" name="ofRadio">
+                <label for="ofdesign">Edit "OF" design</label>
+              </div>
+              <div>
+                <input type="radio" id="banner" name="ofRadio">
+                <label for="banner">Edit OptiFine banner</label>
+              </div>
             </div>
             <br>
             <div class="form-group" id="optimenus" style="display:unset;"><label for="opticapestealuser">Steal the OptiFine Cape design
@@ -696,6 +698,7 @@ waitForSelector('main', (main) => {
                     if (nameParam) document.querySelector("#opticapestealuser").value = nameParam;
                     document.querySelector("#opticapestealuser").onchange();
                 }
+                document.querySelector("#officialcapes").onchange();
                 fixPauseBtn();
             }
 
