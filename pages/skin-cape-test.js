@@ -289,10 +289,10 @@ waitForSelector('main', (main) => {
                         <input type="radio" id="special" name="capeRadio">
                         <label for="special">Third-Party</label>
                       </div>
-                    </div>
-                    <div>
+                      <div>
                         <input type="radio" id="upload" name="capeRadio">
                         <label for="upload">Upload</label>
+                      </div>
                     </div>
                     <div class="form-group" id="capemenu" style="display:none;"></div>
                   </div>
