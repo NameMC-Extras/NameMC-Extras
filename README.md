@@ -19,6 +19,7 @@ Install the Firefox extension [here](https://addons.mozilla.org/en-US/firefox/ad
 - Skin & Cape Tester
 - Show Custom Optifine capes
 - Generate a image of all your profiles
+- Remove name length restrictions on minecraft name search
 
 Create a issue or message me on discord (faav) if you have any suggestions.
 
