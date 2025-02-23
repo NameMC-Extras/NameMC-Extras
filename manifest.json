@@ -8,12 +8,15 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 2,
-  "version": "3.4.7",
+  "version": "3.4.8",
   "content_scripts": [
     {
       "js": [
         "js/data-preload.js",
         "js/page-injector.js"
+      ],
+      "css": [
+        "css/NameMC.css"
       ],
       "matches": [
         "*://*.namemc.com/*"
@@ -22,19 +25,12 @@
     },
     {
       "css": [
-        "css/NameMC.css"
-      ],
-      "matches": [
-        "*://*.namemc.com/*"
-      ]
-    },
-    {
-      "css": [
         "css/CustomPage.css"
       ],
       "matches": [
         "*://*.namemc.com/extras/*"
-      ]
+      ],
+      "run_at": "document_start"
     },
     {
       "js": [
