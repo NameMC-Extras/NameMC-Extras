@@ -94,6 +94,7 @@ function getCapeCardHTML(cape, userCount) {
 function addCapes(mainDiv) {
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
   const categories = supabase_data.categories.filter(cat => cat.hidden === false)
+
   var categoriesHTML = categories.map(cat => {
     const capes = supabase_data.capes.filter(cape => cape.category == cat.id)
 
@@ -133,3 +134,67 @@ function addCapes(mainDiv) {
 }
 
 waitForStorage("supabase_data", () => waitForSelector("main", addCapes));
+
+waitForSelector("main", (mainDiv) => {
+  fetch("https://bedrock.lol/api/v1/capes")
+    .then((response) => response.json())
+    .then((data) => {
+      let capesHTML = "";
+      data = data.sort((a, b) => b.user_count - a.user_count);
+
+      capesHTML += data.map(cape => {
+        return `
+          <div class="col-4 col-md-2">
+            <div class="card mb-2">
+              <a href="${encodeURI(`/cape/bedrock/${cape.id}`)}">
+                ${(() => {
+          var titleEl = document.createElement("div");
+          titleEl.setAttribute("class", "card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1");
+          titleEl.translate = "no";
+          titleEl.textContent = cape.name;
+
+          return titleEl.outerHTML;
+        })()}
+                <div class="card-body position-relative text-center checkered p-1">
+                  <div>
+                    ${(() => {
+          var imageEl = document.createElement("img");
+          imageEl.classList.add("drop-shadow");
+          imageEl.classList.add("auto-size-square");
+          imageEl.loading = "lazy";
+          imageEl.width = 256;
+          imageEl.height = 128;
+          imageEl.src = "data:image/png;base64," + cape.image_data;
+          imageEl.alt = cape.name;
+          imageEl.title = cape.name;
+
+          return imageEl.outerHTML;
+        })()}
+                  </div>
+                  <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${cape.user_count}★</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        `;
+      }
+      ).join("");
+      
+      // create category
+      var categoryRange = document.createRange();
+      var categoryHTML = `
+          <temp>
+            <br/>
+            <h1 class="text-center">Bedrock Capes</h1>
+            <hr class="mt-0">
+            <div class="mb-2">
+              <div class="row gx-2 justify-content-center">
+                ${capesHTML}
+              </div>
+            </div>
+          </temp>
+      `;
+
+      mainDiv.innerHTML += categoryHTML;
+    })
+});

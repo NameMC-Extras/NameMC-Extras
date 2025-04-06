@@ -1,3 +1,21 @@
+const capeDB = {};
+
+class CapeTemplate {
+  /**
+   * 
+   * @param {string} src 
+   * @param {string} name 
+   * @param {string} description
+   * @param {string} redirect
+   */
+  constructor(src, name, description = null, redirect = null) {
+    this.src = src;
+    this.name = name;
+    this.description = description;
+    this.redirect = redirect;
+  }
+}
+
 // only use for getting animate cookie
 function getCookie(name) {
   let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));
@@ -22,6 +40,126 @@ var currentSkinId = null;
 var currentDataModel = "classic";
 var currentCape = null;
 var nmceCape = false;
+
+/* Cape card creator */
+/**
+ * @param {CapeTemplate[]} capes 
+ * @param {string} title
+ * @param {function} callback 
+ * @param {boolean} showAmount 
+ * @param {string} redirect
+ */
+function createCapeCard(capes, title, callback = console.log("Successfully made cape card!"), showAmount = false, redirect = null) {
+  let titleArray = title.split(" ");
+  titleArray.shift();
+
+  // Create cape card
+  const cardDiv = document.createElement("div");
+  cardDiv.id = title.toLowerCase().replace(" ", "-");
+  cardDiv.className = "card mb-3";
+  cardDiv.innerHTML = `
+        <div class="card-header py-1">
+            <strong>
+                ${redirect ? `<a href="${redirect}" target="_blank" rel="nofollow noopener noreferrer">` : ""}${title.split(" ")[0]}${redirect ? `</a>` : ""}${" " + titleArray.join(" ")}${showAmount ? " (" + capes.length + ")" : ""}
+            </strong>
+        </div>
+        <div class="card-body text-center" style="padding: 3px; width: 324px; margin: auto; text-align: center;">
+        </div>
+    `;
+
+  // Render capes
+  capes.forEach(cape => {
+    createCape(cape.src, cardDiv.querySelector("div.card-body.text-center"), cape.name, cape.description, cape.redirect ?? capes[i])
+  })
+
+  // Remove cape selected glow
+  const capeChildren = document.getElementsByClassName("cape-2d")
+  for (var i = 0; i < capeChildren.length; i++) {
+    capeChildren[i].classList.remove("skin-button-selected");
+  }
+
+  // find element with class name "col-md-auto order-md-1", then make cardDiv come after the third "card mb-3" classed element
+  const colDiv = document.querySelector(".col-md-auto.order-md-1");
+  const cardDivs = colDiv.querySelectorAll(".card.mb-3");
+  if (cardDivs.length > 2) {
+    colDiv.insertBefore(cardDiv, cardDivs[2].nextSibling);
+  } else {
+    colDiv.appendChild(cardDiv);
+  }
+
+  callback(cardDiv);
+}
+
+
+/* Cape canvas creator */
+/**
+ * @param {string} src 
+ * @param {HTMLElement} parentElement 
+ * @param {string} name 
+ * @param {string} description 
+ * @param {string} redirect 
+ */
+function createCape(src, parentElement, name = "", description = "", redirect = "") {
+  let capeCanvas = document.createElement("canvas");
+  capeCanvas.className = "cape-2d align-top skin-button skin-button-selected";
+  let capeDataHash = `custom-${name.replace(" ", "-").toLowerCase()}`;
+  capeCanvas.setAttribute("data-cape-hash", capeDataHash);
+  capeDB[capeDataHash] = src;
+  capeCanvas.width = 40;
+  capeCanvas.height = 64;
+  capeImage = new Image();
+  capeImage.src = src;
+
+  capeImage.onload = () => {
+    const ctx = capeCanvas.getContext('2d');
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.msImageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = false;
+    if (capeImage.src != src) capeImage.src = src;
+    const localCapeScale = capeScale(capeImage.height)
+    ctx.drawImage(capeImage, localCapeScale, localCapeScale, 10 * localCapeScale, 16 * localCapeScale, 0, 0, capeCanvas.width, capeCanvas.height)
+    createCapeEvents();
+  }
+
+  // Puts the image in a href
+  let featureImageHref = document.createElement("a");
+  featureImageHref.href = redirect ? redirect : src;
+  featureImageHref.setAttribute("data-toggle", "tooltip"),
+    featureImageHref.setAttribute("data-html", "true")
+  if (typeof name != 'undefined') {
+    featureImageHref.setAttribute("title", name)
+  }
+  featureImageHref.appendChild(capeCanvas);
+  parentElement.appendChild(featureImageHref);
+}
+
+
+/* Creates cape events for the custom viewer */
+function createCapeEvents() {
+  let capeChildren = document.getElementsByClassName("cape-2d")
+  console.log(`Found ${capeChildren.length} capes`)
+  for (var i = 0; i < capeChildren.length; i++) {
+    capeChildren[i].addEventListener('mouseover', (event) => {
+      for (var i = 0; i < capeChildren.length; i++) {
+        capeChildren[i].classList.remove("skin-button-selected");
+      }
+      event.target.classList.add("skin-button-selected");
+      let capeHash = event.target.getAttribute("data-cape-hash")
+
+      if (capeHash != undefined && !capeHash.startsWith("custom-")) {
+        let capeUrl = "https://texture.namemc.com/" + capeHash.substring(0, 2) + "/" + capeHash.substring(2, 4) + "/" + capeHash + ".png";
+        this.skinViewer.loadCape(capeUrl)
+        console.log("capeEvent: Mojang/Optifine")
+      } else if (capeHash != undefined && capeHash.startsWith("custom-")) {
+        const options = {};
+        if (elytraOn) options.backEquipment = "elytra";
+        this.skinViewer.loadCape(capeDB[capeHash], options);
+        console.log("capeEvent: Custom")
+      }
+    })
+  }
+}
 
 if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname) && location.pathname) {
   const waitForSelector = function (selector, callback) {
@@ -694,6 +832,19 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         (event) => event.stopImmediatePropagation(),
         true
       );
+
+      // BEDROCK.LOL CAPES CONTAINER
+      fetch(`https://bedrock.lol/api/v1/users/java/${uuid}`)
+        .then((response) => response.json())
+        .then((data) => {
+          data.capes.sort((a, b) => b.user_count - a.user_count);
+          const capeTemplates = [];
+          for (let i = 0; i < data.capes.length; i++) {
+            const curCape = data.capes[i];
+            capeTemplates.push(new CapeTemplate("data:image/png;base64," + curCape.image_data, curCape.name, curCape.description, "/cape/bedrock/" + curCape.id));
+          }
+          createCapeCard(capeTemplates, "Bedrock Capes", (() => {}), true);
+        });
 
       var skinHash = skinContainer.getAttribute('data-skin-hash');
       var capeHash = skinContainer.getAttribute('data-cape-hash');

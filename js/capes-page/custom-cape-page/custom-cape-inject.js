@@ -182,11 +182,22 @@ async function loadPage(mainDiv) {
 
   // get cape and update page title
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
-  const cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
+  let cape;
+  if (categoryId == "bedrock") {
+    const bedrockInfo = await (await fetch(`https://bedrock.lol/api/v1/capes/${capeId}`)).json();
+    cape = new CustomCape(bedrockInfo.name, bedrockInfo.description, bedrockInfo.image_data, bedrockInfo.users);
+    console.log(cape);
+  } else {
+    cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
+    console.log(cape);
+  }
   if (!cape) return;
-  const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name;
+  const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name ?? "Bedrock";
   document.title = `${cape.name} | ${capeCategory} Cape | NameMC Extras`
-  const capeOwners = supabase_data.user_capes.filter(user => user.cape == capeId);
+  let capeOwners = supabase_data.user_capes.filter(user => user.cape == capeId);
+  if (capeOwners.length == 0) {
+    capeOwners = cape.users;
+  }
   // update page
   var capeRange = document.createRange();
   var capeHTML = capeRange.createContextualFragment(`
@@ -221,9 +232,11 @@ async function loadPage(mainDiv) {
             <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Elytra">
               <i class="fas fa-dove"></i>
             </button>
-            <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:135px!important;" title="Steal Cape">
-              <i class="fas fa-user-secret"></i>
-            </button>
+            ${capeCategory == "Bedrock" ? "" : `
+              <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:135px!important;" title="Steal Cape">
+                <i class="fas fa-user-secret"></i>
+              </button>  
+            `}
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${capeOwners.length}★</h5>
           </div>
         </div>
@@ -236,7 +249,7 @@ async function loadPage(mainDiv) {
       var cardBody = document.createElement("div");
       cardBody.classList.add("card-body");
       cardBody.classList.add("py-2");
-      cardBody.textContent = cape.description ?? "Awarded for being a prominent member of the OptiFine community.";
+      cardBody.textContent = cape.description ?? "Awarded for something pretty cool this person did... I think?\nNo description available, contact a NameMC Extras developer!";
 
       return cardBody.outerHTML;
     })()}
@@ -261,7 +274,7 @@ async function loadPage(mainDiv) {
   waitForFunc("skinview3d", () => {
     const skinContainer = document.getElementsByTagName("canvas").item(0);
     const steveDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAABJlBMVEVMaXEAf38AqKgAmZmqfWaWX0EAaGhGOqUwKHIAr691Ry8qHQ1qQDA/Pz9ra2smIVuHVTuWb1sAYGBWScwoKCgmGgovHw8AzMw6MYkkGAgoGwoAW1sjIyMAnp5RMSWGUzQsHg4pHAyBUzkrHg0fEAsoGg0mGAstHQ6aY0QnGwstIBB3QjWcZ0gzJBEyIxBiQy8rHg6dak8mGgwsHhGKWTsoGwsjFwmEUjF0SC+iakd6TjOHWDokGAqDVTucY0WIWjk6KBQoHAsvIhGcaUz///+0hG27iXJSPYlSKCaaZEqfaEmPXj4vIA2AUzQ0JRJvRSxtQyqQXkOsdlo/KhWcY0aWX0Cze2K+iGytgG1CKhK1e2e9jnK9i3K2iWycclzGloC9jnS3gnKSJOIgAAAAAXRSTlMAQObYZgAAAvxJREFUWMPtlmebojAQx5cEkAiecHcgwrGArPW2997b9d779/8SN0nMruK6oL71//iYocyPmTA6MzPTla5X4VOdK3Y1M6r0quMAoFo0QiMMxwE4js0BT0DG6ICqQ3Nw9LEB4GvbziQA5i8A12MAbCe25yiAaQxAbIN0feTX6Hl2O17sdF4mzknVTvROZzFu254n6iIPwI7iZCFJkoVvH6KThSSObAro1kUmIGrY8fLGfpz8+vHn59/3r+P9jeXYbkSiLrIjqDcjrx2dyhfy19+XZ2enUduLmnVP1EWOFLzVzb3D44vzq++XV+fy8eHe5iqcFHWRA1BvrG0pRx8//zOMLzuvjpSttUadbiKvi+w98JpLK62w+O7TU9CLWjFsrSw1vUjURSYgDFvhvLK+/eZtrbZ7cLC7vf58/tl8C36QtC6KYa5aeAR6DBLHFV5LlYddifOoUkHGrDGbDeDlPACogCYFIPA3JkphAKBpZa0AgoWuriRJPg5qO7VaEIAtBQghQhDiNmErAd0Cyn2AgqSqEkIB+BMCtoro3QAAUyKIBPR6CqD1AdiNBAUYPMFWCRdiYMKg9wN8VfXheoDhi9uYIMwBENQ9EYDhglTf9zGmbhiD6TNvOFYUxZRBJhh07Qe4boHuBQWAj4r5QzHAVMIOEAdYsqyYdwF694ACIADEALAH1BsgJgdYDGBZPQBNG3gLAiCxTbwB0CdTgNkfgQBotwDCvAgWG0YFfhygpAClkgCUSg9AkipJGNMAOABstg0KB8gKjQRS6QFwR7FCKmUKLLgAoEXmughjt8ABlswiyQCwiICARXlj+KJPBj/LTEcw1VRTTTXKvICGdeXcAwdoIgAaNliMkkJuQO+84NI+AYL/+GBgLsgGlG8aTQBNQuq2+vwArdzbqdBAWx8FcOdcMBSQmheGzgXDAWU+L9wAREvLC0ilQAEWB5h9c0E2gKdiMgDrymbOCLQUQOEAMycgPS8o3dzpaENTyQHob/fsydYkAMjdsthocyfgP7DZYc3t4J05AAAAAElFTkSuQmCC";
-    const capeURL = cape.image_src;
+    const capeURL = cape.image_src ?? ("data:image/png;base64," + cape.capeURL);
 
     let skinViewer = new skinview3d.SkinViewer({
       canvas: skinContainer,
@@ -309,18 +322,36 @@ async function loadPage(mainDiv) {
     fixPauseBtn()
     waitForCape(fixDownloadBtn)
     waitForCape(fixElytraBtn);
-    waitForCape(fixStealBtn);
+    if (capeCategory != "Bedrock") {
+      waitForCape(fixStealBtn);
+    }
   })
 
-  var badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
-    const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
-    return await resp.json();
-  }))).map(a => a.name);
+  var badgeOwnerNames;
+  if (capeCategory == "Bedrock") {
+    badgeOwnerNames = capeOwners.map(u => u.username);
+  } else {
+    badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
+      const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
+      return await resp.json();
+    }))).map(a => a.name);
+  }
 
   document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
-    var userEl = document.createElement("a");
+    var userEl;
+    if (capeCategory == "Bedrock") {
+      if (u.java_uuid) {
+        userEl = document.createElement("a");
+        userEl.href = "/profile/" + u.java_uuid;
+      } else {
+        userEl = document.createElement("span");
+      }
+      userEl.textContent = u.username;
+    } else {
+      var userEl = document.createElement("a");
+      userEl.href = "/profile/" + u.user;
+    }
     userEl.textContent = badgeOwnerNames[i];
-    userEl.href = "/profile/" + u.user;
     userEl.translate = "no";
     if (u.note) {
       userEl.setAttribute("data-note", "");
