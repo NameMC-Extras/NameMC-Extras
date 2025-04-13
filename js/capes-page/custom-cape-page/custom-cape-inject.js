@@ -186,6 +186,7 @@ async function loadPage(mainDiv) {
   if (categoryId == "bedrock") {
     const bedrockInfo = await (await fetch(`https://bedrock.lol/api/v1/capes/${capeId}`)).json();
     cape = new CustomCape(bedrockInfo.name, bedrockInfo.description, bedrockInfo.image_data, bedrockInfo.users);
+    cape.user_count = bedrockInfo.user_count;
     console.log(cape);
   } else {
     cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
@@ -237,7 +238,7 @@ async function loadPage(mainDiv) {
                 <i class="fas fa-user-secret"></i>
               </button>  
             `}
-            <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${capeOwners.length}★</h5>
+            <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${cape.user_count || capeOwners.length}★</h5>
           </div>
         </div>
         <div class="card mb-3">
@@ -259,7 +260,7 @@ async function loadPage(mainDiv) {
         <div class="col-md-6">
           <div class="card mb-3">
             <div class="d-flex flex-column" style="max-height: 25rem">
-              <div class="card-header py-1"><strong>Profiles (${capeOwners.length})</strong></div>
+              <div class="card-header py-1"><strong>Profiles (${cape.user_count || capeOwners.length})</strong></div>
               <div class="card-body player-list py-2"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
               </div>
             </div>
@@ -329,6 +330,7 @@ async function loadPage(mainDiv) {
 
   var badgeOwnerNames;
   if (capeCategory == "Bedrock") {
+    capeOwners.push({ username: "..." });
     badgeOwnerNames = capeOwners.map(u => u.username);
   } else {
     badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
