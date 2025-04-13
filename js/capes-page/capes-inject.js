@@ -162,11 +162,14 @@ waitForSelector("main", (mainDiv) => {
           imageEl.classList.add("drop-shadow");
           imageEl.classList.add("auto-size-square");
           imageEl.loading = "lazy";
-          imageEl.width = 256;
-          imageEl.height = 128;
-          imageEl.src = "data:image/png;base64," + cape.image_data;
+          imageEl.src = cape.thumbnail_url;
           imageEl.alt = cape.name;
           imageEl.title = cape.name;
+          // make entire image fit within div
+          imageEl.style.width = "100%";
+          imageEl.style.height = "100%";
+          imageEl.style.objectFit = "cover";
+          imageEl.style.margin = "0 auto";
 
           return imageEl.outerHTML;
         })()}
