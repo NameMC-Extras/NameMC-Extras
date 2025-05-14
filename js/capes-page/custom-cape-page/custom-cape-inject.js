@@ -25,6 +25,7 @@ class CapeUsageGraph {
       fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
       hoverLineElement: document.getElementById('hover-line'),
       hoverValueElement: document.getElementById('hover-value'),
+      simplified: false,
       statElements: {
         current: document.getElementById('stat-current'),
         max: document.getElementById('stat-max'),
@@ -45,12 +46,19 @@ class CapeUsageGraph {
     this.hoverPoint = null;
     this.lastHoverPosition = { x: 0, y: 0 };
     
+    // For dynamic data loading
+    this.capeId = options.capeId || 'unknown';
+    this.lastFetchedViewport = { start: 0, end: 0 };
+    this.fetchPadding = 0.3; // Fetch 30% more data on each side
+    
     // Make canvas responsive
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
     
-    // Add event listeners
-    this.addEventListeners();
+    // Add event listeners if not simplified
+    if (!this.options.simplified) {
+      this.addEventListeners();
+    }
   }
   
   resizeCanvas() {
@@ -90,7 +98,14 @@ class CapeUsageGraph {
   setTimeframe(timeframe) {
     this.options.timeframe = timeframe;
     
-    if (!this.data.length) return;
+    if (!this.data.length) {
+      // Set reasonable default viewport when there's no data
+      const now = new Date();
+      this.viewportStart = new Date(now - 30 * 24 * 60 * 60 * 1000).getTime(); // 30 days ago
+      this.viewportEnd = now.getTime();
+      this.draw();
+      return;
+    }
     
     const now = new Date();
     switch (timeframe) {
@@ -108,10 +123,18 @@ class CapeUsageGraph {
         break;
       case 'all':
       default:
-        this.viewportStart = this.startTimestamp.getTime();
+        this.viewportStart = Math.max(
+          this.startTimestamp.getTime(), 
+          new Date('2010-01-01').getTime() // More restrictive: don't go before 2010
+        );
     }
     
     this.viewportEnd = now.getTime();
+    
+    // Reset lastFetchedViewport when timeframe changes
+    this.lastFetchedViewport = { start: 0, end: 0 };
+    
+    this.validateViewport(); // Apply additional constraints
     this.draw();
   }
   
@@ -126,8 +149,12 @@ class CapeUsageGraph {
     // Clear canvas
     ctx.clearRect(0, 0, displayWidth, displayHeight);
     
+    // If no data at all, just draw an empty graph with grid and axes
     if (!this.data.length) {
-      this.drawNoData();
+      // Set default max users for empty graph
+      this.maxUsers = 100;
+      this.drawGrid(displayWidth, displayHeight);
+      this.drawAxes(displayWidth, displayHeight);
       return;
     }
     
@@ -137,8 +164,13 @@ class CapeUsageGraph {
       return timestamp >= this.viewportStart && timestamp <= this.viewportEnd;
     });
     
+    // If no visible data in the current timeframe, still draw empty grid and axes
     if (visibleData.length === 0) {
-      this.drawNoData("No data for selected timeframe");
+      this.drawGrid(displayWidth, displayHeight);
+      this.drawAxes(displayWidth, displayHeight);
+      
+      // Try to fetch data for this viewport
+      this.fetchDataForViewport();
       return;
     }
     
@@ -153,7 +185,12 @@ class CapeUsageGraph {
     ctx.strokeStyle = this.options.lineColor;
     ctx.lineWidth = 2;
     
-    visibleData.forEach((point, i) => {
+    // For simplified view, use more data points for smoother curve
+    const dataToPlot = this.options.simplified && visibleData.length > 200 
+      ? this.simplifyData(visibleData, 100)  // Use 100 points instead of 50
+      : visibleData;
+    
+    dataToPlot.forEach((point, i) => {
       const x = this.timeToX(point.timestamp, displayWidth);
       const y = this.userCountToY(point.users, displayHeight);
       
@@ -167,47 +204,44 @@ class CapeUsageGraph {
     ctx.stroke();
     
     // Area fill under the line
-    ctx.lineTo(this.timeToX(visibleData[visibleData.length-1].timestamp, displayWidth), displayHeight - p);
-    ctx.lineTo(this.timeToX(visibleData[0].timestamp, displayWidth), displayHeight - p);
+    ctx.lineTo(this.timeToX(dataToPlot[dataToPlot.length-1].timestamp, displayWidth), displayHeight - p);
+    ctx.lineTo(this.timeToX(dataToPlot[0].timestamp, displayWidth), displayHeight - p);
     ctx.closePath();
     ctx.fillStyle = `${this.options.lineColor}20`; // 20 = 12.5% opacity
     ctx.fill();
     
-    // Draw points
-    visibleData.forEach(point => {
-      const x = this.timeToX(point.timestamp, displayWidth);
-      const y = this.userCountToY(point.users, displayHeight);
-      
-      // Highlight point if it's being hovered
-      if (this.hoverPoint && this.hoverPoint.timestamp.getTime() === point.timestamp.getTime()) {
-        // Draw highlight circle
+    // Draw points - only if fewer than 80 points or if hovering
+    if (!this.options.simplified || dataToPlot.length < 80) {
+      dataToPlot.forEach(point => {
+        const x = this.timeToX(point.timestamp, displayWidth);
+        const y = this.userCountToY(point.users, displayHeight);
+        
+        // Highlight point if it's being hovered
+        if (this.hoverPoint && this.hoverPoint.timestamp.getTime() === point.timestamp.getTime()) {
+          // Draw highlight circle
+          ctx.beginPath();
+          ctx.arc(x, y, this.options.pointRadius + 3, 0, Math.PI * 2);
+          ctx.fillStyle = `${this.options.lineColor}40`; // 40 = 25% opacity
+          ctx.fill();
+        }
+        
         ctx.beginPath();
-        ctx.arc(x, y, this.options.pointRadius + 3, 0, Math.PI * 2);
-        ctx.fillStyle = `${this.options.lineColor}40`; // 40 = 25% opacity
+        ctx.arc(x, y, this.options.simplified ? this.options.pointRadius - 1 : this.options.pointRadius, 0, Math.PI * 2);
+        ctx.fillStyle = this.options.lineColor;
         ctx.fill();
-      }
-      
-      ctx.beginPath();
-      ctx.arc(x, y, this.options.pointRadius, 0, Math.PI * 2);
-      ctx.fillStyle = this.options.lineColor;
-      ctx.fill();
-    });
+      });
+    }
     
     // Draw legend/stats
     this.drawStats(visibleData, displayWidth, displayHeight);
+    
+    // Check if we need to fetch more data in the background
+    // We do this after drawing to ensure good user experience
+    setTimeout(() => this.fetchDataForViewport(), 10);
   }
   
   drawNoData(message = "No data available") {
-    const ctx = this.ctx;
-    const dpr = window.devicePixelRatio || 1;
-    const displayWidth = this.canvas.width / dpr;
-    const displayHeight = this.canvas.height / dpr;
-    
-    ctx.fillStyle = this.options.textColor;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = `bold 14px ${this.options.fontFamily}`;
-    ctx.fillText(message, displayWidth / 2, displayHeight / 2);
+    // Do nothing - we'll draw empty grid instead
   }
   
   drawGrid(width, height) {
@@ -217,8 +251,8 @@ class CapeUsageGraph {
     ctx.strokeStyle = this.options.gridColor;
     ctx.lineWidth = 1;
     
-    // Horizontal grid lines
-    const userStep = Math.ceil(this.maxUsers / 5);
+    // Horizontal grid lines - simplify for small graph
+    const userStep = Math.ceil(this.maxUsers / (this.options.simplified ? 2 : 5));
     for (let i = 0; i <= this.maxUsers; i += userStep) {
       const y = this.userCountToY(i, height);
       ctx.beginPath();
@@ -226,12 +260,14 @@ class CapeUsageGraph {
       ctx.lineTo(width - p, y);
       ctx.stroke();
       
-      // Label
-      ctx.fillStyle = this.options.textColor;
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.font = `12px ${this.options.fontFamily}`;
-      ctx.fillText(i.toString(), p - 5, y);
+      // Label - skip most labels for simplified view but show min and max
+      if (!this.options.simplified || i === 0 || i === this.maxUsers) {
+        ctx.fillStyle = this.options.textColor;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.font = `12px ${this.options.fontFamily}`;
+        ctx.fillText(i.toString(), p - 10, y);
+      }
     }
     
     // Vertical grid lines
@@ -259,21 +295,87 @@ class CapeUsageGraph {
     const startTime = new Date(this.viewportStart);
     startTime.setHours(0, 0, 0, 0);
     
+    // Calculate how many labels would fit in the available width
+    const availableWidth = width - 2 * p;
+    const avgLabelWidth = timeRange >= 30 * 24 * 60 * 60 * 1000 ? 80 : 60; // Month+year labels need more space
+    const maxLabels = Math.floor(availableWidth / avgLabelWidth);
+    
+    // Count potential labels
+    let labelCount = 0;
     for (let timestamp = startTime.getTime(); timestamp <= this.viewportEnd; timestamp += timeStep) {
+      labelCount++;
+    }
+    
+    // Calculate dynamic skip factor based on available space
+    const dynamicSkipFactor = Math.ceil(labelCount / maxLabels);
+    
+    // Use the larger of our static and dynamic skip factors
+    const skipFactor = Math.max(
+      this.options.simplified ? 3 : 1, 
+      dynamicSkipFactor
+    );
+    
+    // For simplified mode, we'll manually draw the first and last timestamps
+    let firstTime = null;
+    let lastTime = null;
+    
+    let lineCounter = 0;
+    
+    for (let timestamp = startTime.getTime(); timestamp <= this.viewportEnd; timestamp += timeStep) {
+      lineCounter++;
+      
+      // Track first and last timestamps for simplified view
+      if (firstTime === null) {
+        firstTime = new Date(timestamp);
+      }
+      lastTime = new Date(timestamp);
+      
+      // Always draw the first and last line, otherwise use skip factor
+      const isFirstOrLast = lineCounter === 1 || timestamp + timeStep > this.viewportEnd;
+      const shouldDrawLabel = isFirstOrLast || lineCounter % skipFactor === 0;
+      
+      if (!shouldDrawLabel && this.options.simplified) continue;
+      
       const time = new Date(timestamp);
       const x = this.timeToX(time, width);
+      
+      // Skip the leftmost vertical line if it's too close to the Y axis
+      if (x <= p + 15) continue;
       
       ctx.beginPath();
       ctx.moveTo(x, p);
       ctx.lineTo(x, height - p);
       ctx.stroke();
       
-      // Label
-      ctx.fillStyle = this.options.textColor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.font = `12px ${this.options.fontFamily}`;
-      ctx.fillText(format(time), x, height - p + 5);
+      // Label - skip for simplified view or based on dynamic skip factor except for first and last
+      if ((!this.options.simplified && shouldDrawLabel) || 
+          (this.options.simplified && isFirstOrLast)) {
+        ctx.fillStyle = this.options.textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.font = `12px ${this.options.fontFamily}`;
+        ctx.fillText(format(time), x, height - p + 5);
+      }
+    }
+    
+    // In simplified mode, always ensure first and last dates are shown
+    if (this.options.simplified && firstTime && lastTime) {
+      const firstX = this.timeToX(firstTime, width);
+      const lastX = this.timeToX(lastTime, width);
+      
+      // Only draw if not already drawn and there's enough space between
+      if (firstX > p + 15 && lastX - firstX > 60) {
+        ctx.fillStyle = this.options.textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.font = `12px ${this.options.fontFamily}`;
+        
+        // First date
+        ctx.fillText(format(firstTime), firstX, height - p + 5);
+        
+        // Last date
+        ctx.fillText(format(lastTime), lastX, height - p + 5);
+      }
     }
   }
   
@@ -296,21 +398,23 @@ class CapeUsageGraph {
     ctx.lineTo(p, height - p);
     ctx.stroke();
     
-    // Axis labels
-    ctx.fillStyle = this.options.textColor;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = `bold 12px ${this.options.fontFamily}`;
-    
-    // X axis label
-    ctx.fillText('Time', width / 2, height - 10);
-    
-    // Y axis label
-    ctx.save();
-    ctx.translate(15, height / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText('Users', 0, 0);
-    ctx.restore();
+    // Axis labels - skip for simplified view
+    if (!this.options.simplified) {
+      ctx.fillStyle = this.options.textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold 12px ${this.options.fontFamily}`;
+      
+      // X axis label
+      ctx.fillText('Time', width / 2, height - 10);
+      
+      // Y axis label
+      ctx.save();
+      ctx.translate(15, height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Users', 0, 0);
+      ctx.restore();
+    }
   }
   
   drawStats(visibleData, width, height) {
@@ -331,6 +435,123 @@ class CapeUsageGraph {
       if (statElements.max) statElements.max.textContent = maxUsers;
       if (statElements.min) statElements.min.textContent = minUsers;
       if (statElements.avg) statElements.avg.textContent = Math.round(avgUsers);
+    }
+    
+    // For simplified view, add more data points and display more information
+    if (this.options.simplified) {
+      // Calculate additional statistics
+      let maxPoint = visibleData[0];
+      let minPoint = visibleData[0];
+      
+      for (const point of visibleData) {
+        if (point.users > maxPoint.users) maxPoint = point;
+        if (point.users < minPoint.users) minPoint = point;
+      }
+      
+      // Draw more horizontal grid lines
+      const userStep = Math.ceil(this.maxUsers / 5); // Show 5 grid lines regardless of simplified view
+      for (let i = userStep; i < this.maxUsers; i += userStep) {
+        const y = this.userCountToY(i, height);
+        
+        // Draw dotted grid line
+        ctx.beginPath();
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo(p, y);
+        ctx.lineTo(width - p, y);
+        ctx.strokeStyle = this.options.gridColor;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Label for intermediate values
+        ctx.fillStyle = this.options.textColor;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.font = `11px ${this.options.fontFamily}`;
+        ctx.fillText(i.toString(), p - 5, y);
+      }
+      
+      // Show more timestamps on simplified graph
+      const timeRange = this.viewportEnd - this.viewportStart;
+      let timeStep, format;
+      
+      if (timeRange < 24 * 60 * 60 * 1000) {
+        // Less than a day, show hourly lines
+        timeStep = 2 * 60 * 60 * 1000; // Every 2 hours
+        format = time => time.getHours() + ':00';
+      } else if (timeRange < 7 * 24 * 60 * 60 * 1000) {
+        // Less than a week, show daily lines
+        timeStep = 24 * 60 * 60 * 1000;
+        format = time => time.toLocaleDateString(undefined, { weekday: 'short' });
+      } else if (timeRange < 30 * 24 * 60 * 60 * 1000) {
+        // Less than a month, show every 2 days
+        timeStep = 2 * 24 * 60 * 60 * 1000;
+        format = time => time.toLocaleDateString(undefined, { day: 'numeric' });
+      } else {
+        // More than a month, show weekly
+        timeStep = 7 * 24 * 60 * 60 * 1000;
+        format = time => time.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      }
+      
+      const startTime = new Date(this.viewportStart);
+      startTime.setHours(0, 0, 0, 0);
+      
+      // Calculate available space for labels
+      const availableWidth = width - 2 * p;
+      const labelWidth = 40; // Estimated width of each label
+      const maxLabels = Math.floor(availableWidth / labelWidth);
+      
+      // Count how many potential labels we would have
+      let labelCount = 0;
+      for (let timestamp = startTime.getTime(); timestamp <= this.viewportEnd; timestamp += timeStep) {
+        labelCount++;
+      }
+      
+      // Calculate dynamic skip factor
+      const skipFactor = Math.max(1, Math.ceil(labelCount / maxLabels));
+      
+      // Draw time labels with dynamic spacing
+      let labelCounter = 0;
+      for (let timestamp = startTime.getTime(); timestamp <= this.viewportEnd; timestamp += timeStep) {
+        labelCounter++;
+        if (labelCounter % skipFactor !== 0 && timestamp !== startTime.getTime() && timestamp + timeStep <= this.viewportEnd) continue;
+        
+        const time = new Date(timestamp);
+        const x = this.timeToX(time, width);
+        
+        // Skip if too close to y-axis
+        if (x <= p + 15) continue;
+        
+        // Draw vertical grid line
+        ctx.beginPath();
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo(x, p);
+        ctx.lineTo(x, height - p);
+        ctx.strokeStyle = this.options.gridColor;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw label
+        ctx.fillStyle = this.options.textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.font = `11px ${this.options.fontFamily}`;
+        ctx.fillText(format(time), x, height - p + 5);
+      }
+      
+      // Just store min/max points for tooltip without drawing special indicators
+      this.maxPointInfo = {
+        x: this.timeToX(maxPoint.timestamp, width),
+        y: this.userCountToY(maxPoint.users, height),
+        users: maxPoint.users,
+        timestamp: maxPoint.timestamp
+      };
+      
+      this.minPointInfo = {
+        x: this.timeToX(minPoint.timestamp, width),
+        y: this.userCountToY(minPoint.users, height),
+        users: minPoint.users,
+        timestamp: minPoint.timestamp
+      };
     }
   }
   
@@ -373,8 +594,8 @@ class CapeUsageGraph {
       // Calculate time at mouse position
       const timeAtMouse = this.xToTime(mouseX);
       
-      // Zoom factor
-      const factor = e.deltaY < 0 ? 0.8 : 1.2;
+      // Zoom factor - more gradual (0.9 and 1.1 instead of 0.8 and 1.2)
+      const factor = e.deltaY < 0 ? 0.9 : 1.1;
       
       // Apply zoom
       const timeRange = this.viewportEnd - this.viewportStart;
@@ -382,8 +603,15 @@ class CapeUsageGraph {
       
       // Calculate new viewport limits
       const mousePercent = (timeAtMouse - this.viewportStart) / timeRange;
-      this.viewportStart = timeAtMouse - mousePercent * newTimeRange;
-      this.viewportEnd = this.viewportStart + newTimeRange;
+      let newStart = timeAtMouse - mousePercent * newTimeRange;
+      let newEnd = newStart + newTimeRange;
+      
+      // Update viewport
+      this.viewportStart = newStart;
+      this.viewportEnd = newEnd;
+      
+      // Apply constraints
+      this.validateViewport();
       
       this.draw();
     });
@@ -410,8 +638,12 @@ class CapeUsageGraph {
         const timeRange = this.dragStart.timeEnd - this.dragStart.timeStart;
         const timeDelta = -dx / (displayWidth - 2 * this.options.padding) * timeRange;
         
+        // Calculate new viewport times
         this.viewportStart = this.dragStart.timeStart + timeDelta;
         this.viewportEnd = this.dragStart.timeEnd + timeDelta;
+        
+        // Apply constraints
+        this.validateViewport();
         
         this.draw();
       } else {
@@ -441,127 +673,421 @@ class CapeUsageGraph {
   }
   
   handleMouseMove(e) {
-    if (!this.data.length) return;
+    if (this.isDragging) return;
     
     const rect = this.canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    this.lastHoverPosition = { x: mouseX, y: mouseY };
+    const displayWidth = this.canvas.width / (window.devicePixelRatio || 1);
+    const displayHeight = this.canvas.height / (window.devicePixelRatio || 1);
     
-    const dpr = window.devicePixelRatio || 1;
-    const displayWidth = this.canvas.width / dpr;
-    const displayHeight = this.canvas.height / dpr;
+    // Check if hovering min/max indicators in simplified view
+    if (this.options.simplified && this.data.length > 0) {
+      // Create tooltip div if it doesn't exist
+      if (!this.tooltipElement) {
+        this.tooltipElement = document.createElement('div');
+        this.tooltipElement.style.position = 'absolute';
+        this.tooltipElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        this.tooltipElement.style.color = 'white';
+        this.tooltipElement.style.padding = '5px 10px';
+        this.tooltipElement.style.borderRadius = '4px';
+        this.tooltipElement.style.fontSize = '12px';
+        this.tooltipElement.style.pointerEvents = 'none';
+        this.tooltipElement.style.zIndex = '1000';
+        this.tooltipElement.style.display = 'none';
+        document.body.appendChild(this.tooltipElement);
+      }
+      
+      // Check if mouse is near max point
+      if (this.maxPointInfo) {
+        const distance = Math.sqrt(
+          Math.pow(mouseX - this.maxPointInfo.x, 2) + 
+          Math.pow(mouseY - this.maxPointInfo.y, 2)
+        );
+        
+        if (distance <= 10) { // 10px hover radius
+          // Show tooltip
+          this.tooltipElement.style.display = 'block';
+          this.tooltipElement.style.left = (e.clientX + 10) + 'px';
+          this.tooltipElement.style.top = (e.clientY - 25) + 'px';
+          
+          const formattedDate = this.formatTooltipDate(this.maxPointInfo.timestamp);
+          this.tooltipElement.innerHTML = `<strong>Maximum:</strong> ${this.maxPointInfo.users} users<br>${formattedDate}`;
+          
+          this.canvas.style.cursor = 'pointer';
+          return;
+        }
+      }
+      
+      // Check if mouse is near min point
+      if (this.minPointInfo) {
+        const distance = Math.sqrt(
+          Math.pow(mouseX - this.minPointInfo.x, 2) + 
+          Math.pow(mouseY - this.minPointInfo.y, 2)
+        );
+        
+        if (distance <= 10) { // 10px hover radius
+          // Show tooltip
+          this.tooltipElement.style.display = 'block';
+          this.tooltipElement.style.left = (e.clientX + 10) + 'px';
+          this.tooltipElement.style.top = (e.clientY - 25) + 'px';
+          
+          const formattedDate = this.formatTooltipDate(this.minPointInfo.timestamp);
+          this.tooltipElement.innerHTML = `<strong>Minimum:</strong> ${this.minPointInfo.users} users<br>${formattedDate}`;
+          
+          this.canvas.style.cursor = 'pointer';
+          return;
+        }
+      }
+      
+      // Hide tooltip if not hovering any special point
+      if (this.tooltipElement) {
+        this.tooltipElement.style.display = 'none';
+      }
+    }
     
-    // Convert mouse position to time
-    const time = this.xToTime(mouseX, displayWidth);
+    // Continue with the existing hover point detection
+    const timeAtMouse = this.xToTime(mouseX, displayWidth);
+    const mouseTimestamp = new Date(timeAtMouse);
     
-    // Filter visible data
+    // Original hover code - find data point closest to mouse
     const visibleData = this.data.filter(d => {
       const timestamp = d.timestamp.getTime();
       return timestamp >= this.viewportStart && timestamp <= this.viewportEnd;
     });
     
+    // Reset cursor if not over a special point
+    if (this.canvas.style.cursor === 'pointer' && !this.isDragging) {
+      this.canvas.style.cursor = 'default';
+    }
+    
+    if (visibleData.length === 0) {
+      this.hoverPoint = null;
+      this.draw();
+      return;
+    }
+    
     // Find closest point
     let closestPoint = null;
-    let minDistance = Infinity;
+    let closestDistance = Infinity;
+    let closestX = 0;
+    let closestY = 0;
     
-    visibleData.forEach(point => {
+    for (const point of visibleData) {
       const pointX = this.timeToX(point.timestamp, displayWidth);
       const pointY = this.userCountToY(point.users, displayHeight);
       
-      const distance = Math.sqrt(Math.pow(pointX - mouseX, 2) + Math.pow(pointY - mouseY, 2));
+      const distance = Math.sqrt(Math.pow(mouseX - pointX, 2) + Math.pow(mouseY - pointY, 2));
       
-      if (distance < minDistance) {
-        minDistance = distance;
+      if (distance < closestDistance) {
+        closestDistance = distance;
         closestPoint = point;
+        closestX = pointX;
+        closestY = pointY;
       }
-    });
+    }
     
-    // Show hover line
-    if (this.options.hoverLineElement) {
-      const hoverLine = this.options.hoverLineElement;
-      hoverLine.style.display = 'block';
-      hoverLine.style.left = `${mouseX}px`;
+    // Advanced tooltip for detailed/modal graph
+    if (!this.options.simplified && visibleData.length > 0) {
+      // Create tooltip element if it doesn't exist
+      if (!this.hoverTooltipElement) {
+        this.hoverTooltipElement = document.createElement('div');
+        this.hoverTooltipElement.style.position = 'absolute';
+        this.hoverTooltipElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        this.hoverTooltipElement.style.color = 'white';
+        this.hoverTooltipElement.style.padding = '5px 10px';
+        this.hoverTooltipElement.style.borderRadius = '4px';
+        this.hoverTooltipElement.style.fontSize = '12px';
+        this.hoverTooltipElement.style.pointerEvents = 'none';
+        this.hoverTooltipElement.style.zIndex = '9999'; // Augmenter le z-index pour être sûr qu'il est au-dessus de tout
+        this.hoverTooltipElement.style.display = 'none';
+        this.hoverTooltipElement.style.transition = 'transform 0.1s ease-out';
+        this.hoverTooltipElement.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+        document.body.appendChild(this.hoverTooltipElement);
+      }
       
-      // Find y value at current x position by interpolating between points
-      if (visibleData.length >= 2) {
-        // Find the two points surrounding the current mouse position
+      // Now check if we're near the line by checking distance to line segments
+      let isNearLine = false;
+      let nearestLinePoint = null;
+      let nearestLineDistance = Infinity;
+      let interpolatedUsers = null;
+      
+      // Sort data by timestamp
+      const sortedData = [...visibleData].sort((a, b) => a.timestamp - b.timestamp);
+      
+      // Check each line segment
+      for (let i = 0; i < sortedData.length - 1; i++) {
+        const p1 = sortedData[i];
+        const p2 = sortedData[i + 1];
+        
+        const x1 = this.timeToX(p1.timestamp, displayWidth);
+        const y1 = this.userCountToY(p1.users, displayHeight);
+        const x2 = this.timeToX(p2.timestamp, displayWidth);
+        const y2 = this.userCountToY(p2.users, displayHeight);
+        
+        // Calculate distance from mouse to line segment
+        const distance = this.distanceToLineSegment(mouseX, mouseY, x1, y1, x2, y2);
+        
+        if (distance < 15 && distance < nearestLineDistance) { // 15px threshold
+          nearestLineDistance = distance;
+          isNearLine = true;
+          
+          // Interpolate value at mouse position
+          const mouseTime = this.xToTime(mouseX, displayWidth);
+          const leftTime = p1.timestamp.getTime();
+          const rightTime = p2.timestamp.getTime();
+          
+          // Make sure mouse is between these two points in time
+          if (mouseTime >= leftTime && mouseTime <= rightTime) {
+            const timeDiff = rightTime - leftTime;
+            const position = timeDiff === 0 ? 0 : (mouseTime - leftTime) / timeDiff;
+            interpolatedUsers = Math.round(p1.users + position * (p2.users - p1.users));
+            nearestLinePoint = new Date(mouseTime);
+          }
+        }
+      }
+      
+      // If we're near a point, use that point's value
+      if (closestDistance < 15) {
+        this.hoverPoint = closestPoint;
+        this.canvas.style.cursor = 'pointer';
+        
+        // Show tooltip with precise value
+        const formattedDate = this.formatDetailedTooltipDate(closestPoint.timestamp);
+        this.hoverTooltipElement.style.display = 'block';
+        this.hoverTooltipElement.style.left = (e.clientX + 15) + 'px';
+        this.hoverTooltipElement.style.top = (e.clientY - 15) + 'px';
+        this.hoverTooltipElement.innerHTML = `
+          <div style="font-weight: bold;">${formattedDate}</div>
+          <div>${closestPoint.users} users</div>
+        `;
+        
+        // Also show hover line 
+        if (this.options.hoverLineElement) {
+          const hoverLine = this.options.hoverLineElement;
+          hoverLine.style.display = 'block';
+          hoverLine.style.left = `${closestX}px`;
+          hoverLine.style.zIndex = '998'; // Ajouter un z-index élevé
+          
+          // Supprimer l'affichage de l'élément de valeur qui suit la courbe
+          if (this.options.hoverValueElement) {
+            this.options.hoverValueElement.style.display = 'none';
+          }
+        }
+      } 
+      // If we're near the line but not a specific point, show interpolated value
+      else if (isNearLine && nearestLinePoint && interpolatedUsers !== null) {
+        this.canvas.style.cursor = 'pointer';
+        
+        // Show tooltip with interpolated value
+        const formattedDate = this.formatDetailedTooltipDate(nearestLinePoint);
+        this.hoverTooltipElement.style.display = 'block';
+        this.hoverTooltipElement.style.left = (e.clientX + 15) + 'px';
+        this.hoverTooltipElement.style.top = (e.clientY - 15) + 'px';
+        this.hoverTooltipElement.innerHTML = `
+          <div style="font-weight: bold;">${formattedDate}</div>
+          <div>${interpolatedUsers} users</div>
+        `;
+        
+        // Show hover line
+        if (this.options.hoverLineElement) {
+          const hoverLine = this.options.hoverLineElement;
+          hoverLine.style.display = 'block';
+          hoverLine.style.left = `${mouseX}px`;
+          hoverLine.style.zIndex = '998'; // Ajouter un z-index élevé
+          
+          // Supprimer l'affichage de l'élément de valeur qui suit la courbe
+          if (this.options.hoverValueElement) {
+            this.options.hoverValueElement.style.display = 'none';
+          }
+        }
+        
+        this.hoverPoint = null;
+      } else {
+        // Try generic interpolation between points as fallback
+        const mouseTime = this.xToTime(mouseX, displayWidth);
+        
+        // Find points before and after mouse position
         let leftPoint = null;
         let rightPoint = null;
         
-        for (let i = 0; i < visibleData.length - 1; i++) {
-          const currentX = this.timeToX(visibleData[i].timestamp, displayWidth);
-          const nextX = this.timeToX(visibleData[i + 1].timestamp, displayWidth);
-          
-          if (currentX <= mouseX && nextX >= mouseX) {
-            leftPoint = visibleData[i];
-            rightPoint = visibleData[i + 1];
+        for (let i = 0; i < sortedData.length - 1; i++) {
+          if (sortedData[i].timestamp <= mouseTime && sortedData[i + 1].timestamp >= mouseTime) {
+            leftPoint = sortedData[i];
+            rightPoint = sortedData[i + 1];
             break;
           }
         }
         
         // If we found surrounding points, interpolate
         if (leftPoint && rightPoint) {
-          const leftX = this.timeToX(leftPoint.timestamp, displayWidth);
-          const rightX = this.timeToX(rightPoint.timestamp, displayWidth);
-          const ratio = (mouseX - leftX) / (rightX - leftX);
+          const leftTime = leftPoint.timestamp.getTime();
+          const rightTime = rightPoint.timestamp.getTime();
+          const timeDiff = rightTime - leftTime;
           
-          const interpolatedValue = Math.round(leftPoint.users + ratio * (rightPoint.users - leftPoint.users));
+          // Calculate position between points (0 to 1)
+          const position = timeDiff === 0 ? 0 : (mouseTime - leftTime) / timeDiff;
           
-          // Show hover value
-          if (this.options.hoverValueElement) {
-            const valueElement = this.options.hoverValueElement;
-            valueElement.style.display = 'block';
-            valueElement.textContent = `${interpolatedValue} users`;
+          // Interpolate value
+          const interpolatedUsers = Math.round(
+            leftPoint.users + position * (rightPoint.users - leftPoint.users)
+          );
+          
+          // Show tooltip with interpolated value
+          const formattedDate = this.formatDetailedTooltipDate(new Date(mouseTime));
+          this.hoverTooltipElement.style.display = 'block';
+          this.hoverTooltipElement.style.left = (e.clientX + 15) + 'px';
+          this.hoverTooltipElement.style.top = (e.clientY - 15) + 'px';
+          this.hoverTooltipElement.innerHTML = `
+            <div style="font-weight: bold;">${formattedDate}</div>
+            <div>${interpolatedUsers} users</div>
+          `;
+          
+          // Show hover line
+          if (this.options.hoverLineElement) {
+            const hoverLine = this.options.hoverLineElement;
+            hoverLine.style.display = 'block';
+            hoverLine.style.left = `${mouseX}px`;
+            hoverLine.style.zIndex = '998'; // Ajouter un z-index élevé
             
-            // Position the value at appropriate y coordinate
-            const valueY = this.userCountToY(interpolatedValue, displayHeight);
-            valueElement.style.left = `${mouseX + 10}px`;
-            valueElement.style.top = `${valueY - 10}px`;
+            // Supprimer l'affichage de l'élément de valeur qui suit la courbe
+            if (this.options.hoverValueElement) {
+              this.options.hoverValueElement.style.display = 'none';
+            }
           }
+          
+          this.hoverPoint = null;
+        } else {
+          // If we couldn't find surrounding points, hide tooltip
+          this.hoverTooltipElement.style.display = 'none';
+          if (this.options.hoverLineElement) {
+            this.options.hoverLineElement.style.display = 'none';
+          }
+          if (this.options.hoverValueElement) {
+            this.options.hoverValueElement.style.display = 'none';
+          }
+          this.hoverPoint = null;
         }
       }
-    }
-    
-    // Check if we're close enough to show the hover effect on point
-    if (minDistance <= this.options.hoverRadius) {
-      this.hoverPoint = closestPoint;
-      
-      // Show tooltip
-      if (this.options.tooltipContainer) {
-        const pointX = this.timeToX(closestPoint.timestamp, displayWidth);
-        const pointY = this.userCountToY(closestPoint.users, displayHeight);
-        
-        const tooltip = this.options.tooltipContainer;
-        tooltip.style.display = 'block';
-        tooltip.style.left = (pointX + rect.left - tooltip.offsetWidth / 2) + 'px';
-        tooltip.style.top = (pointY + rect.top - tooltip.offsetHeight - 10) + 'px';
-        
-        // Format the date nicely
-        const date = closestPoint.timestamp;
-        const formattedDate = date.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        
-        tooltip.innerHTML = `
-          <div style="font-weight: bold;">${formattedDate}</div>
-          <div>Users: ${closestPoint.users}</div>
-        `;
-      }
     } else {
-      // Hide tooltip
-      if (this.options.tooltipContainer) {
-        this.options.tooltipContainer.style.display = 'none';
+      // For simplified view, just update hover point
+      if (closestDistance < 15) {
+        this.hoverPoint = closestPoint;
+        this.canvas.style.cursor = 'pointer';
+      } else {
+        this.hoverPoint = null;
+        // Default cursor for graph is pointer to indicate it can be clicked
+        this.canvas.style.cursor = 'pointer';
       }
-      this.hoverPoint = null;
+      
+      // Hide hover tooltip for simplified view when not hovering min/max
+      if (!this.options.simplified && this.hoverTooltipElement) {
+        this.hoverTooltipElement.style.display = 'none';
+      }
     }
     
-    // Redraw to show hover effects
+    // Clean up when mouse leaves
+    this.canvas.addEventListener('mouseleave', () => {
+      if (this.hoverTooltipElement) {
+        this.hoverTooltipElement.style.display = 'none';
+      }
+      if (this.options.hoverLineElement) {
+        this.options.hoverLineElement.style.display = 'none';
+      }
+      if (this.options.hoverValueElement) {
+        this.options.hoverValueElement.style.display = 'none';
+      }
+    });
+    
     this.draw();
+  }
+  
+  // Format date for tooltip based on timeframe
+  formatTooltipDate(timestamp) {
+    const date = new Date(timestamp);
+    const timeRange = this.viewportEnd - this.viewportStart;
+    
+    if (timeRange < 24 * 60 * 60 * 1000) {
+      // Less than a day, show hour:minute
+      return date.toLocaleString(undefined, { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    } else if (timeRange < 7 * 24 * 60 * 60 * 1000) {
+      // Less than a week, show day and time
+      return date.toLocaleString(undefined, { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    } else {
+      // Otherwise date with time
+      return date.toLocaleString(undefined, { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  }
+  
+  // More detailed date format for modal graph tooltip
+  formatDetailedTooltipDate(timestamp) {
+    const date = new Date(timestamp);
+    const timeRange = this.viewportEnd - this.viewportStart;
+    
+    if (timeRange < 24 * 60 * 60 * 1000) {
+      // Less than a day, show hour:minute:second
+      return date.toLocaleString(undefined, { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } else if (timeRange < 7 * 24 * 60 * 60 * 1000) {
+      // Less than a week, show day and time
+      return date.toLocaleString(undefined, { 
+        weekday: 'short',
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    } else if (timeRange < 30 * 24 * 60 * 60 * 1000) {
+      // Less than a month
+      return date.toLocaleString(undefined, { 
+        weekday: 'short',
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+    } else {
+      // More than a month
+      return date.toLocaleString(undefined, { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  }
+  
+  // Helper method to simplify data points for better performance in simplified view
+  simplifyData(data, targetPoints) {
+    if (data.length <= targetPoints) return data;
+    
+    // For simplified view, use more data points
+    const targetPointCount = this.options.simplified ? 100 : targetPoints;
+    
+    const skipFactor = Math.floor(data.length / targetPointCount);
+    return data.filter((_, index) => index % skipFactor === 0);
   }
   
   // Function to fetch mock data (replace with actual API in production)
@@ -585,19 +1111,436 @@ class CapeUsageGraph {
     
     return data;
   }
+  
+  // Add this new method to fetch data when viewport changes
+  async fetchDataForViewport() {
+    // No need to fetch if we don't have a Cape ID
+    if (!this.capeId || this.capeId === 'unknown') return;
+    
+    // Calculate the time range currently visible
+    const currentViewportRange = this.viewportEnd - this.viewportStart;
+    
+    // Define a threshold (e.g., 20% of the current viewport)
+    const threshold = currentViewportRange * 0.2;
+    
+    // Check if we need to fetch more data
+    const needToFetchStart = 
+      !this.lastFetchedViewport.start || 
+      this.viewportStart < this.lastFetchedViewport.start + threshold;
+    
+    const needToFetchEnd = 
+      !this.lastFetchedViewport.end || 
+      this.viewportEnd > this.lastFetchedViewport.end - threshold;
+    
+    if (!needToFetchStart && !needToFetchEnd) return;
+    
+    // Calculate padding for fetching more data
+    const padding = currentViewportRange * this.fetchPadding;
+    
+    // Set the range to fetch
+    const fetchStart = Math.max(
+      new Date('2010-01-01').getTime(), 
+      this.viewportStart - padding
+    );
+    const fetchEnd = Math.min(
+      new Date().getTime() + 7 * 24 * 60 * 60 * 1000,
+      this.viewportEnd + padding
+    );
+    
+    // Check if this request recently failed to avoid spamming failed requests
+    if (capeDataCache.hasRecentlyFailed(this.capeId, fetchStart, fetchEnd)) {
+      console.warn(`Skipping fetch for cape ${this.capeId}: recent request failed`);
+      return;
+    }
+    
+    // Check if we already have this data in cache
+    if (capeDataCache.isTimeRangeCached(this.capeId, fetchStart, fetchEnd)) {
+      const data = capeDataCache.getDataForTimeRange(this.capeId, fetchStart, fetchEnd);
+      
+      // Merge with existing data if needed
+      if (this.data && this.data.length > 0) {
+        const existingTimestamps = new Set(this.data.map(d => d.timestamp.getTime()));
+        const newData = data.filter(d => !existingTimestamps.has(d.timestamp.getTime()));
+        
+        if (newData.length > 0) {
+          this.data = [...this.data, ...newData].sort((a, b) => a.timestamp - b.timestamp);
+          this.draw();
+        }
+      } else {
+        this.setData(data);
+      }
+      
+      // Update last fetched viewport
+      this.lastFetchedViewport = {
+        start: Math.min(this.lastFetchedViewport.start || Infinity, fetchStart),
+        end: Math.max(this.lastFetchedViewport.end || 0, fetchEnd)
+      };
+      
+      return;
+    }
+    
+    // If we need to fetch, show loading indicator
+    const graphLoadingIndicators = document.querySelectorAll('.graph-loading-indicator');
+    graphLoadingIndicators.forEach(indicator => {
+      indicator.style.display = 'flex';
+    });
+    
+    try {
+      // Fetch data from API
+      const apiUrl = `https://capes.api.fyz.sh/${this.capeId}/usage?start=${fetchStart}&end=${fetchEnd}`;
+      
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform data
+      const formattedData = data.map(point => ({
+        timestamp: new Date(point.timestamp),
+        users: point.users
+      }));
+      
+      // Add to cache
+      capeDataCache.addData(this.capeId, formattedData, fetchStart, fetchEnd);
+      
+      // Merge with existing data
+      if (this.data && this.data.length > 0) {
+        const existingTimestamps = new Set(this.data.map(d => d.timestamp.getTime()));
+        const newData = formattedData.filter(d => !existingTimestamps.has(d.timestamp.getTime()));
+        
+        if (newData.length > 0) {
+          this.data = [...this.data, ...newData].sort((a, b) => a.timestamp - b.timestamp);
+        }
+      } else {
+        this.setData(formattedData);
+      }
+      
+      // Update last fetched viewport
+      this.lastFetchedViewport = {
+        start: Math.min(this.lastFetchedViewport.start || Infinity, fetchStart),
+        end: Math.max(this.lastFetchedViewport.end || 0, fetchEnd)
+      };
+      
+    } catch (error) {
+      console.error('Error fetching additional data:', error);
+      
+      // Record this as a failed request to avoid retrying too often
+      capeDataCache.addFailedRequest(this.capeId, fetchStart, fetchEnd);
+      
+      // Show error message to user
+      const errorMessage = document.createElement('div');
+      errorMessage.classList.add('graph-error-message');
+      errorMessage.style.position = 'absolute';
+      errorMessage.style.top = '10px';
+      errorMessage.style.left = '50%';
+      errorMessage.style.transform = 'translateX(-50%)';
+      errorMessage.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
+      errorMessage.style.color = 'white';
+      errorMessage.style.padding = '8px 16px';
+      errorMessage.style.borderRadius = '4px';
+      errorMessage.style.zIndex = '1000';
+      errorMessage.style.fontSize = '14px';
+      errorMessage.textContent = 'Failed to load data. Please try again later.';
+      
+      // Add to graph container and remove after 5 seconds
+      const graphContainer = this.canvas.parentElement;
+      graphContainer.appendChild(errorMessage);
+      setTimeout(() => {
+        if (errorMessage.parentNode === graphContainer) {
+          graphContainer.removeChild(errorMessage);
+        }
+      }, 5000);
+      
+      // In case of failure, we keep the existing data
+    } finally {
+      // Hide loading indicator
+      graphLoadingIndicators.forEach(indicator => {
+        indicator.style.display = 'none';
+      });
+      
+      // Redraw graph with whatever data we have
+      this.draw();
+    }
+  }
+  
+  validateViewport() {
+    const now = new Date().getTime();
+    const minAllowedTime = new Date('2010-01-01').getTime(); // More restrictive
+    const maxAllowedTime = now + 7 * 24 * 60 * 60 * 1000; // Only 1 week into future
+    
+    // Limit start time
+    this.viewportStart = Math.max(this.viewportStart, minAllowedTime);
+    
+    // Limit end time
+    this.viewportEnd = Math.min(this.viewportEnd, maxAllowedTime);
+    
+    // Ensure the viewport isn't too large (max 10 years)
+    const maxTimeRange = 10 * 365 * 24 * 60 * 60 * 1000;
+    if (this.viewportEnd - this.viewportStart > maxTimeRange) {
+      this.viewportStart = this.viewportEnd - maxTimeRange;
+    }
+    
+    // Ensure the viewport isn't too small (min 1 hour)
+    const minTimeRange = 60 * 60 * 1000;
+    if (this.viewportEnd - this.viewportStart < minTimeRange) {
+      this.viewportEnd = this.viewportStart + minTimeRange;
+    }
+    
+    // Fetch data for new viewport if needed
+    this.fetchDataForViewport();
+  }
+
+  // Calculate the distance from a point to a line segment
+  distanceToLineSegment(x, y, x1, y1, x2, y2) {
+    const A = x - x1;
+    const B = y - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+
+    const dot = A * C + B * D;
+    const len_sq = C * C + D * D;
+    let param = -1;
+    
+    if (len_sq !== 0) {
+      param = dot / len_sq;
+    }
+
+    let xx, yy;
+
+    if (param < 0) {
+      xx = x1;
+      yy = y1;
+    } else if (param > 1) {
+      xx = x2;
+      yy = y2;
+    } else {
+      xx = x1 + param * C;
+      yy = y1 + param * D;
+    }
+
+    const dx = x - xx;
+    const dy = y - yy;
+    
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 }
 
-// Mock API function to get cape usage data
-async function getCapeUsageData(capeId, timeframe = 'week') {
-  // In a real implementation, this would fetch from an API
-  // For now, generate mock data
-  return CapeUsageGraph.generateMockData(
-    timeframe === 'day' ? 1 :
-    timeframe === 'week' ? 7 :
-    timeframe === 'month' ? 30 :
-    timeframe === 'year' ? 365 : 30
-  );
+// Cape Data Cache to store cape data in cache
+class CapeDataCache {
+  constructor() {
+    this.cacheData = {}; // Structure: {capeId: {timeRanges: [[start, end, timestamp], ...], data: [{timestamp, users}, ...]}}
+    this.pendingRequests = {}; // To avoid duplicate requests during loading
+    this.cacheDuration = 24 * 60 * 60 * 1000; // Cache validity duration: 24h in milliseconds
+    this.failedRequests = {}; // Track failed requests to avoid retrying too soon
+    this.failedRequestBackoff = 5 * 60 * 1000; // Wait 5 minutes before retrying failed requests
+  }
+
+  // Return cached data for a specific time range
+  getDataForTimeRange(capeId, startTime, endTime) {
+    if (!this.cacheData[capeId]) {
+      return null;
+    }
+    
+    // Filter data already available in the requested range
+    return this.cacheData[capeId].data.filter(
+      item => item.timestamp >= startTime && item.timestamp <= endTime
+    );
+  }
+
+  // Check if the time range is completely covered by the cache
+  isTimeRangeCached(capeId, startTime, endTime) {
+    if (!this.cacheData[capeId] || !this.cacheData[capeId].timeRanges.length) {
+      return false;
+    }
+    
+    const now = Date.now();
+    const validRanges = [];
+    const invalidRanges = [];
+    
+    // Check if the requested range is completely covered by the cached ranges and still valid
+    for (const range of this.cacheData[capeId].timeRanges) {
+      // Check if the range has a timestamp (format: [start, end, timestamp])
+      if (range.length >= 3) {
+        if (now - range[2] < this.cacheDuration) {
+          // The cache is still valid
+          validRanges.push(range);
+          if (range[0] <= startTime && range[1] >= endTime) {
+            return true;
+          }
+        } else {
+          // The cache has expired
+          invalidRanges.push(range);
+        }
+      } else {
+        // Old format without timestamp (format: [start, end])
+        // Consider as expired by default
+        invalidRanges.push(range);
+      }
+    }
+    
+    // Clean invalid ranges
+    if (invalidRanges.length > 0) {
+      this.cacheData[capeId].timeRanges = validRanges;
+      
+      // If all ranges are invalid, we should also clean the data
+      if (validRanges.length === 0) {
+        this.cacheData[capeId].data = [];
+      }
+    }
+    
+    return false;
+  }
+
+  // Check if a request has recently failed to avoid repeated failures
+  hasRecentlyFailed(capeId, startTime, endTime) {
+    if (!this.failedRequests[capeId]) {
+      return false;
+    }
+    
+    for (const failure of this.failedRequests[capeId]) {
+      // Check if this request overlaps with a failed one
+      const [failedStart, failedEnd, timestamp] = failure;
+      const overlaps = !(failedEnd < startTime || failedStart > endTime);
+      const isRecent = (Date.now() - timestamp) < this.failedRequestBackoff;
+      
+      if (overlaps && isRecent) {
+        return true;
+      }
+    }
+    
+    // Clean up old failed requests
+    this.cleanupFailedRequests(capeId);
+    return false;
+  }
+  
+  // Add a failed request to the tracking list
+  addFailedRequest(capeId, startTime, endTime) {
+    if (!this.failedRequests[capeId]) {
+      this.failedRequests[capeId] = [];
+    }
+    
+    this.failedRequests[capeId].push([startTime, endTime, Date.now()]);
+  }
+  
+  // Clean up old failed requests
+  cleanupFailedRequests(capeId) {
+    if (!this.failedRequests[capeId]) return;
+    
+    const now = Date.now();
+    this.failedRequests[capeId] = this.failedRequests[capeId].filter(
+      failure => now - failure[2] <= this.failedRequestBackoff
+    );
+    
+    // Remove empty arrays
+    if (this.failedRequests[capeId].length === 0) {
+      delete this.failedRequests[capeId];
+    }
+  }
+
+  // Add data to the cache
+  addData(capeId, data, startTime, endTime) {
+    if (!this.cacheData[capeId]) {
+      this.cacheData[capeId] = {
+        timeRanges: [],
+        data: []
+      };
+    }
+    
+    // Add the new time range with a timestamp
+    const timestamp = Date.now();
+    this.cacheData[capeId].timeRanges.push([startTime, endTime, timestamp]);
+    
+    // Merge the new data with existing data, without duplicates
+    const existingTimestamps = new Set(this.cacheData[capeId].data.map(d => d.timestamp.getTime()));
+    
+    data.forEach(item => {
+      if (!existingTimestamps.has(item.timestamp.getTime())) {
+        this.cacheData[capeId].data.push(item);
+      }
+    });
+    
+    // Sort data by timestamp
+    this.cacheData[capeId].data.sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Merge overlapping time ranges
+    this.mergeTimeRanges(capeId);
+  }
+
+  // Merge overlapping time ranges to optimize search
+  mergeTimeRanges(capeId) {
+    if (!this.cacheData[capeId] || this.cacheData[capeId].timeRanges.length <= 1) {
+      return;
+    }
+    
+    // Sort time ranges
+    const ranges = [...this.cacheData[capeId].timeRanges].sort((a, b) => a[0] - b[0]);
+    const mergedRanges = [ranges[0]];
+    
+    for (let i = 1; i < ranges.length; i++) {
+      const current = ranges[i];
+      const previous = mergedRanges[mergedRanges.length - 1];
+      
+      if (current[0] <= previous[1]) {
+        // The ranges overlap, merge
+        previous[1] = Math.max(previous[1], current[1]);
+        // Keep the latest timestamp
+        if (current.length >= 3 && previous.length >= 3) {
+          previous[2] = Math.max(previous[2], current[2]);
+        } else if (current.length >= 3) {
+          previous[2] = current[2];
+        }
+      } else {
+        // No overlap, add as new range
+        mergedRanges.push(current);
+      }
+    }
+    
+    this.cacheData[capeId].timeRanges = mergedRanges;
+  }
+
+  // Check if a request is pending for the requested range
+  isPendingRequest(capeId, startTime, endTime) {
+    if (!this.pendingRequests[capeId]) {
+      return false;
+    }
+    
+    return this.pendingRequests[capeId].some(
+      request => request.startTime <= startTime && request.endTime >= endTime
+    );
+  }
+
+  // Add a pending request
+  addPendingRequest(capeId, startTime, endTime, promise) {
+    if (!this.pendingRequests[capeId]) {
+      this.pendingRequests[capeId] = [];
+    }
+    
+    this.pendingRequests[capeId].push({
+      startTime,
+      endTime,
+      promise
+    });
+    
+    return promise;
+  }
+
+  // Remove a pending request once it's finished
+  removePendingRequest(capeId, promise) {
+    if (!this.pendingRequests[capeId]) {
+      return;
+    }
+    
+    this.pendingRequests[capeId] = this.pendingRequests[capeId].filter(
+      request => request.promise !== promise
+    );
+  }
 }
+
+// Create a global instance of the cache
+const capeDataCache = new CapeDataCache();
 
 // Function to create the usage graph card
 const createUsageGraphCard = (capeId) => {
@@ -609,10 +1552,13 @@ const createUsageGraphCard = (capeId) => {
         <div class="d-flex justify-content-between align-items-center">
           <strong>History</strong>
           <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe active" data-timeframe="day">Day</button>
-            <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe" data-timeframe="week">Week</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe" data-timeframe="day">Day</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe active" data-timeframe="week">Week</button>
             <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe" data-timeframe="month">Month</button>
             <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe" data-timeframe="year">Year</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="expand-graph">
+              <i class="fas fa-expand"></i>
+            </button>
           </div>
         </div>
         <div id="graph-stats" class="d-flex justify-content-between mt-2 text-muted" style="font-size: 12px;">
@@ -628,10 +1574,112 @@ const createUsageGraphCard = (capeId) => {
           <div id="tooltip" style="position: absolute; display: none; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; pointer-events: none; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
           <div id="hover-line" style="position: absolute; display: none; width: 1px; background: rgba(0,0,0,0.3); pointer-events: none; top: 0; bottom: 0;"></div>
           <div id="hover-value" style="position: absolute; display: none; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px; pointer-events: none; z-index: 100;"></div>
+          <div class="graph-loading-indicator" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 110;">
+            <div class="text-center">
+              <div class="spinner-border text-primary mb-2" role="status">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+              <div>Chargement des données...</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   `;
+  
+  // Create modal HTML structure
+  const modalHtml = `
+    <div id="graph-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1050; overflow: auto;">
+      <div class="modal-dialog modal-xl" style="margin: 2% auto; width: 90%; max-width: 1200px;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Cape Usage Statistics</h5>
+            <button type="button" class="btn btn-outline-secondary rounded-circle" id="close-modal" aria-label="Close" style="width: 32px; height: 32px; padding: 0; line-height: 1;">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe active" data-timeframe="day">Day</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe" data-timeframe="week">Week</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe" data-timeframe="month">Month</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe" data-timeframe="year">Year</button>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="modal-reset-zoom">
+                    <i class="fas fa-sync-alt"></i> Reset Zoom
+                  </button>
+                  <button type="button" class="btn btn-outline-info btn-sm" id="modal-help">
+                    <i class="fas fa-info-circle"></i> Help
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="alert alert-info" id="modal-help-text" style="display: none;">
+              <h6>Usage Tips:</h6>
+              <ul class="mb-2">
+                <li>Use the mouse wheel to zoom in on a specific time period</li>
+                <li>Click and drag to pan the graph</li>
+                <li>Hover over a point to see details</li>
+                <li>Click on time period buttons to change the time range</li>
+              </ul>
+              <p class="mb-0">This graph shows the evolution of the number of users using this cape over time. The data is updated regularly.</p>
+            </div>
+            <div class="mb-3">
+              <div class="card">
+                <div class="card-body py-2">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <div class="d-flex flex-column align-items-center">
+                        <div class="text-muted small">Current</div>
+                        <div class="h4" id="modal-stat-current">-</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="d-flex flex-column align-items-center">
+                        <div class="text-muted small">Maximum</div>
+                        <div class="h4" id="modal-stat-max">-</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="d-flex flex-column align-items-center">
+                        <div class="text-muted small">Minimum</div>
+                        <div class="h4" id="modal-stat-min">-</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="d-flex flex-column align-items-center">
+                        <div class="text-muted small">Average</div>
+                        <div class="h4" id="modal-stat-avg">-</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="modal-graph-container" style="position: relative; height: 60vh; width: 100%;">
+              <canvas id="modal-usage-graph" style="width: 100%; height: 100%; position: relative; z-index: 1;"></canvas>
+              <div id="modal-hover-line" style="position: absolute; display: none; width: 1px; background: rgba(0,0,0,0.3); pointer-events: none; top: 0; bottom: 0; z-index: 2;"></div>
+              <!-- Suppression de l'élément modal-hover-value qui était affiché au-dessus de la courbe -->
+              <div class="graph-loading-indicator" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 110;">
+                <div class="text-center">
+                  <div class="spinner-border text-primary mb-2" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                  </div>
+                  <div>Chargement des données...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Append modal HTML to body
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
   
   return graphCard;
 };
@@ -644,11 +1692,14 @@ const initializeGraph = (capeId) => {
   const hoverValue = document.getElementById('hover-value');
   if (!canvas) return;
   
-  // Initialize graph
+  // Initialize main graph with simplified option and capeId
   const graph = new CapeUsageGraph(canvas, {
     tooltipContainer: tooltip,
     hoverLineElement: hoverLine,
-    hoverValueElement: hoverValue,
+    hoverValueElement: null, // Remove the value element that follows the curve
+    simplified: true, // Simplified view for main graph
+    timeframe: 'week', // Default to week data
+    capeId: capeId, // Pass the capeId for data fetching
     statElements: {
       current: document.getElementById('stat-current'),
       max: document.getElementById('stat-max'),
@@ -659,11 +1710,53 @@ const initializeGraph = (capeId) => {
   window.capeGraph = graph;
   
   // Load data
-  getCapeUsageData(capeId).then(data => {
+  getCapeUsageData(capeId, 'week').then(data => {
     graph.setData(data);
+    
+    // Initialize modal graph when data is available
+    const modalCanvas = document.getElementById('modal-usage-graph');
+    if (modalCanvas) {
+      const modalGraph = new CapeUsageGraph(modalCanvas, {
+        tooltipContainer: document.getElementById('modal-tooltip'),
+        hoverLineElement: document.getElementById('modal-hover-line'),
+        hoverValueElement: null, // Remove the value element that follows the curve
+        simplified: false, // Full details for modal graph
+        timeframe: 'week', // Match main graph's default
+        capeId: capeId, // Pass the capeId for data fetching
+        statElements: {
+          current: document.getElementById('modal-stat-current'),
+          max: document.getElementById('modal-stat-max'),
+          min: document.getElementById('modal-stat-min'),
+          avg: document.getElementById('modal-stat-avg')
+        }
+      });
+      window.modalCapeGraph = modalGraph;
+      modalGraph.setData(data);
+      
+      // Set up reset zoom button
+      const resetZoomButton = document.getElementById('modal-reset-zoom');
+      if (resetZoomButton) {
+        resetZoomButton.addEventListener('click', () => {
+          modalGraph.setTimeframe(document.querySelector('.modal-timeframe.active').getAttribute('data-timeframe'));
+        });
+      }
+      
+      // Set up help button
+      const helpButton = document.getElementById('modal-help');
+      const helpText = document.getElementById('modal-help-text');
+      if (helpButton && helpText) {
+        helpButton.addEventListener('click', () => {
+          if (helpText.style.display === 'none') {
+            helpText.style.display = 'block';
+          } else {
+            helpText.style.display = 'none';
+          }
+        });
+      }
+    }
   });
   
-  // Set up timeframe buttons
+  // Set up timeframe buttons for main graph
   document.querySelectorAll('.graph-timeframe').forEach(button => {
     button.addEventListener('click', () => {
       document.querySelectorAll('.graph-timeframe').forEach(b => b.classList.remove('active'));
@@ -671,8 +1764,108 @@ const initializeGraph = (capeId) => {
       
       const timeframe = button.getAttribute('data-timeframe');
       graph.setTimeframe(timeframe);
+      
+      // Sync modal timeframe if modal graph exists
+      if (window.modalCapeGraph) {
+        document.querySelectorAll('.modal-timeframe').forEach(b => {
+          if (b.getAttribute('data-timeframe') === timeframe) {
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        });
+        window.modalCapeGraph.setTimeframe(timeframe);
+      }
     });
   });
+  
+  // Set up timeframe buttons for modal graph
+  document.querySelectorAll('.modal-timeframe').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.modal-timeframe').forEach(b => b.classList.remove('active'));
+      button.classList.add('active');
+      
+      const timeframe = button.getAttribute('data-timeframe');
+      if (window.modalCapeGraph) {
+        window.modalCapeGraph.setTimeframe(timeframe);
+      }
+      
+      // Sync main graph timeframe
+      document.querySelectorAll('.graph-timeframe').forEach(b => {
+        if (b.getAttribute('data-timeframe') === timeframe) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+      graph.setTimeframe(timeframe);
+    });
+  });
+  
+  // Set up expand button
+  const expandButton = document.getElementById('expand-graph');
+  if (expandButton) {
+    expandButton.addEventListener('click', () => {
+      openGraphModal();
+    });
+  }
+  
+  // Make the entire graph canvas clickable to open modal
+  if (canvas) {
+    canvas.style.cursor = 'pointer';
+    canvas.addEventListener('click', (e) => {
+      // Check if we're clicking on a point (for interaction) or empty space (for expanding)
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // If we're not near any data point or in hover mode, open the modal
+      if (!graph.hoverPoint) {
+        openGraphModal();
+      }
+    });
+  }
+  
+  // Function to open the graph modal
+  function openGraphModal() {
+    const modal = document.getElementById('graph-modal');
+    if (modal) {
+      modal.style.display = 'block';
+      
+      // Ensure modal graph is properly sized
+      if (window.modalCapeGraph) {
+        window.modalCapeGraph.resizeCanvas();
+      }
+    }
+  }
+  
+  // Set up close modal button
+  const closeButton = document.getElementById('close-modal');
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      const modal = document.getElementById('graph-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    });
+  }
+  
+  // Close modal when clicking outside
+  const modal = document.getElementById('graph-modal');
+  if (modal) {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal.style.display === 'block') {
+        modal.style.display = 'none';
+      }
+    });
+  }
 };
 
 // No longer need loadGraphUtils - we've defined everything inline
@@ -1074,3 +2267,174 @@ async function loadPage(mainDiv) {
  */
 
 waitForStorage("supabase_data", () => waitForSelector("main", loadPage));
+
+// Improved function to retrieve cape data with caching
+async function getCapeUsageData(capeId, timeframe = 'week') {
+  // Calculate the time range based on the timeframe
+  const now = new Date();
+  let startTime, endTime = now.getTime();
+  
+  switch (timeframe) {
+    case 'day':
+      startTime = new Date(now - 24 * 60 * 60 * 1000).getTime();
+      break;
+    case 'week':
+      startTime = new Date(now - 7 * 24 * 60 * 60 * 1000).getTime();
+      break;
+    case 'month':
+      startTime = new Date(now - 30 * 24 * 60 * 60 * 1000).getTime();
+      break;
+    case 'year':
+      startTime = new Date(now - 365 * 24 * 60 * 60 * 1000).getTime();
+      break;
+    default:
+      startTime = new Date(now - 30 * 24 * 60 * 60 * 1000).getTime();
+  }
+  
+  // Extend the range slightly to preload additional data
+  // (10% before and 10% after)
+  const padding = (endTime - startTime) * 0.1;
+  const extendedStart = Math.max(startTime - padding, new Date('2010-01-01').getTime());
+  const extendedEnd = Math.min(endTime + padding, now.getTime() + 24 * 60 * 60 * 1000);
+  
+  // Check if this request recently failed
+  if (capeDataCache.hasRecentlyFailed(capeId, extendedStart, extendedEnd)) {
+    console.warn(`Skipping fetch for cape ${capeId} (${timeframe}): recent request failed`);
+    
+    // Show error message
+    showErrorMessage('Could not load data. Please try again later.');
+    
+    // Return simulated data as fallback
+    return CapeUsageGraph.generateMockData(
+      timeframe === 'day' ? 1 :
+      timeframe === 'week' ? 7 :
+      timeframe === 'month' ? 30 :
+      timeframe === 'year' ? 365 : 30
+    );
+  }
+  
+  // Check if the data is already cached
+  if (capeDataCache.isTimeRangeCached(capeId, startTime, endTime)) {
+    console.log(`Data for cape ${capeId} (${timeframe}) already cached`);
+    return capeDataCache.getDataForTimeRange(capeId, startTime, endTime);
+  }
+  
+  // Check if a similar request is already in progress
+  if (capeDataCache.isPendingRequest(capeId, extendedStart, extendedEnd)) {
+    console.log(`Request already in progress for cape ${capeId} (${timeframe})`);
+    // Wait for the request to finish then filter the data
+    const pendingRequest = capeDataCache.pendingRequests[capeId].find(
+      req => req.startTime <= extendedStart && req.endTime >= extendedEnd
+    );
+    
+    await pendingRequest.promise;
+    return capeDataCache.getDataForTimeRange(capeId, startTime, endTime);
+  }
+  
+  // Prepare the API request
+  console.log(`Retrieving data for cape ${capeId} (${timeframe})`);
+  
+  // Create and track the loading promise
+  const fetchPromise = (async () => {
+    try {
+      // URL of the API with parameters for the time range
+      const apiUrl = `https://capes.api.fyz.sh/${capeId}/usage?start=${extendedStart}&end=${extendedEnd}`;
+      
+      // Display a loading indicator on the graph
+      document.querySelectorAll('.graph-loading-indicator').forEach(el => {
+        el.style.display = 'flex';
+      });
+      
+      // Fetch data from the API
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Convert timestamps to Date objects
+      const formattedData = data.map(item => ({
+        timestamp: new Date(item.timestamp),
+        users: item.users
+      }));
+      
+      // Hide the loading indicator
+      document.querySelectorAll('.graph-loading-indicator').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      // Add the data to the cache
+      capeDataCache.addData(capeId, formattedData, extendedStart, extendedEnd);
+      
+      return formattedData;
+    } catch (error) {
+      console.error('Error retrieving cape data:', error);
+      
+      // Record this as a failed request
+      capeDataCache.addFailedRequest(capeId, extendedStart, extendedEnd);
+      
+      // Hide the loading indicator
+      document.querySelectorAll('.graph-loading-indicator').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      // Show error message
+      showErrorMessage('Failed to load data. Please try again later.');
+      
+      // In case of error, return simulated data
+      return CapeUsageGraph.generateMockData(
+        timeframe === 'day' ? 1 :
+        timeframe === 'week' ? 7 :
+        timeframe === 'month' ? 30 :
+        timeframe === 'year' ? 365 : 30
+      );
+    }
+  })();
+  
+  // Register the request
+  capeDataCache.addPendingRequest(capeId, extendedStart, extendedEnd, fetchPromise);
+  
+  // Wait for the request to finish
+  await fetchPromise;
+  
+  // Remove the request from the list of pending requests
+  capeDataCache.removePendingRequest(capeId, fetchPromise);
+  
+  // Retrieve the requested data from the cache
+  return capeDataCache.getDataForTimeRange(capeId, startTime, endTime);
+}
+
+// Helper function to show error messages in graph containers
+function showErrorMessage(message) {
+  // Remove any existing error messages
+  document.querySelectorAll('.graph-error-message').forEach(el => el.remove());
+  
+  // Get all graph containers
+  const graphContainers = document.querySelectorAll('.graph-container');
+  
+  graphContainers.forEach(container => {
+    const errorMessage = document.createElement('div');
+    errorMessage.classList.add('graph-error-message');
+    errorMessage.style.position = 'absolute';
+    errorMessage.style.top = '10px';
+    errorMessage.style.left = '50%';
+    errorMessage.style.transform = 'translateX(-50%)';
+    errorMessage.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
+    errorMessage.style.color = 'white';
+    errorMessage.style.padding = '8px 16px';
+    errorMessage.style.borderRadius = '4px';
+    errorMessage.style.zIndex = '1000';
+    errorMessage.style.fontSize = '14px';
+    errorMessage.textContent = message;
+    
+    container.appendChild(errorMessage);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+      if (errorMessage.parentNode === container) {
+        container.removeChild(errorMessage);
+      }
+    }, 5000);
+  });
+}
