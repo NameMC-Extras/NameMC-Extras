@@ -1,3 +1,13 @@
+// Add debounce helper at the top of the file
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
+
 console.log("Creating custom cape page...");
 
 // only use for getting animate cookie
@@ -50,6 +60,10 @@ class CapeUsageGraph {
     this.capeId = options.capeId || 'unknown';
     this.lastFetchedViewport = { start: 0, end: 0 };
     this.fetchPadding = 0.3; // Fetch 30% more data on each side
+    this.isFetching = false;
+    this.pendingFetch = false;
+    this.fetchDebounceDelay = 500; // ms to wait before fetching
+    this.debouncedFetchData = debounce(this._fetchDataForViewport.bind(this), this.fetchDebounceDelay);
     
     // Make canvas responsive
     this.resizeCanvas();
@@ -654,6 +668,11 @@ class CapeUsageGraph {
     
     window.addEventListener('mouseup', () => {
       this.isDragging = false;
+      
+      // If there was a pending fetch request during dragging, execute it now
+      if (this.pendingFetch) {
+        this.fetchDataForViewport();
+      }
     });
     
     this.canvas.addEventListener('mouseleave', () => {
@@ -1114,8 +1133,26 @@ class CapeUsageGraph {
   
   // Add this new method to fetch data when viewport changes
   async fetchDataForViewport() {
+    // If we're in the middle of dragging, just set a flag to fetch later
+    if (this.isDragging) {
+      this.pendingFetch = true;
+      return;
+    }
+    
+    // Use debounced fetch to avoid multiple requests during rapid interactions
+    this.debouncedFetchData();
+  }
+  
+  // Add this new method for the actual implementation
+  async _fetchDataForViewport() {
     // No need to fetch if we don't have a Cape ID
     if (!this.capeId || this.capeId === 'unknown') return;
+    
+    // If already fetching, don't start another fetch
+    if (this.isFetching) return;
+    
+    // Reset the pending fetch flag
+    this.pendingFetch = false;
     
     // Calculate the time range currently visible
     const currentViewportRange = this.viewportEnd - this.viewportStart;
@@ -1132,6 +1169,7 @@ class CapeUsageGraph {
       !this.lastFetchedViewport.end || 
       this.viewportEnd > this.lastFetchedViewport.end - threshold;
     
+    // Only fetch if we actually need new data
     if (!needToFetchStart && !needToFetchEnd) return;
     
     // Calculate padding for fetching more data
@@ -1178,6 +1216,9 @@ class CapeUsageGraph {
       
       return;
     }
+    
+    // Set fetching flag
+    this.isFetching = true;
     
     // If we need to fetch, show loading indicator
     const graphLoadingIndicators = document.querySelectorAll('.graph-loading-indicator');
@@ -1256,6 +1297,9 @@ class CapeUsageGraph {
       
       // In case of failure, we keep the existing data
     } finally {
+      // Reset fetching flag
+      this.isFetching = false;
+      
       // Hide loading indicator
       graphLoadingIndicators.forEach(indicator => {
         indicator.style.display = 'none';
@@ -1263,6 +1307,11 @@ class CapeUsageGraph {
       
       // Redraw graph with whatever data we have
       this.draw();
+      
+      // If a fetch was requested while we were fetching, do it now
+      if (this.pendingFetch) {
+        setTimeout(() => this.fetchDataForViewport(), 0);
+      }
     }
   }
   
