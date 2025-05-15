@@ -818,7 +818,7 @@ class CapeUsageGraph {
         this.hoverTooltipElement.style.borderRadius = '4px';
         this.hoverTooltipElement.style.fontSize = '12px';
         this.hoverTooltipElement.style.pointerEvents = 'none';
-        this.hoverTooltipElement.style.zIndex = '9999'; // Augmenter le z-index pour être sûr qu'il est au-dessus de tout
+        this.hoverTooltipElement.style.zIndex = '9999';
         this.hoverTooltipElement.style.display = 'none';
         this.hoverTooltipElement.style.transition = 'transform 0.1s ease-out';
         this.hoverTooltipElement.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';

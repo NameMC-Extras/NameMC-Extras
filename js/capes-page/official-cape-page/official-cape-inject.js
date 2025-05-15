@@ -819,7 +819,7 @@ class CapeUsageGraph {
         this.hoverTooltipElement.style.borderRadius = '4px';
         this.hoverTooltipElement.style.fontSize = '12px';
         this.hoverTooltipElement.style.pointerEvents = 'none';
-        this.hoverTooltipElement.style.zIndex = '9999'; // Augmenter le z-index pour être sûr qu'il est au-dessus de tout
+        this.hoverTooltipElement.style.zIndex = '9999';
         this.hoverTooltipElement.style.display = 'none';
         this.hoverTooltipElement.style.transition = 'transform 0.1s ease-out';
         this.hoverTooltipElement.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
@@ -866,12 +866,12 @@ class CapeUsageGraph {
           }
         }
       }
-      
+
       // If we're near a point, use that point's value
       if (closestDistance < 15) {
         this.hoverPoint = closestPoint;
         this.canvas.style.cursor = 'pointer';
-        
+
         // Show tooltip with precise value
         const formattedDate = this.formatDetailedTooltipDate(closestPoint.timestamp);
         this.hoverTooltipElement.style.display = 'block';
@@ -881,48 +881,19 @@ class CapeUsageGraph {
           <div style="font-weight: bold;">${formattedDate}</div>
           <div>${closestPoint.users} users</div>
         `;
-        
-        // Also show hover line 
+
+        // Also show hover line
         if (this.options.hoverLineElement) {
           const hoverLine = this.options.hoverLineElement;
           hoverLine.style.display = 'block';
           hoverLine.style.left = `${closestX}px`;
           hoverLine.style.zIndex = '998'; // Ajouter un z-index élevé
-          
+
           // Hide the value element that follows the curve
           if (this.options.hoverValueElement) {
             this.options.hoverValueElement.style.display = 'none';
           }
         }
-      } 
-      // If we're near the line but not a specific point, show interpolated value
-      else if (isNearLine && nearestLinePoint && interpolatedUsers !== null) {
-        this.canvas.style.cursor = 'pointer';
-        
-        // Show tooltip with interpolated value
-        const formattedDate = this.formatDetailedTooltipDate(nearestLinePoint);
-        this.hoverTooltipElement.style.display = 'block';
-        this.hoverTooltipElement.style.left = (e.clientX + 15) + 'px';
-        this.hoverTooltipElement.style.top = (e.clientY - 15) + 'px';
-        this.hoverTooltipElement.innerHTML = `
-          <div style="font-weight: bold;">${formattedDate}</div>
-          <div>${interpolatedUsers} users</div>
-        `;
-        
-        // Show hover line
-        if (this.options.hoverLineElement) {
-          const hoverLine = this.options.hoverLineElement;
-          hoverLine.style.display = 'block';
-          hoverLine.style.left = `${mouseX}px`;
-          hoverLine.style.zIndex = '998'; // Ajouter un z-index élevé
-          
-          // Hide the value element that follows the curve
-          if (this.options.hoverValueElement) {
-            this.options.hoverValueElement.style.display = 'none';
-          }
-        }
-        
-        this.hoverPoint = null;
       } else {
         // Try generic interpolation between points as fallback
         const mouseTime = this.xToTime(mouseX, displayWidth);
