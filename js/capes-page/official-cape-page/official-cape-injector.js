@@ -6,10 +6,16 @@ skinViewScript.onload = function() {
   skinViewScript.remove();
 };
 
-// Inject the cape page script
-const script = document.createElement("script");
-script.src = chrome.runtime.getURL("js/capes-page/official-cape-page/official-cape-inject.js");
-(document.head || document.documentElement).appendChild(script);
-script.onload = function() {
-  script.remove();
+const graphUtilsScript = document.createElement("script");
+graphUtilsScript.src = chrome.runtime.getURL("js/capes-page/graph-utils.js");
+(document.head || document.documentElement).appendChild(graphUtilsScript);
+graphUtilsScript.onload = function() {
+  const script = document.createElement("script");
+  script.src = chrome.runtime.getURL("js/capes-page/official-cape-page/official-cape-inject.js");
+  (document.head || document.documentElement).appendChild(script);
+  script.onload = function() {
+    script.remove();
+  };
+  
+  graphUtilsScript.remove();
 };
