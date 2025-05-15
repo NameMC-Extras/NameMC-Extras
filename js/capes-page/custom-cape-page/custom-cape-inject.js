@@ -193,13 +193,10 @@ async function loadPage(mainDiv) {
     const bedrockInfo = await (await fetch(`https://bedrock.lol/api/v1/capes/${capeId}`)).json();
     cape = new CustomCape(bedrockInfo.name, bedrockInfo.description, bedrockInfo.image_data, bedrockInfo.users);
     cape.user_count = bedrockInfo.user_count;
-    console.log(cape);
   } else {
     cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
     console.log(cape);
   }
-  console.log("Cape : ");
-  console.log(cape);
   if (!cape) return;
   const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name ?? "Bedrock";
   document.title = `${cape.name} | ${capeCategory} Cape | NameMC Extras`
