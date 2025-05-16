@@ -8,11 +8,12 @@ class CapeTemplate {
    * @param {string} description
    * @param {string} redirect
    */
-  constructor(src, name, description = null, redirect = null) {
+  constructor(src, name, description = null, redirect = null, java_equivalent = null) {
     this.src = src;
     this.name = name;
     this.description = description;
     this.redirect = redirect;
+    this.java_equivalent = java_equivalent;
   }
 }
 
@@ -30,11 +31,15 @@ const rows = 9;
 const columns = 3;
 const size = 32;
 
-var paused = (getCookie("animate") === "false");
+var paused = getCookie("animate") !== "true";
 var elytraOn = false;
-var isHidden = true;
-var skinArt = (localStorage.getItem("skinArt") == "true");
+var isHidden = localStorage.getItem("isHidden") !== "false";
+var skinArt = localStorage.getItem("skinArt") == "true";
 var layer = true;
+var enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
+var hideBadges = localStorage.getItem("hideBadges") === "true";
+var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
+var bedrockOnly = localStorage.getItem("bedrockOnly") !== "false";
 
 var currentSkinId = null;
 var currentDataModel = "classic";
@@ -58,10 +63,15 @@ function createCapeCard(capes, title, callback = console.log("Successfully made 
   cardDiv.id = title.toLowerCase().replace(" ", "-");
   cardDiv.className = "card mb-3";
   cardDiv.innerHTML = `
-        <div class="card-header py-1">
+        <div class="card-header py-1" style="display: flex; justify-content: space-between;">
             <strong>
                 ${redirect ? `<a href="${redirect}" target="_blank" rel="nofollow noopener noreferrer">` : ""}${title.split(" ")[0]}${redirect ? `</a>` : ""}${" " + titleArray.join(" ")}${showAmount ? " (" + capes.length + ")" : ""}
             </strong>
+            <div>
+              <a href="javascript:void(0)" class="color-inherit" title="Bedrock Only Capes" id="bedrockBtn">
+                ${bedrockOnly ? '<i class="fas fa-fw fa-eye"></i>' : '<i class="fas fa-fw fa-eye-slash"></i>'}
+              </a>
+            </div>
         </div>
         <div class="card-body text-center" style="padding: 3px; width: 324px; margin: auto; text-align: center;">
         </div>
@@ -69,14 +79,8 @@ function createCapeCard(capes, title, callback = console.log("Successfully made 
 
   // Render capes
   capes.forEach(cape => {
-    createCape(cape.src, cardDiv.querySelector("div.card-body.text-center"), cape.name, cape.description, cape.redirect ?? capes[i])
-  })
-
-  // Remove cape selected glow
-  const capeChildren = document.getElementsByClassName("cape-2d")
-  for (var i = 0; i < capeChildren.length; i++) {
-    capeChildren[i].classList.remove("skin-button-selected");
-  }
+    createCape(cape.src, cardDiv.querySelector("div.card-body.text-center"), cape.name, cape.description, cape.redirect ?? cape, cape.java_equivalent)
+  });
 
   // find element with class name "col-md-auto order-md-1", then make cardDiv come after the third "card mb-3" classed element
   const colDiv = document.querySelector(".col-md-auto.order-md-1");
@@ -99,9 +103,9 @@ function createCapeCard(capes, title, callback = console.log("Successfully made 
  * @param {string} description 
  * @param {string} redirect 
  */
-function createCape(src, parentElement, name = "", description = "", redirect = "") {
+function createCape(src, parentElement, name = "", description = "", redirect = "", java_equivalent = "") {
   let capeCanvas = document.createElement("canvas");
-  capeCanvas.className = "cape-2d align-top skin-button skin-button-selected";
+  capeCanvas.className = "cape-2d align-top skin-button";
   let capeDataHash = `custom-${name.replace(" ", "-").toLowerCase()}`;
   capeCanvas.setAttribute("data-cape-hash", capeDataHash);
   capeDB[capeDataHash] = src;
@@ -116,7 +120,7 @@ function createCape(src, parentElement, name = "", description = "", redirect = 
     ctx.webkitImageSmoothingEnabled = false;
     ctx.msImageSmoothingEnabled = false;
     ctx.imageSmoothingEnabled = false;
-    if (capeImage.src != src) capeImage.src = src;
+    if (capeImage.src !== src) capeImage.src = src;
     const localCapeScale = capeScale(capeImage.height)
     ctx.drawImage(capeImage, localCapeScale, localCapeScale, 10 * localCapeScale, 16 * localCapeScale, 0, 0, capeCanvas.width, capeCanvas.height)
     createCapeEvents();
@@ -125,9 +129,10 @@ function createCape(src, parentElement, name = "", description = "", redirect = 
   // Puts the image in a href
   let featureImageHref = document.createElement("a");
   featureImageHref.href = redirect ? redirect : src;
+  if (java_equivalent) featureImageHref.dataset['java_equivalent'] = java_equivalent;
   featureImageHref.setAttribute("data-toggle", "tooltip"),
     featureImageHref.setAttribute("data-html", "true")
-  if (typeof name != 'undefined') {
+  if (typeof name !== 'undefined') {
     featureImageHref.setAttribute("title", name)
   }
   featureImageHref.appendChild(capeCanvas);
@@ -147,11 +152,11 @@ function createCapeEvents() {
       event.target.classList.add("skin-button-selected");
       let capeHash = event.target.getAttribute("data-cape-hash")
 
-      if (capeHash != undefined && !capeHash.startsWith("custom-")) {
+      if (capeHash && !capeHash.startsWith("custom-")) {
         let capeUrl = "https://texture.namemc.com/" + capeHash.substring(0, 2) + "/" + capeHash.substring(2, 4) + "/" + capeHash + ".png";
         this.skinViewer.loadCape(capeUrl)
         console.log("capeEvent: Mojang/Optifine")
-      } else if (capeHash != undefined && capeHash.startsWith("custom-")) {
+      } else if (capeHash && capeHash.startsWith("custom-")) {
         const options = {};
         if (elytraOn) options.backEquipment = "elytra";
         this.skinViewer.loadCape(capeDB[capeHash], options);
@@ -224,7 +229,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
   };
 
   const waitForTooltip = function (callback) {
-    if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
+    if (typeof $ !== 'undefined' && typeof $().tooltip !== 'undefined') {
       setTimeout(() => {
         callback();
       });
@@ -275,7 +280,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     }
     pauseBtn.setAttribute('onclick', '');
     pauseBtn.onclick = () => {
-      if (paused == false) {
+      if (paused === false) {
         paused = true;
         pauseIcon.classList.remove('fa-pause');
         pauseIcon.classList.add('fa-play');
@@ -394,7 +399,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     var nameElements = document.querySelectorAll('tr');
     for (var i = 0; i < nameElements.length; i++) {
       var historyEl = nameElements[i];
-      if (historyEl.classList.value == '' && historyEl.innerText.includes('—')) {
+      if (historyEl.classList.value === '' && historyEl.innerText.includes('—')) {
         hideElement(nameElements[i]);
         if (nameElements[i + 1] && nameElements[i + 1].classList.value !== '') {
           hideElement(nameElements[i + 1]);
@@ -459,101 +464,165 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     // fix uuid select
     document.querySelector("#uuid-select").onclick = (e) => {
-      if (e.pointerType == 0 || e.target.tagName == "OPTION") document.querySelector("#uuid-select").blur();
+      if (e.pointerType === 0 || e.target.tagName === "OPTION") document.querySelector("#uuid-select").blur();
     }
 
     var cardBody = uuid_select.parentElement.parentElement.parentElement;
     var views = cardBody.querySelector('.card-body > :nth-child(2)');
 
-    // create layer button
-    setTimeout(createLayerBtn)
+    // create layer buttons
+    setTimeout(createLayerBtn);
 
-    document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove()
+    document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove();
+
+    var descText = linksTextArea.toString().split('{uuid}').join(uuid);
+    var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
+
+    if (!hasMdLink || descText.match(/["'`<>]/g)) {
+      descText = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`.toString().split('{uuid}').join(uuid);
+      hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
+    }
+
+    if (hasMdLink) {
+      var textAreaTag = document.createElement("textarea");
+      textAreaTag.textContent = descText;
+      descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
+      var elements = descText.match(/\[.*?\)/g);
+      if (elements && elements.length > 0) {
+        for (el of elements) {
+          let text = el.match(/\[(.*?)\]/)[1];
+          let url = el.match(/\((.*?)\)/)[1];
+          let aTag = document.createElement("a");
+          let urlHref = new URL(url);
+          urlHref.protocol = "https:";
+          aTag.href = urlHref;
+          aTag.textContent = text;
+          aTag.target = '_blank';
+          descText = descText.replace(el, aTag.outerHTML)
+        }
+      }
+
+      linksTextArea = descText;
+    }
 
     views.outerHTML += `
       <div class="row g-0">
         <div class="col col-lg-3"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>
-      <div class="row g-0">
+      ${linksTextArea ? `<div class="row g-0">
         <div class="col order-lg-1 col-lg-3"><strong>Links</strong></div>
-        <div class="col-12 order-lg-2 col-lg"><a href="https://capes.me/${uuid}" target="_blank">capes.me</a>, <a href="https://laby.net/@${uuid}" target="_blank">LABY</a>, <a href="https://livzmc.net/user/${uuid}" target="_blank">Livz</a>, <a href="https://25karma.xyz/player/${uuid}" target="_blank">25Karma</a>, <a href="https://crafty.gg/players/${uuid}" target="_blank">Crafty</a></div>
-      </div>
+        <div class="col-12 order-lg-2 col-lg">${linksTextArea}</div>
+      </div>` : ''}
     `;
 
-    // add badges
-    waitForSupabase((supabase_data) => {
-      // add emoji override (if applicable)
-      let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid == uuid)[0];
-      if (emojiOverride) {
-        let usernameEl = document.querySelector("h1.text-nowrap");
-        // if usernameEl has img child, remove it
-        if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
-        // add new img
-        let emojiImg = document.createElement("img");
-        emojiImg.draggable = false;
-        emojiImg.src = emojiOverride.image_src;
-        emojiImg.classList.add("emoji");
-        emojiImg.id = "emoji_override";
-        waitForTooltip(() => {
-          $('#emoji_override').tooltip({
-            "placement": "top",
-            "boundary": "viewport",
-            "title": emojiOverride.tooltip_text
-          });
+    // BEDROCK.LOL CAPES CONTAINER
+    if (enableBedrockCapes) {
+      if (bedrockOnly) document.documentElement.style.setProperty("--bedrock-only", "none");
+
+      fetch(`https://bedrock.lol/api/v1/users/java/${uuid}`)
+        .then(res => res.json())
+        .then(data => {
+          data.capes.sort((a, b) => b.user_count - a.user_count);
+          const capeTemplates = [];
+          for (let i = 0; i < data.capes.length; i++) {
+            const curCape = data.capes[i];
+            capeTemplates.push(new CapeTemplate("data:image/png;base64," + curCape.image_data, curCape.name, curCape.description, "/cape/bedrock/" + curCape.id, curCape.java_equivalent));
+          }
+          createCapeCard(capeTemplates, "Bedrock Capes", (() => {
+            bedrockBtn.onclick = () => {
+              if (bedrockOnly) {
+                document.documentElement.style.setProperty("--bedrock-only", "contents");
+                bedrockBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
+                bedrockOnly = false;
+                localStorage.setItem('bedrockOnly', 'false');
+              } else {
+                document.documentElement.style.setProperty("--bedrock-only", "none");
+                bedrockBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
+                bedrockOnly = true;
+                localStorage.setItem('bedrockOnly', 'true');
+              }
+            }
+          }), true);
         });
-        usernameEl.append(emojiImg);
-      }
+    }
 
-      const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user == uuid).map(v => v.badge);
-      if (userBadgeIds.length > 0) {
-        const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
-        var hrEl = document.createElement("hr");
-        hrEl.classList.add("my-1");
-        if (!socialsTitle) cardBody.append(hrEl)
+    // add badges
+    if (!hideBadges) {
+      waitForSupabase((supabase_data) => {
+        // add emoji override (if applicable)
+        let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid === uuid)[0];
+        if (emojiOverride) {
+          let usernameEl = document.querySelector("h1.text-nowrap");
+          // if usernameEl has img child, remove it
+          if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
+          // add new img
+          let emojiImg = document.createElement("img");
+          emojiImg.draggable = false;
+          emojiImg.src = emojiOverride.image_src;
+          emojiImg.classList.add("emoji");
+          emojiImg.id = "emoji_override";
+          waitForTooltip(() => {
+            $('#emoji_override').tooltip({
+              "placement": "top",
+              "boundary": "viewport",
+              "title": emojiOverride.tooltip_text
+            });
+          });
+          usernameEl.append(emojiImg);
+        }
 
-        const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
-        let badgeCardRange = document.createRange();
-        let badgeCardHTML = badgeCardRange.createContextualFragment(`
+        const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user === uuid).map(v => v.badge);
+        if (userBadgeIds.length > 0) {
+          const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
+          var hrEl = document.createElement("hr");
+          hrEl.classList.add("my-1");
+          if (!socialsTitle) cardBody.append(hrEl)
+
+          const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
+          let badgeCardRange = document.createRange();
+          let badgeCardHTML = badgeCardRange.createContextualFragment(`
         <div class="row g-0 align-items-center">
           <div class="col-auto col-lg-3 pe-3"><strong id="badgestitle">Badges</strong></div>
           <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges"></div>
         </div>
         `)
-        let badgesHTML = userBadges.map(badge => {
-          var badgeRange = document.createRange()
-          var badgeHTML = badgeRange.createContextualFragment(`
+          let badgesHTML = userBadges.map(badge => {
+            var badgeRange = document.createRange()
+            var badgeHTML = badgeRange.createContextualFragment(`
             <a class="d-inline-block position-relative p-1" href="javascript:void(0)">
               <img class="service-icon">
             </a>
           `);
 
-          badgeHTML.querySelector("img").src = badge.image;
-          badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
-          badgeHTML.querySelector("a").setAttribute("title", badge.name);
-          badgeHTML.querySelector("a").href = encodeURI(`/extras/badge/${badge.id}`);
+            badgeHTML.querySelector("img").src = badge.image;
+            badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
+            badgeHTML.querySelector("a").setAttribute("title", badge.name);
+            badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
 
-          return badgeHTML.querySelector("a").outerHTML;
-        })
-
-        badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
-
-        cardBody.append(badgeCardHTML)
-
-        waitForTooltip(() => {
-          $('#badgestitle').tooltip({
-            "placement": "top",
-            "boundary": "viewport",
-            "title": "Badges from NameMC Extras!"
+            return badgeHTML.querySelector("a").outerHTML;
           })
 
-          $('[src*=badges]').parent().tooltip({
-            "placement": "top",
-            "boundary": "viewport"
-          });
-        })
-      }
-    });
+          badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
+
+          cardBody.append(badgeCardHTML)
+
+          waitForTooltip(() => {
+            $('#badgestitle').tooltip({
+              "placement": "top",
+              "boundary": "viewport",
+              "title": "Badges from NameMC Extras!"
+            })
+
+            $('[src*=badges]').parent().tooltip({
+              "placement": "top",
+              "boundary": "viewport"
+            });
+          })
+        }
+      });
+    }
 
     // replace (edit) and Copy with icons
     var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
@@ -565,7 +634,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       editLink.title = "Edit";
 
       // move to far right
-      if (editLink.parentElement.tagName == "STRONG") {
+      if (editLink.parentElement.tagName === "STRONG") {
         editLink.parentElement.parentElement.append(editLink);
         editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
       }
@@ -583,7 +652,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     document.documentElement.append(gadgetIf);
 
     // give developers verification
-    if (uuid == '2ce90d65-f253-4e3c-8e4b-3d5fb1e4c927' || uuid == '88e152f3-e545-4681-8cec-3e8f85175902') {
+    if (uuid === '1cf1a286-acbd-4810-8137-0fcd7a0969f2' || uuid === 'd76ca44e-af76-41ad-8b24-d012673ac436') {
       [...document.querySelectorAll(".service-icon:not([src*=badges])")].forEach(el => {
         var verifyEl = document.createElement("img");
         verifyEl.width = 15;
@@ -642,11 +711,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             img.onload = () => {
               skinArtImages.push(img)
 
-              if (skinArtImages.length == skins.length) {
+              if (skinArtImages.length === skins.length) {
                 for (let i = 0; i < skinArtImages.length; i += rows) {
                   const chunk = skinArtImages.slice(i, i + rows);
                   chunk.forEach((image, j, array) => {
-                    if (array.length == rows) {
+                    if (array.length === rows) {
                       ctx.drawImage(image, size * j, size * (i / rows))
                     } else {
                       var padding = ((rows - array.length) / 2) * size
@@ -656,7 +725,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
                 }
               }
 
-              if (skins.length == skinArtImages.length) {
+              if (skins.length === skinArtImages.length) {
                 var rectx = resizedArt.getContext("2d");
 
                 var img2 = new Image();
@@ -682,7 +751,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         }
 
         borderBtn.onclick = () => {
-          if (skinArt == false) {
+          if (skinArt === false) {
             skinsContainer.style.width = '312px';
             skinsContainer.style.margin = '6px auto';
             document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
@@ -711,24 +780,28 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
       var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
       if (hasHidden) {
-        hideHidden();
+        if (isHidden) hideHidden();
 
         // add show hidden button
         historyTitle.innerHTML += `<div id="historyButtons">
-          <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
+          <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn">
+            ${isHidden ? '<i class="fas fa-fw fa-eye"></i>' : '<i class="fas fa-fw fa-eye-slash"></i>'}
+          </a>
           <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
 
         histBtn.onclick = () => {
-          if (isHidden == true) {
+          if (isHidden === true) {
             showHidden();
             isHidden = false;
+            localStorage.setItem("isHidden", "false");
             copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
           } else {
             hideHidden();
             isHidden = true;
+            localStorage.setItem("isHidden", "true");
             copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
           }
@@ -747,18 +820,18 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       var removeAllBtn = historyTitle.querySelector(".fa-trash")?.parentElement;
       if (removeAllBtn) {
         // check type
-        if (removeAllBtn && typeof removeAllBtn.onclick != "undefined" && removeAllBtn.onclick) {
+        if (removeAllBtn && typeof removeAllBtn.onclick !== "undefined" && removeAllBtn.onclick) {
           var removeOnClick = removeAllBtn.onclick;
           moveBtn(removeAllBtn);
           document.querySelector("#historyButtons").lastElementChild.onclick = removeOnClick;
         } else {
-          if (removeAllBtn.parentElement.tagName == "FORM") {
+          if (removeAllBtn.parentElement.tagName === "FORM") {
             moveBtn(removeAllBtn.parentElement);
-          } else if (removeAllBtn.parentElement.parentElement.tagName == "FORM") {
+          } else if (removeAllBtn.parentElement.parentElement.tagName === "FORM") {
             moveBtn(removeAllBtn.parentElement.parentElement);
-          } else if (removeAllBtn.parentElement.parentElement.parentElement.tagName == "FORM") {
+          } else if (removeAllBtn.parentElement.parentElement.parentElement.tagName === "FORM") {
             moveBtn(removeAllBtn.parentElement.parentElement.parentElement);
-          } else if (removeAllBtn.parentElement.parentElement.parentElement.parentElement.tagName == "FORM") {
+          } else if (removeAllBtn.parentElement.parentElement.parentElement.parentElement.tagName === "FORM") {
             moveBtn(removeAllBtn.parentElement.parentElement.parentElement.parentElement);
           } else {
             moveBtn(removeAllBtn);
@@ -833,19 +906,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         true
       );
 
-      // BEDROCK.LOL CAPES CONTAINER
-      fetch(`https://bedrock.lol/api/v1/users/java/${uuid}`)
-        .then((response) => response.json())
-        .then((data) => {
-          data.capes.sort((a, b) => b.user_count - a.user_count);
-          const capeTemplates = [];
-          for (let i = 0; i < data.capes.length; i++) {
-            const curCape = data.capes[i];
-            capeTemplates.push(new CapeTemplate("data:image/png;base64," + curCape.image_data, curCape.name, curCape.description, "/cape/bedrock/" + curCape.id));
-          }
-          createCapeCard(capeTemplates, "Bedrock Capes", (() => {}), true);
-        });
-
       var skinHash = skinContainer.getAttribute('data-skin-hash');
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
@@ -853,7 +913,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
       waitForImage(async () => {
         // has ears
-        if (uuid == "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
+        if (uuid === "1e18d5ff-643d-45c8-b509-43b8461d8614") hasEars = true;
 
         // load skin
         currentSkinId = skinHash;
@@ -875,7 +935,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         }
 
         waitForSupabase(async (supabase_data) => {
-          const userCapeIds = supabase_data.user_capes.filter(obj => obj.user == uuid).filter(obj => typeof obj.equipped == "undefined" || obj.equipped == true).map(v => v.cape);
+          const userCapeIds = supabase_data.user_capes.filter(obj => obj.user === uuid).filter(obj => typeof obj.equipped === "undefined" || obj.equipped === true).map(v => v.cape);
           if (userCapeIds.length > 0) {
             document.querySelectorAll('.cape-2d').forEach((el) => {
               el.classList.remove('skin-button-selected');
@@ -890,33 +950,13 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           }
         });
 
-        if (uuid == "b0588118-6e75-410d-b2db-4d3066b223f7") {
-          if (document.querySelector(".dropdown-toggle .skin-2d")) {
-            var loggedInUsername = document.querySelector(".dropdown-toggle .skin-2d")?.parentElement.innerText.split(" ")[0];
-            await fetch("//gadgets.faav.top/check?name=" + loggedInUsername, {
-              "method": "POST"
-            }).then(async res => {
-              var base = "//raw.githubusercontent.com"; // GitHub Base URL
-              if (res.status == 200) {
-                document.querySelectorAll('.cape-2d').forEach((el) => {
-                  el.classList.remove('skin-button-selected');
-                });
-
-                await skinViewer.loadCape(base + "/NameMC-Extras/assets/main/capes/nmce/" +/*/*/"m" +/*"i"+"n"+"e"+"c"+"r"*/"a"/*"f"+"t"*/ + "rc.png");
-
-                setTimeout(createElytraBtn);
-              };
-            })
-          }
-        }
-
         // upside down gang
         if (username === "Dinnerbone" || username === "Grumm") {
           skinViewer.playerWrapper.rotation.z = Math.PI;
         }
 
         // deadmau5 ears
-        if (hasEars == true) {
+        if (hasEars === true) {
           skinViewer.playerWrapper.translateY(-3); // move player down
           skinViewer.zoom = 0.76; // zoom out
         } else {
@@ -934,9 +974,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             });
             el.classList.add('skin-button-selected');
             waitForImage(() => {
-              skinViewer.loadSkin(window.namemc.images[el.getAttribute('data-id')].src);
               currentSkinId = el.getAttribute('data-id');
               currentDataModel = el.getAttribute('data-model');
+              skinViewer.loadSkin(window.namemc.images[currentSkinId].src, {
+                model: currentDataModel
+              });
             }, el.getAttribute('data-id'));
           }
         });
@@ -954,7 +996,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             currentCape = el.getAttribute('data-cape');
             nmceCape = false;
             waitForImage(() => {
-              if (elytraOn == true) {
+              if (elytraOn === true) {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
                   backEquipment: "elytra"
                 });

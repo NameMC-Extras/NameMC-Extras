@@ -1,3 +1,9 @@
+html {
+    --head-cmd: block;
+    --degrees-of-sep: block;
+    --bedrock-only: contents;
+}
+
 div:has(> [id^="nn_"]):not(main):not(body):not(html),
 .ad-container,
 #nmcIf,
@@ -243,4 +249,20 @@ option:checked {
     margin-bottom: 0;
     vertical-align: top;
     margin-left: .2rem;
+}
+
+.form-check-input {
+    cursor: pointer;
+}
+
+.mb-3:has(.head-command) {
+    display: var(--head-cmd);
+}
+
+.mb-3:has(a[href*=degrees_of_separation]) {
+    display: var(--degrees-of-sep);
+}
+
+[data-java_equivalent] {
+    display: var(--bedrock-only);
 }

@@ -26,12 +26,17 @@
     };
 
     var theme = localStorage.getItem("theme");
-    var customThemeOn = (localStorage.getItem("customTheme") == "true");
+    var customThemeOn = localStorage.getItem("customTheme") === "true";
     var customBg = localStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
     var customText = localStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
     var customLink = localStorage.getItem("customLink") || "#7ba7ce";
     var customBtn = localStorage.getItem("customBtn") || "#848BB0";
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
+    var hideHeadCmd = localStorage.getItem("hideHeadCmd") === "true";
+    var hideDegreesOfSep = localStorage.getItem("hideDegreesOfSep") === "true";
+    var hideBadges = localStorage.getItem("hideBadges") === "true";
+    var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
+    var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -57,7 +62,9 @@
         document.documentElement.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * 1.75}, ${bgRgb["g"] * 1.75}, ${bgRgb["b"] * 1.75}, .5)`);
     }
 
-    if (customThemeOn) setCustomTheme()
+    if (customThemeOn) setCustomTheme();
+    if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'block');
+    if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'block');
 
     const createSettingsButton = () => {
         const modalHTML = `
@@ -72,7 +79,7 @@
                         </div>
                         <div class="modal-body">
                             <label for="theme" class="form-label">
-                                <strong>Theme:</strong>
+                                <strong>Base Theme:</strong>
                             </label>
                             <div class="btn-group w-100" role="group" aria-label="Theme">
                                 <button type="button" class="btn btn-light" data-bs-theme-value="light" id="lightTheme">
@@ -125,6 +132,29 @@
                                 <span class="input-group-text">Button Color</span>
                                 <input type="text" class="form-control" placeholder="#848BB0" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}" >
                             </div>
+                            <label for="theme" class="form-label">
+                                <strong>Profile:</strong>
+                            </label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideBadges"${hideBadges ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideBadges">Hide Badges</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideHeadCmd"${hideHeadCmd ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideHeadCmd">Hide Head Command</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideDegreesOfSep"${hideDegreesOfSep ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideDegreesOfSep">Hide Degrees of Separation</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="bedrockCapes"${bedrockCapes ? ' checked' : ''}>
+                                <label class="form-check-label" for="bedrockCapes">Bedrock Capes</label>
+                            </div>
+                            <div class="mb-3">
+                              <label for="linksTextArea" class="form-label">Links</label>
+                              <textarea class="form-control" id="linksTextArea" rows="2" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -151,9 +181,7 @@
                 var exportcustom = document.querySelector("#exportcustom");
                 var importcustom = document.querySelector("#importcustom");
 
-                if (typeof localStorage.customBase == "undefined") {
-                    localStorage.customBase = customBase;
-                }
+                if (typeof localStorage.customBase == "undefined") localStorage.customBase = customBase;
 
                 customTheme.onclick = () => {
                     localStorage.customTheme = true;
@@ -242,12 +270,14 @@
 
                     var rgbBg = hexToRgb(custombgcolor.value);
                     document.documentElement.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
+                    customTheme.click();
                 }
 
                 customtextcolor.onchange = () => {
                     if (customThemeOn) document.documentElement.style.setProperty("--bs-body-color", customtextcolor.value);
                     localStorage.customText = customtextcolor.value;
                     customText = customtextcolor.value;
+                    customTheme.click();
                 }
 
                 customlinkcolor.onchange = () => {
@@ -256,6 +286,7 @@
 
                     localStorage.customLink = customlinkcolor.value;
                     customLink = customlinkcolor.value;
+                    customTheme.click();
                 }
 
                 custombtncolor.onchange = () => {
@@ -264,6 +295,7 @@
 
                     localStorage.customBtn = custombtncolor.value;
                     customBtn = custombtncolor.value;
+                    customTheme.click();
                 }
 
                 selectBase.onchange = () => {
@@ -271,6 +303,7 @@
                     localStorage.customBase = selectBase.value;
                     localStorage.theme = selectBase.value;
                     customBase = selectBase.value;
+                    customTheme.click();
                 }
 
                 resetcustom.onclick = () => {
@@ -331,11 +364,13 @@
 
                         if (customThemeOn) setCustomTheme();
                     }
+                    customTheme.click();
                 }
 
                 exportcustom.onclick = () => {
                     var code = `${customBg};${customText};${customLink};${customBtn};${customBase == "dark" ? 1 : 0}`;
-                    prompt("You can copy this custom theme code below: ", code)
+                    prompt("You can copy this custom theme code below: ", code);
+                    customTheme.click();
                 }
 
                 importcustom.onclick = () => {
@@ -402,6 +437,7 @@
                             alert("You entered a invalid custom theme code!")
                         }
                     }
+                    customTheme.click();
                 }
 
                 if (!customThemeOn) {
@@ -424,8 +460,43 @@
                         document.documentElement.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 1000)
                     }, 1000)
-                })
-            })
+                });
+
+                var hideHeadCmdEl = document.querySelector("#hideHeadCmd");
+                if (typeof localStorage.hideHeadCmd == "undefined") localStorage.hideHeadCmd = false;
+                hideHeadCmdEl.onclick = () => {
+                    localStorage.hideHeadCmd = hideHeadCmdEl.checked;
+                    hideHeadCmd = hideHeadCmdEl.checked;
+                }
+
+                var hideDegreesOfSepEl = document.querySelector("#hideDegreesOfSep");
+                if (typeof localStorage.hideDegreesOfSep == "undefined") localStorage.hideDegreesOfSep = false;
+                hideDegreesOfSepEl.onclick = () => {
+                    localStorage.hideDegreesOfSep = hideDegreesOfSepEl.checked;
+                    hideDegreesOfSep = hideDegreesOfSepEl.checked;
+                }
+
+                var hideBadgesEl = document.querySelector("#hideBadges");
+                if (typeof localStorage.hideBadges == "undefined") localStorage.hideBadges = false;
+                hideBadgesEl.onclick = () => {
+                    localStorage.hideBadges = hideBadgesEl.checked;
+                    hideBadges = hideBadgesEl.checked;
+                }
+
+                var bedrockCapesEl = document.querySelector("#bedrockCapes");
+                if (typeof localStorage.bedrockCapes == "undefined") localStorage.bedrockCapes = false;
+                bedrockCapesEl.onclick = () => {
+                    localStorage.bedrockCapes = bedrockCapesEl.checked;
+                    bedrockCapes = bedrockCapesEl.checked;
+                }
+
+                var linksTextAreaEl = document.querySelector("#linksTextArea");
+                if (typeof localStorage.linksTextArea == "undefined") localStorage.linksTextArea = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
+                linksTextAreaEl.onchange = () => {
+                    localStorage.linksTextArea = linksTextAreaEl.value;
+                    linksTextArea = linksTextAreaEl.value;
+                }
+            });
 
             waitForSelector('a[data-bs-theme-value]',
                 /**
@@ -532,11 +603,14 @@
     // INJECT SETTINGS BUTTON
     createSettingsButton();
 
+    const pages = [
+        ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']
+    ];
+
+    if (!hideBadges) pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
+
     // INJECT PAGES
-    injectPages([
-        ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait'],
-        ['badges', 'Badges', 'Badges', 'fas fa-award']
-    ]);
+    injectPages(pages);
 
     // INJECT MENU ITEMS
     injectMenus([
@@ -544,8 +618,8 @@
         ['generate-skinart', 'Generate Skin Art', 'javascript:void(0)', 18, 'far fa-palette']
     ])
 
-    // REPLACE COPY BUTTON
     waitForSelector("body", () => {
+        // REPLACE COPY BUTTON
         setTimeout(() => {
             var copyLinks = [...document.querySelectorAll("a.copy-button[data-clipboard-text][href*='javascript:']")];
             copyLinks.forEach(copyLink => {
@@ -556,7 +630,15 @@
                 setTimeout(() => copyLink.title = "Copy", 1000)
             });
         }, 5)
-    })
+
+        // REMOVE NAME LENGTH RESTRICTIONS
+        if (location.pathname === "/minecraft-names") {
+            waitForSelector("#name-length", (input) => {
+                input.removeAttribute('min');
+                input.removeAttribute('max');
+            });
+        }
+    });
 
     // INJECT CREDITS
     waitForSelector("footer .row", (footer) => {

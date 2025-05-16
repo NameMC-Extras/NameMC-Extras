@@ -438,13 +438,13 @@ waitForSelector('main', (main) => {
 
             if (currentCape && !noElytra.includes(currentCape.split("/").at(-1))) {
                 if (document.querySelector("#elytra-btn")) {
-                    document.querySelector("#elytra-btn").style.display="block";
+                    document.querySelector("#elytra-btn").style.display = "block";
                 } else {
                     createElytraBtn();
                     fixPauseBtn();
                 }
             } else {
-                if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").style.display="none";
+                if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").style.display = "none";
             }
         }
 
