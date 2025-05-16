@@ -138,16 +138,16 @@
                                 <strong>Profile:</strong>
                             </label>
                             <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideBadges"${hideBadges ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideBadges">Hide Badges</label>
+                            </div>
+                            <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="hideHeadCmd"${hideHeadCmd ? ' checked' : ''}>
                                 <label class="form-check-label" for="hideHeadCmd">Hide Head Command</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="hideDegreesOfSep"${hideDegreesOfSep ? ' checked' : ''}>
                                 <label class="form-check-label" for="hideDegreesOfSep">Hide Degrees of Separation</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideBadges"${hideBadges ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideBadges">Hide Badges</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="bedrockCapes"${bedrockCapes ? ' checked' : ''}>
