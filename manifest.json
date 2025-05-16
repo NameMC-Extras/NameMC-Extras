@@ -7,7 +7,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "manifest_version": 3,
+  "manifest_version": 2,
   "version": "3.5.2",
   "content_scripts": [
     {
@@ -94,13 +94,9 @@
     }
   ],
   "web_accessible_resources": [
-    {
-      "resources": [
         "/*"
-      ],
-      "matches": [
-        "*://*.namemc.com/*"
-      ]
-    }
+  ],
+  "permissions": [
+    "https://raw.githubusercontent.com/*"
   ]
 }
