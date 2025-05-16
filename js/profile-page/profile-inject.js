@@ -934,9 +934,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             });
             el.classList.add('skin-button-selected');
             waitForImage(() => {
-              skinViewer.loadSkin(window.namemc.images[el.getAttribute('data-id')].src);
               currentSkinId = el.getAttribute('data-id');
               currentDataModel = el.getAttribute('data-model');
+              skinViewer.loadSkin(window.namemc.images[currentSkinId].src, {
+                model: currentDataModel
+              });
             }, el.getAttribute('data-id'));
           }
         });
