@@ -49,7 +49,7 @@ function getBadgeCardHTML(badge, userCount) {
   return `
       <div class="col-4 col-md-2">
         <div class="card mb-2">
-          <a href="${encodeURI(`/extras/badge/${badge.id}`)}">
+          <a href="${`/extras/badge/${encodeURIComponent(badge.id)}`}">
             ${(() => {
       var titleEl = document.createElement("div");
       titleEl.setAttribute("class", "card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1");

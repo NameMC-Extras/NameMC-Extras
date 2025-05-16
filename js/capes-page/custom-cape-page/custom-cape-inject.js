@@ -177,7 +177,7 @@ class CustomCape {
  * FUNCTIONS
  */
 
-async function loadPage(mainDiv) {
+async function loadPage() {
   console.log("Loading page!")
 
   // get cape and update page title
@@ -269,110 +269,111 @@ async function loadPage(mainDiv) {
     </div>
   `);
 
-  mainDiv.append(capeHTML)
-
-  // create skin viewer
-  waitForFunc("skinview3d", () => {
-    const skinContainer = document.getElementsByTagName("canvas").item(0);
-    const steveDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAABJlBMVEVMaXEAf38AqKgAmZmqfWaWX0EAaGhGOqUwKHIAr691Ry8qHQ1qQDA/Pz9ra2smIVuHVTuWb1sAYGBWScwoKCgmGgovHw8AzMw6MYkkGAgoGwoAW1sjIyMAnp5RMSWGUzQsHg4pHAyBUzkrHg0fEAsoGg0mGAstHQ6aY0QnGwstIBB3QjWcZ0gzJBEyIxBiQy8rHg6dak8mGgwsHhGKWTsoGwsjFwmEUjF0SC+iakd6TjOHWDokGAqDVTucY0WIWjk6KBQoHAsvIhGcaUz///+0hG27iXJSPYlSKCaaZEqfaEmPXj4vIA2AUzQ0JRJvRSxtQyqQXkOsdlo/KhWcY0aWX0Cze2K+iGytgG1CKhK1e2e9jnK9i3K2iWycclzGloC9jnS3gnKSJOIgAAAAAXRSTlMAQObYZgAAAvxJREFUWMPtlmebojAQx5cEkAiecHcgwrGArPW2997b9d779/8SN0nMruK6oL71//iYocyPmTA6MzPTla5X4VOdK3Y1M6r0quMAoFo0QiMMxwE4js0BT0DG6ICqQ3Nw9LEB4GvbziQA5i8A12MAbCe25yiAaQxAbIN0feTX6Hl2O17sdF4mzknVTvROZzFu254n6iIPwI7iZCFJkoVvH6KThSSObAro1kUmIGrY8fLGfpz8+vHn59/3r+P9jeXYbkSiLrIjqDcjrx2dyhfy19+XZ2enUduLmnVP1EWOFLzVzb3D44vzq++XV+fy8eHe5iqcFHWRA1BvrG0pRx8//zOMLzuvjpSttUadbiKvi+w98JpLK62w+O7TU9CLWjFsrSw1vUjURSYgDFvhvLK+/eZtrbZ7cLC7vf58/tl8C36QtC6KYa5aeAR6DBLHFV5LlYddifOoUkHGrDGbDeDlPACogCYFIPA3JkphAKBpZa0AgoWuriRJPg5qO7VaEIAtBQghQhDiNmErAd0Cyn2AgqSqEkIB+BMCtoro3QAAUyKIBPR6CqD1AdiNBAUYPMFWCRdiYMKg9wN8VfXheoDhi9uYIMwBENQ9EYDhglTf9zGmbhiD6TNvOFYUxZRBJhh07Qe4boHuBQWAj4r5QzHAVMIOEAdYsqyYdwF694ACIADEALAH1BsgJgdYDGBZPQBNG3gLAiCxTbwB0CdTgNkfgQBotwDCvAgWG0YFfhygpAClkgCUSg9AkipJGNMAOABstg0KB8gKjQRS6QFwR7FCKmUKLLgAoEXmughjt8ABlswiyQCwiICARXlj+KJPBj/LTEcw1VRTTTXKvICGdeXcAwdoIgAaNliMkkJuQO+84NI+AYL/+GBgLsgGlG8aTQBNQuq2+vwArdzbqdBAWx8FcOdcMBSQmheGzgXDAWU+L9wAREvLC0ilQAEWB5h9c0E2gKdiMgDrymbOCLQUQOEAMycgPS8o3dzpaENTyQHob/fsydYkAMjdsthocyfgP7DZYc3t4J05AAAAAElFTkSuQmCC";
-    const capeURL = cape.image_src ?? ("data:image/png;base64," + cape.capeURL);
-
-    let skinViewer = new skinview3d.SkinViewer({
-      canvas: skinContainer,
-      width: 300,
-      height: 400,
-      skin: steveDataURL,
-      cape: capeURL,
-      preserveDrawingBuffer: true
-    });
-
-    skinViewer.controls.enableRotate = true;
-    skinViewer.controls.enableZoom = false;
-    skinViewer.controls.enablePan = false;
-
-    skinViewer.animation = new skinview3d.WalkingAnimation();
-    skinViewer.animation.speed = 0.5;
-    skinViewer.animation.paused = paused
-    skinViewer.animation.headBobbing = false;
-
-    window.skinViewer = skinViewer;
-
-    skinViewer.fov = 40;
-    skinViewer.camera.position.y = 22 * Math.cos(.01);
-    skinViewer.playerWrapper.rotation.y = -90.58;
-    skinViewer.globalLight.intensity = .65;
-    skinViewer.cameraLight.intensity = .38;
-    skinViewer.cameraLight.position.set(12, 25, 0);
-    skinViewer.zoom = 0.86
-
-    if (paused) {
-      skinViewer.playerObject.skin.leftArm.rotation.x = 0.3
-      skinViewer.playerObject.skin.rightArm.rotation.x = -0.3
-
-      skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36
-      skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36
-    }
-
-
-    skinContainer.addEventListener(
-      "contextmenu",
-      (event) => event.stopImmediatePropagation(),
-      true
-    );
-
-    fixPauseBtn()
-    waitForCape(fixDownloadBtn)
-    waitForCape(fixElytraBtn);
-    if (capeCategory != "Bedrock") {
-      waitForCape(fixStealBtn);
-    }
-  })
-
-  var badgeOwnerNames;
-  if (capeCategory == "Bedrock") {
-    capeOwners.push({ username: "..." });
-    badgeOwnerNames = capeOwners.map(u => u.username);
-  } else {
-    badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
-      const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
-      return await resp.json();
-    }))).map(a => a.name);
-  }
-
-  document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
-    var userEl;
+  waitForSelector("main", async (mainDiv) => {
+    mainDiv.append(capeHTML);
+    var badgeOwnerNames;
     if (capeCategory == "Bedrock") {
-      if (u.java_uuid) {
-        userEl = document.createElement("a");
-        userEl.href = "/profile/" + u.java_uuid;
-      } else {
-        userEl = document.createElement("span");
-      }
-      userEl.textContent = u.username;
+      //capeOwners.push({ username: "..." });
+      badgeOwnerNames = capeOwners.map(u => u.username);
     } else {
-      var userEl = document.createElement("a");
-      userEl.href = "/profile/" + u.user;
-    }
-    userEl.textContent = badgeOwnerNames[i];
-    userEl.translate = "no";
-    if (u.note) {
-      userEl.setAttribute("data-note", "");
-      userEl.title = u.note;
+      badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
+        const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
+        return await resp.json();
+      }))).map(a => a.name);
     }
 
-    return userEl.outerHTML;
-  }).join(" ");
+    document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
+      var userEl;
+      if (capeCategory == "Bedrock") {
+        if (u.java_uuid) {
+          userEl = document.createElement("a");
+          userEl.href = "/profile/" + u.java_uuid;
+        } else {
+          userEl = document.createElement("span");
+        }
+        userEl.textContent = u.username;
+      } else {
+        var userEl = document.createElement("a");
+        userEl.href = "/profile/" + u.user;
+      }
+      userEl.textContent = badgeOwnerNames[i];
+      userEl.translate = "no";
+      if (u.note) {
+        userEl.setAttribute("data-note", "");
+        userEl.title = u.note;
+      }
 
-  waitForTooltip(() => {
-    var iframeEl = document.createElement("iframe");
-    iframeEl.width = 0;
-    iframeEl.height = 0;
-    iframeEl.id = "nmcIf";
-    iframeEl.srcdoc = `<script>
+      return userEl.outerHTML;
+    }).join(" ");
+
+    // create skin viewer
+    waitForFunc("skinview3d", () => {
+      const skinContainer = document.getElementsByTagName("canvas").item(0);
+      const steveDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAABJlBMVEVMaXEAf38AqKgAmZmqfWaWX0EAaGhGOqUwKHIAr691Ry8qHQ1qQDA/Pz9ra2smIVuHVTuWb1sAYGBWScwoKCgmGgovHw8AzMw6MYkkGAgoGwoAW1sjIyMAnp5RMSWGUzQsHg4pHAyBUzkrHg0fEAsoGg0mGAstHQ6aY0QnGwstIBB3QjWcZ0gzJBEyIxBiQy8rHg6dak8mGgwsHhGKWTsoGwsjFwmEUjF0SC+iakd6TjOHWDokGAqDVTucY0WIWjk6KBQoHAsvIhGcaUz///+0hG27iXJSPYlSKCaaZEqfaEmPXj4vIA2AUzQ0JRJvRSxtQyqQXkOsdlo/KhWcY0aWX0Cze2K+iGytgG1CKhK1e2e9jnK9i3K2iWycclzGloC9jnS3gnKSJOIgAAAAAXRSTlMAQObYZgAAAvxJREFUWMPtlmebojAQx5cEkAiecHcgwrGArPW2997b9d779/8SN0nMruK6oL71//iYocyPmTA6MzPTla5X4VOdK3Y1M6r0quMAoFo0QiMMxwE4js0BT0DG6ICqQ3Nw9LEB4GvbziQA5i8A12MAbCe25yiAaQxAbIN0feTX6Hl2O17sdF4mzknVTvROZzFu254n6iIPwI7iZCFJkoVvH6KThSSObAro1kUmIGrY8fLGfpz8+vHn59/3r+P9jeXYbkSiLrIjqDcjrx2dyhfy19+XZ2enUduLmnVP1EWOFLzVzb3D44vzq++XV+fy8eHe5iqcFHWRA1BvrG0pRx8//zOMLzuvjpSttUadbiKvi+w98JpLK62w+O7TU9CLWjFsrSw1vUjURSYgDFvhvLK+/eZtrbZ7cLC7vf58/tl8C36QtC6KYa5aeAR6DBLHFV5LlYddifOoUkHGrDGbDeDlPACogCYFIPA3JkphAKBpZa0AgoWuriRJPg5qO7VaEIAtBQghQhDiNmErAd0Cyn2AgqSqEkIB+BMCtoro3QAAUyKIBPR6CqD1AdiNBAUYPMFWCRdiYMKg9wN8VfXheoDhi9uYIMwBENQ9EYDhglTf9zGmbhiD6TNvOFYUxZRBJhh07Qe4boHuBQWAj4r5QzHAVMIOEAdYsqyYdwF694ACIADEALAH1BsgJgdYDGBZPQBNG3gLAiCxTbwB0CdTgNkfgQBotwDCvAgWG0YFfhygpAClkgCUSg9AkipJGNMAOABstg0KB8gKjQRS6QFwR7FCKmUKLLgAoEXmughjt8ABlswiyQCwiICARXlj+KJPBj/LTEcw1VRTTTXKvICGdeXcAwdoIgAaNliMkkJuQO+84NI+AYL/+GBgLsgGlG8aTQBNQuq2+vwArdzbqdBAWx8FcOdcMBSQmheGzgXDAWU+L9wAREvLC0ilQAEWB5h9c0E2gKdiMgDrymbOCLQUQOEAMycgPS8o3dzpaENTyQHob/fsydYkAMjdsthocyfgP7DZYc3t4J05AAAAAElFTkSuQmCC";
+      const capeURL = cape.image_src ?? ("data:image/png;base64," + cape.capeURL);
+
+      let skinViewer = new skinview3d.SkinViewer({
+        canvas: skinContainer,
+        width: 300,
+        height: 400,
+        skin: steveDataURL,
+        cape: capeURL,
+        preserveDrawingBuffer: true
+      });
+
+      skinViewer.controls.enableRotate = true;
+      skinViewer.controls.enableZoom = false;
+      skinViewer.controls.enablePan = false;
+
+      skinViewer.animation = new skinview3d.WalkingAnimation();
+      skinViewer.animation.speed = 0.5;
+      skinViewer.animation.paused = paused
+      skinViewer.animation.headBobbing = false;
+
+      window.skinViewer = skinViewer;
+
+      skinViewer.fov = 40;
+      skinViewer.camera.position.y = 22 * Math.cos(.01);
+      skinViewer.playerWrapper.rotation.y = -90.58;
+      skinViewer.globalLight.intensity = .65;
+      skinViewer.cameraLight.intensity = .38;
+      skinViewer.cameraLight.position.set(12, 25, 0);
+      skinViewer.zoom = 0.86
+
+      if (paused) {
+        skinViewer.playerObject.skin.leftArm.rotation.x = 0.3
+        skinViewer.playerObject.skin.rightArm.rotation.x = -0.3
+
+        skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36
+        skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36
+      }
+
+
+      skinContainer.addEventListener(
+        "contextmenu",
+        (event) => event.stopImmediatePropagation(),
+        true
+      );
+
+      fixPauseBtn()
+      waitForCape(fixDownloadBtn)
+      waitForCape(fixElytraBtn);
+      if (capeCategory != "Bedrock") {
+        waitForCape(fixStealBtn);
+      }
+    })
+
+    waitForTooltip(() => {
+      var iframeEl = document.createElement("iframe");
+      iframeEl.width = 0;
+      iframeEl.height = 0;
+      iframeEl.id = "nmcIf";
+      iframeEl.srcdoc = `<script>
             window.top.$("[data-note]").tooltip()
         </script>`;
-    document.documentElement.append(iframeEl);
-    setTimeout(() => iframeEl.remove(), 1000)
+      document.documentElement.append(iframeEl);
+      setTimeout(() => iframeEl.remove(), 1000)
+    });
   });
 }
 
@@ -384,4 +385,4 @@ async function loadPage(mainDiv) {
  * MAIN LOGIC
  */
 
-waitForStorage("supabase_data", () => waitForSelector("main", loadPage));
+waitForStorage("supabase_data", loadPage);

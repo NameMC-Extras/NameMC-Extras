@@ -568,7 +568,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           badgeHTML.querySelector("img").src = badge.image;
           badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
           badgeHTML.querySelector("a").setAttribute("title", badge.name);
-          badgeHTML.querySelector("a").href = encodeURI(`/extras/badge/${badge.id}`);
+          badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
 
           return badgeHTML.querySelector("a").outerHTML;
         })
