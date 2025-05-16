@@ -478,6 +478,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     var descText = linksTextArea.toString().split('{uuid}').join(uuid);
     var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
 
+    if (!hasMdLink || descText.match(/["'`<>]/g)) {
+      descText = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`.toString().split('{uuid}').join(uuid);
+      hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
+    }
+
     if (hasMdLink) {
       var textAreaTag = document.createElement("textarea");
       textAreaTag.textContent = descText;
