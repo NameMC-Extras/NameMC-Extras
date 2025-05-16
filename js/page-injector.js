@@ -34,8 +34,9 @@
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
     var hideHeadCmd = localStorage.getItem("hideHeadCmd") === "true";
     var hideDegreesOfSep = localStorage.getItem("hideDegreesOfSep") === "true";
+    var hideBadges = localStorage.getItem("hideBadges") === "true";
     var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
-    var linksTextArea = localStorage.getItem("linksTextArea") || `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
+    var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -145,12 +146,16 @@
                                 <label class="form-check-label" for="hideDegreesOfSep">Hide Degrees of Separation</label>
                             </div>
                             <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideBadges"${hideBadges ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideBadges">Hide Badges</label>
+                            </div>
+                            <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="bedrockCapes"${bedrockCapes ? ' checked' : ''}>
                                 <label class="form-check-label" for="bedrockCapes">Bedrock Capes</label>
                             </div>
                             <div class="mb-3">
                               <label for="linksTextArea" class="form-label">Links</label>
-                              <textarea class="form-control" id="linksTextArea" rows="2">${linksTextArea}</textarea>
+                              <textarea class="form-control" id="linksTextArea" rows="2" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
                             </div>
                         </div>
                     </div>
@@ -465,6 +470,13 @@
                     hideDegreesOfSep = hideDegreesOfSepEl.checked;
                 }
 
+                var hideBadgesEl = document.querySelector("#hideBadges");
+                if (typeof localStorage.hideBadges == "undefined") localStorage.hideBadges = false;
+                hideBadgesEl.onclick = () => {
+                    localStorage.hideBadges = hideBadgesEl.checked;
+                    hideBadges = hideBadgesEl.checked;
+                }
+
                 var bedrockCapesEl = document.querySelector("#bedrockCapes");
                 if (typeof localStorage.bedrockCapes == "undefined") localStorage.bedrockCapes = false;
                 bedrockCapesEl.onclick = () => {
@@ -585,11 +597,14 @@
     // INJECT SETTINGS BUTTON
     createSettingsButton();
 
+    const pages = [
+        ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']
+    ];
+
+    if (!hideBadges) pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
+
     // INJECT PAGES
-    injectPages([
-        ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait'],
-        ['badges', 'Badges', 'Badges', 'fas fa-award']
-    ]);
+    injectPages(pages);
 
     // INJECT MENU ITEMS
     injectMenus([

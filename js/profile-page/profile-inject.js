@@ -36,7 +36,8 @@ var isHidden = true;
 var skinArt = localStorage.getItem("skinArt") === "true";
 var layer = true;
 var enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
-var linksTextArea = localStorage.getItem("linksTextArea") || `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
+var hideBadges = localStorage.getItem("hideBadges") === "true";
+var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
 
 var currentSkinId = null;
 var currentDataModel = "classic";
@@ -497,10 +498,10 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         <div class="col col-lg-3"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>
-      <div class="row g-0">
+      ${linksTextArea ? `<div class="row g-0">
         <div class="col order-lg-1 col-lg-3"><strong>Links</strong></div>
         <div class="col-12 order-lg-2 col-lg">${linksTextArea}</div>
-      </div>
+      </div>` : ''}
     `;
 
     // BEDROCK.LOL CAPES CONTAINER
@@ -519,78 +520,80 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     }
 
     // add badges
-    waitForSupabase((supabase_data) => {
-      // add emoji override (if applicable)
-      let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid === uuid)[0];
-      if (emojiOverride) {
-        let usernameEl = document.querySelector("h1.text-nowrap");
-        // if usernameEl has img child, remove it
-        if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
-        // add new img
-        let emojiImg = document.createElement("img");
-        emojiImg.draggable = false;
-        emojiImg.src = emojiOverride.image_src;
-        emojiImg.classList.add("emoji");
-        emojiImg.id = "emoji_override";
-        waitForTooltip(() => {
-          $('#emoji_override').tooltip({
-            "placement": "top",
-            "boundary": "viewport",
-            "title": emojiOverride.tooltip_text
+    if (!hideBadges) {
+      waitForSupabase((supabase_data) => {
+        // add emoji override (if applicable)
+        let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid === uuid)[0];
+        if (emojiOverride) {
+          let usernameEl = document.querySelector("h1.text-nowrap");
+          // if usernameEl has img child, remove it
+          if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
+          // add new img
+          let emojiImg = document.createElement("img");
+          emojiImg.draggable = false;
+          emojiImg.src = emojiOverride.image_src;
+          emojiImg.classList.add("emoji");
+          emojiImg.id = "emoji_override";
+          waitForTooltip(() => {
+            $('#emoji_override').tooltip({
+              "placement": "top",
+              "boundary": "viewport",
+              "title": emojiOverride.tooltip_text
+            });
           });
-        });
-        usernameEl.append(emojiImg);
-      }
+          usernameEl.append(emojiImg);
+        }
 
-      const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user === uuid).map(v => v.badge);
-      if (userBadgeIds.length > 0) {
-        const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
-        var hrEl = document.createElement("hr");
-        hrEl.classList.add("my-1");
-        if (!socialsTitle) cardBody.append(hrEl)
+        const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user === uuid).map(v => v.badge);
+        if (userBadgeIds.length > 0) {
+          const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
+          var hrEl = document.createElement("hr");
+          hrEl.classList.add("my-1");
+          if (!socialsTitle) cardBody.append(hrEl)
 
-        const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
-        let badgeCardRange = document.createRange();
-        let badgeCardHTML = badgeCardRange.createContextualFragment(`
+          const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
+          let badgeCardRange = document.createRange();
+          let badgeCardHTML = badgeCardRange.createContextualFragment(`
         <div class="row g-0 align-items-center">
           <div class="col-auto col-lg-3 pe-3"><strong id="badgestitle">Badges</strong></div>
           <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges"></div>
         </div>
         `)
-        let badgesHTML = userBadges.map(badge => {
-          var badgeRange = document.createRange()
-          var badgeHTML = badgeRange.createContextualFragment(`
+          let badgesHTML = userBadges.map(badge => {
+            var badgeRange = document.createRange()
+            var badgeHTML = badgeRange.createContextualFragment(`
             <a class="d-inline-block position-relative p-1" href="javascript:void(0)">
               <img class="service-icon">
             </a>
           `);
 
-          badgeHTML.querySelector("img").src = badge.image;
-          badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
-          badgeHTML.querySelector("a").setAttribute("title", badge.name);
-          badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
+            badgeHTML.querySelector("img").src = badge.image;
+            badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
+            badgeHTML.querySelector("a").setAttribute("title", badge.name);
+            badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
 
-          return badgeHTML.querySelector("a").outerHTML;
-        })
-
-        badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
-
-        cardBody.append(badgeCardHTML)
-
-        waitForTooltip(() => {
-          $('#badgestitle').tooltip({
-            "placement": "top",
-            "boundary": "viewport",
-            "title": "Badges from NameMC Extras!"
+            return badgeHTML.querySelector("a").outerHTML;
           })
 
-          $('[src*=badges]').parent().tooltip({
-            "placement": "top",
-            "boundary": "viewport"
-          });
-        })
-      }
-    });
+          badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
+
+          cardBody.append(badgeCardHTML)
+
+          waitForTooltip(() => {
+            $('#badgestitle').tooltip({
+              "placement": "top",
+              "boundary": "viewport",
+              "title": "Badges from NameMC Extras!"
+            })
+
+            $('[src*=badges]').parent().tooltip({
+              "placement": "top",
+              "boundary": "viewport"
+            });
+          })
+        }
+      });
+    }
 
     // replace (edit) and Copy with icons
     var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
