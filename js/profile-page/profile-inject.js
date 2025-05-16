@@ -33,13 +33,13 @@ const size = 32;
 
 var paused = getCookie("animate") !== "true";
 var elytraOn = false;
-var isHidden = localStorage.getItem("isHidden") === "true";
-var skinArt = localStorage.getItem("skinArt") === "true";
+var isHidden = localStorage.getItem("isHidden") !== "false";
+var skinArt = localStorage.getItem("skinArt") == "true";
 var layer = true;
 var enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
 var hideBadges = localStorage.getItem("hideBadges") === "true";
 var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
-var bedrockOnly = localStorage.getItem("bedrockOnly") === "true";
+var bedrockOnly = localStorage.getItem("bedrockOnly") !== "false";
 
 var currentSkinId = null;
 var currentDataModel = "classic";

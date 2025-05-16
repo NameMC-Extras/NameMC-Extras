@@ -270,12 +270,14 @@
 
                     var rgbBg = hexToRgb(custombgcolor.value);
                     document.documentElement.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
+                    customTheme.click();
                 }
 
                 customtextcolor.onchange = () => {
                     if (customThemeOn) document.documentElement.style.setProperty("--bs-body-color", customtextcolor.value);
                     localStorage.customText = customtextcolor.value;
                     customText = customtextcolor.value;
+                    customTheme.click();
                 }
 
                 customlinkcolor.onchange = () => {
@@ -284,6 +286,7 @@
 
                     localStorage.customLink = customlinkcolor.value;
                     customLink = customlinkcolor.value;
+                    customTheme.click();
                 }
 
                 custombtncolor.onchange = () => {
@@ -292,6 +295,7 @@
 
                     localStorage.customBtn = custombtncolor.value;
                     customBtn = custombtncolor.value;
+                    customTheme.click();
                 }
 
                 selectBase.onchange = () => {
@@ -299,6 +303,7 @@
                     localStorage.customBase = selectBase.value;
                     localStorage.theme = selectBase.value;
                     customBase = selectBase.value;
+                    customTheme.click();
                 }
 
                 resetcustom.onclick = () => {
@@ -359,11 +364,13 @@
 
                         if (customThemeOn) setCustomTheme();
                     }
+                    customTheme.click();
                 }
 
                 exportcustom.onclick = () => {
                     var code = `${customBg};${customText};${customLink};${customBtn};${customBase == "dark" ? 1 : 0}`;
-                    prompt("You can copy this custom theme code below: ", code)
+                    prompt("You can copy this custom theme code below: ", code);
+                    customTheme.click();
                 }
 
                 importcustom.onclick = () => {
@@ -430,6 +437,7 @@
                             alert("You entered a invalid custom theme code!")
                         }
                     }
+                    customTheme.click();
                 }
 
                 if (!customThemeOn) {
