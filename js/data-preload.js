@@ -1,6 +1,8 @@
 (async () => {
   async function fetchSupabase(endPoints) {
-    return Promise.all(endPoints.map(async endPoint => await fetch(`https://raw.githubusercontent.com/NameMC-Extras/data/main/${endPoint}.json`)));
+    return Promise.all([...endPoints.map(async endPoint => await fetch(`https://raw.githubusercontent.com/NameMC-Extras/data/main/${endPoint}.json`)),
+      await fetch('https://bedrock.lol/api/v1/capes')
+    ]);
   };
 
   function initBooleanKey(key) {
@@ -21,7 +23,9 @@
   
   async function storeResults(results) {
     var datas = Promise.all(results.map(async (result, i) => {
-      return [Object.keys(endPoints)[i], await result.json()];
+      let keyName = Object.keys(endPoints)[i];
+      if (!keyName) keyName = "bedrock_capes";
+      return [keyName, await result.json()];
     }));
 
     localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(await datas)));

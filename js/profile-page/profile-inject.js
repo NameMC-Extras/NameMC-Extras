@@ -8,11 +8,12 @@ class CapeTemplate {
    * @param {string} description
    * @param {string} redirect
    */
-  constructor(src, name, description = null, redirect = null) {
+  constructor(src, name, description = null, redirect = null, java_equivalent = null) {
     this.src = src;
     this.name = name;
     this.description = description;
     this.redirect = redirect;
+    this.java_equivalent = java_equivalent;
   }
 }
 
@@ -38,6 +39,7 @@ var layer = true;
 var enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
 var hideBadges = localStorage.getItem("hideBadges") === "true";
 var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
+var bedrockOnly = localStorage.getItem("bedrockOnly") === "true";
 
 var currentSkinId = null;
 var currentDataModel = "classic";
@@ -61,10 +63,15 @@ function createCapeCard(capes, title, callback = console.log("Successfully made 
   cardDiv.id = title.toLowerCase().replace(" ", "-");
   cardDiv.className = "card mb-3";
   cardDiv.innerHTML = `
-        <div class="card-header py-1">
+        <div class="card-header py-1" style="display: flex; justify-content: space-between;">
             <strong>
                 ${redirect ? `<a href="${redirect}" target="_blank" rel="nofollow noopener noreferrer">` : ""}${title.split(" ")[0]}${redirect ? `</a>` : ""}${" " + titleArray.join(" ")}${showAmount ? " (" + capes.length + ")" : ""}
             </strong>
+            <div>
+              <a href="javascript:void(0)" class="color-inherit" title="Bedrock Only Capes" id="bedrockBtn">
+                ${bedrockOnly ? '<i class="fas fa-fw fa-eye"></i>' : '<i class="fas fa-fw fa-eye-slash"></i>'}
+              </a>
+            </div>
         </div>
         <div class="card-body text-center" style="padding: 3px; width: 324px; margin: auto; text-align: center;">
         </div>
@@ -72,7 +79,7 @@ function createCapeCard(capes, title, callback = console.log("Successfully made 
 
   // Render capes
   capes.forEach(cape => {
-    createCape(cape.src, cardDiv.querySelector("div.card-body.text-center"), cape.name, cape.description, cape.redirect ?? capes[i])
+    createCape(cape.src, cardDiv.querySelector("div.card-body.text-center"), cape.name, cape.description, cape.redirect ?? cape, cape.java_equivalent)
   });
 
   // find element with class name "col-md-auto order-md-1", then make cardDiv come after the third "card mb-3" classed element
@@ -96,7 +103,7 @@ function createCapeCard(capes, title, callback = console.log("Successfully made 
  * @param {string} description 
  * @param {string} redirect 
  */
-function createCape(src, parentElement, name = "", description = "", redirect = "") {
+function createCape(src, parentElement, name = "", description = "", redirect = "", java_equivalent = "") {
   let capeCanvas = document.createElement("canvas");
   capeCanvas.className = "cape-2d align-top skin-button";
   let capeDataHash = `custom-${name.replace(" ", "-").toLowerCase()}`;
@@ -122,6 +129,7 @@ function createCape(src, parentElement, name = "", description = "", redirect = 
   // Puts the image in a href
   let featureImageHref = document.createElement("a");
   featureImageHref.href = redirect ? redirect : src;
+  featureImageHref.dataset['java_equivalent'] = java_equivalent;
   featureImageHref.setAttribute("data-toggle", "tooltip"),
     featureImageHref.setAttribute("data-html", "true")
   if (typeof name !== 'undefined') {
@@ -144,11 +152,11 @@ function createCapeEvents() {
       event.target.classList.add("skin-button-selected");
       let capeHash = event.target.getAttribute("data-cape-hash")
 
-      if (capeHash !== undefined && !capeHash.startsWith("custom-")) {
+      if (capeHash && !capeHash.startsWith("custom-")) {
         let capeUrl = "https://texture.namemc.com/" + capeHash.substring(0, 2) + "/" + capeHash.substring(2, 4) + "/" + capeHash + ".png";
         this.skinViewer.loadCape(capeUrl)
         console.log("capeEvent: Mojang/Optifine")
-      } else if (capeHash !== undefined && capeHash.startsWith("custom-")) {
+      } else if (capeHash && capeHash.startsWith("custom-")) {
         const options = {};
         if (elytraOn) options.backEquipment = "elytra";
         this.skinViewer.loadCape(capeDB[capeHash], options);
@@ -506,16 +514,32 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     // BEDROCK.LOL CAPES CONTAINER
     if (enableBedrockCapes) {
+      if (bedrockOnly) document.documentElement.style.setProperty("--bedrock-only", "none");
+
       fetch(`https://bedrock.lol/api/v1/users/java/${uuid}`)
-        .then((response) => response.json())
-        .then((data) => {
+        .then(res => res.json())
+        .then(data => {
           data.capes.sort((a, b) => b.user_count - a.user_count);
           const capeTemplates = [];
           for (let i = 0; i < data.capes.length; i++) {
             const curCape = data.capes[i];
-            capeTemplates.push(new CapeTemplate("data:image/png;base64," + curCape.image_data, curCape.name, curCape.description, "/cape/bedrock/" + curCape.id));
+            capeTemplates.push(new CapeTemplate("data:image/png;base64," + curCape.image_data, curCape.name, curCape.description, "/cape/bedrock/" + curCape.id, curCape.java_equivalent));
           }
-          createCapeCard(capeTemplates, "Bedrock Capes", (() => { }), true);
+          createCapeCard(capeTemplates, "Bedrock Capes", (() => {
+            bedrockBtn.onclick = () => {
+              if (bedrockOnly) {
+                document.documentElement.style.setProperty("--bedrock-only", "contents");
+                bedrockBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
+                bedrockOnly = false;
+                localStorage.setItem('bedrockOnly', 'false');
+              } else {
+                document.documentElement.style.setProperty("--bedrock-only", "none");
+                bedrockBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
+                bedrockOnly = true;
+                localStorage.setItem('bedrockOnly', 'true');
+              }
+            }
+          }), true);
         });
     }
 

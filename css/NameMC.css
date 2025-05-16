@@ -1,6 +1,7 @@
 html {
     --head-cmd: block;
     --degrees-of-sep: block;
+    --bedrock-only: contents;
 }
 
 div:has(> [id^="nn_"]):not(main):not(body):not(html),
@@ -260,4 +261,8 @@ option:checked {
 
 .mb-3:has(a[href*=degrees_of_separation]) {
     display: var(--degrees-of-sep);
+}
+
+[data-java_equivalent="null"] {
+    display: var(--bedrock-only);
 }

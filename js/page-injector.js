@@ -63,9 +63,7 @@
     }
 
     if (customThemeOn) setCustomTheme();
-
     if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'block');
-
     if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'block');
 
     const createSettingsButton = () => {
