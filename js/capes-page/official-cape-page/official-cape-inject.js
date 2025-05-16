@@ -237,13 +237,14 @@ waitForSelector(".col-md-6", () => {
           urlHref.protocol = "https:";
           aTag.href = urlHref;
           aTag.textContent = text;
+          aTag.target = '_blank';
           descText = descText.replace(el, aTag.outerHTML)
         }
       }
   
       description.innerHTML = descText;
     }
-  })
+  });
 
   // create skin viewer
   waitForSVSelector('.skin-3d', () => {
