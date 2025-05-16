@@ -618,8 +618,8 @@
         ['generate-skinart', 'Generate Skin Art', 'javascript:void(0)', 18, 'far fa-palette']
     ])
 
-    // REPLACE COPY BUTTON
     waitForSelector("body", () => {
+        // REPLACE COPY BUTTON
         setTimeout(() => {
             var copyLinks = [...document.querySelectorAll("a.copy-button[data-clipboard-text][href*='javascript:']")];
             copyLinks.forEach(copyLink => {
@@ -630,7 +630,15 @@
                 setTimeout(() => copyLink.title = "Copy", 1000)
             });
         }, 5)
-    })
+
+        // REMOVE NAME LENGTH RESTRICTIONS
+        if (location.pathname === "/minecraft-names") {
+            waitForSelector("#name-length", (input) => {
+                input.removeAttribute('min');
+                input.removeAttribute('max');
+            });
+        }
+    });
 
     // INJECT CREDITS
     waitForSelector("footer .row", (footer) => {
