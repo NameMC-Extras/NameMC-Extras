@@ -466,7 +466,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove();
 
-    var descText = linksTextArea.toString();
+    var descText = linksTextArea.toString().split('{uuid}').join(uuid);
     var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
 
     if (hasMdLink) {
