@@ -263,6 +263,6 @@ option:checked {
     display: var(--degrees-of-sep);
 }
 
-[data-java_equivalent="null"] {
+[data-java_equivalent] {
     display: var(--bedrock-only);
 }

@@ -33,7 +33,7 @@ const size = 32;
 
 var paused = getCookie("animate") !== "true";
 var elytraOn = false;
-var isHidden = true;
+var isHidden = localStorage.getItem("isHidden") === "true";
 var skinArt = localStorage.getItem("skinArt") === "true";
 var layer = true;
 var enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
@@ -129,7 +129,7 @@ function createCape(src, parentElement, name = "", description = "", redirect = 
   // Puts the image in a href
   let featureImageHref = document.createElement("a");
   featureImageHref.href = redirect ? redirect : src;
-  featureImageHref.dataset['java_equivalent'] = java_equivalent;
+  if (java_equivalent) featureImageHref.dataset['java_equivalent'] = java_equivalent;
   featureImageHref.setAttribute("data-toggle", "tooltip"),
     featureImageHref.setAttribute("data-html", "true")
   if (typeof name !== 'undefined') {
@@ -775,11 +775,13 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
       var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
       if (hasHidden) {
-        hideHidden();
+        if (isHidden) hideHidden();
 
         // add show hidden button
         historyTitle.innerHTML += `<div id="historyButtons">
-          <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn"><i class="fas fa-fw fa-eye"></i></a>
+          <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn">
+            ${isHidden ? '<i class="fas fa-fw fa-eye"></i>' : '<i class="fas fa-fw fa-eye-slash"></i>'}
+          </a>
           <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
           ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
         </div>`;
@@ -788,11 +790,13 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           if (isHidden === true) {
             showHidden();
             isHidden = false;
+            localStorage.setItem("isHidden", "false");
             copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
           } else {
             hideHidden();
             isHidden = true;
+            localStorage.setItem("isHidden", "true");
             copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
             histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
           }
