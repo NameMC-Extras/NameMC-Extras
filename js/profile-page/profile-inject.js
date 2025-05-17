@@ -330,7 +330,10 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
           elytraBtn.classList.add('p-0');
 
-          if (document.querySelectorAll(".skin-2d.skin-button").length > 0) elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:135px!important');
+          let margin = 135;
+          if (hideLayers) margin -= 42.5;
+          if (hideSkinStealer) margin -= 42.5;
+          if (document.querySelectorAll(".skin-2d.skin-button").length > 0) elytraBtn.setAttribute('style', `width:32px;height:32px;margin-top:${margin}px!important`);
           else {
             elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important');
           }
@@ -376,8 +379,9 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           let stealBtn = document.createElement('button');
           stealBtn.id = 'steal-btn';
           stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-          stealBtn.classList.add('p-0');
-          stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:92.5px!important;`)
+          let margin = 92.5;
+          if (hideLayers) margin -= 42.5;
+          stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:${margin}px!important;`)
           stealBtn.title = "Steal Skin/Cape";
           let stealIcon = document.createElement('i');
           stealIcon.classList.add('fas');
