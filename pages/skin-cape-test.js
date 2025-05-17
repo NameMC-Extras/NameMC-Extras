@@ -57,7 +57,7 @@ const waitForFunc = function (func, callback) {
             waitForFunc(func, callback);
         });
     }
-};  
+};
 
 const waitForSupabase = function (callback) {
     var supabase_data = window.localStorage.getItem("supabase_data");
@@ -179,7 +179,7 @@ const createElytraBtn = () => {
 }
 
 const getSkinFromId = async (uuid) => {
-    var sessionAPI = await fetch("https://api.gapple.pw/cors/sessionserver/"+encodeURIComponent(uuid));
+    var sessionAPI = await fetch("https://api.gapple.pw/cors/sessionserver/" + encodeURIComponent(uuid));
     if (sessionAPI.status == 200) {
         const sessionJSON = await sessionAPI.json();
         var sessionData = JSON.parse(atob(sessionJSON.properties[0].value));
@@ -212,6 +212,14 @@ function getOfficialCapes(supabase_data) {
 }
 
 waitForSelector('main', (main) => {
+    // get url params for applying skin/cape
+    const urlParams = new URLSearchParams(window.location.search);
+    const skinParam = urlParams.get('skin');
+    const capeParam = urlParams.get('cape');
+    const nmceCapeParam = urlParams.get('nmceCape');
+    const modelParam = urlParams.get('model');
+    const nameParam = urlParams.get('username');
+
     main.innerHTML = `<h1 class="text-center">Skin & Cape Tester</h1>
         <hr class="mt-0">
         <div class="row">
@@ -256,15 +264,15 @@ waitForSelector('main', (main) => {
                       </div>
                       <div class="mt-2">
                       <div class="custom-control custom-radio custom-control-inline">
-                          <input type="radio" id="auto" name="modelRadio" onchange="model='auto-detect'" checked>
+                          <input type="radio" id="auto" name="modelRadio" onchange="model='auto-detect'"${!modelParam ? ' checked' : ''}>
                           <label class="custom-control-label" for="auto">Auto</label>
                         </div>
                         <div class="custom-control custom-radio custom-control-inline">
-                          <input type="radio" id="classic" name="modelRadio" onchange="model='default'">
+                          <input type="radio" id="classic" name="modelRadio" onchange="model='default'"${modelParam === 'classic' ? ' checked' : ''}>
                           <label class="custom-control-label" for="classic">Classic</label>
                         </div>
                         <div class="custom-control custom-radio custom-control-inline">
-                          <input type="radio" id="slim" name="modelRadio" onchange="model='slim'">
+                          <input type="radio" id="slim" name="modelRadio" onchange="model='slim'"${modelParam === 'slim' ? ' checked' : ''}>
                           <label class="custom-control-label" for="slim">Slim</label>
                         </div>
                       </div>
@@ -375,15 +383,15 @@ waitForSelector('main', (main) => {
         uploadskin.onchange = () => {
             const skinFile = document.querySelector("#uploadskin").files[0];
             const skinReader = new FileReader();
-          
+
             skinReader.addEventListener(
-              "load",
-              () => {
-                skinValue = skinReader.result;
-              },
-              false,
+                "load",
+                () => {
+                    skinValue = skinReader.result;
+                },
+                false,
             );
-          
+
             if (skinFile) {
                 skinReader.readAsDataURL(skinFile)
             }
@@ -408,7 +416,7 @@ waitForSelector('main', (main) => {
             }
 
             if (isNameMCID.test(skinValue)) {
-                skinViewer.loadSkin("https://cors.faav.top/namemc/texture/"+encodeURIComponent(skinValue), {
+                skinViewer.loadSkin("https://cors.faav.top/namemc/texture/" + encodeURIComponent(skinValue), {
                     model
                 });
             } else if (skinValue.startsWith("data:")) {
@@ -425,7 +433,7 @@ waitForSelector('main', (main) => {
                         model
                     });
                 } else {
-                    const nameAPI = await fetch("https://api.gapple.pw/cors/username/"+encodeURIComponent(skinValue));
+                    const nameAPI = await fetch("https://api.gapple.pw/cors/username/" + encodeURIComponent(skinValue));
                     if (nameAPI.status == 200) {
                         const nameJSON = await nameAPI.json();
 
@@ -604,13 +612,13 @@ waitForSelector('main', (main) => {
                     const capeReader = new FileReader();
 
                     capeReader.addEventListener(
-                      "load",
-                      () => {
-                        currentCape = capeReader.result;
-                      },
-                      false,
+                        "load",
+                        () => {
+                            currentCape = capeReader.result;
+                        },
+                        false,
                     );
-                  
+
                     if (capeFile) {
                         capeReader.readAsDataURL(capeFile)
                     }
@@ -618,14 +626,6 @@ waitForSelector('main', (main) => {
             }
         }
 
-        // get url params for applying skin/cape
-        const urlParams = new URLSearchParams(window.location.search);
-        const skinParam = urlParams.get('skin');
-        const capeParam = urlParams.get('cape');
-        const nmceCapeParam = urlParams.get('nmceCape');
-        const modelParam = urlParams.get('model');
-        const nameParam = urlParams.get('username');
-        
         // apply skin
         if (skinParam) {
             skinViewer.loadSkin(`https://cors.faav.top/namemc/texture/${encodeURIComponent(skinParam)}`, {
