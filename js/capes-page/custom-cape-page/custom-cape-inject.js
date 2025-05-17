@@ -149,6 +149,8 @@ const categoryId = location.pathname.split("/")[2];
 const capeId = location.pathname.split("/")[3];
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
+var hideElytra = localStorage.getItem("hideElytra") === "true";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
 
 /*
  * CLASSES
@@ -230,14 +232,14 @@ async function loadPage() {
             <button id="download-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:50px!important;" title="Download Cape">
               <i class="fas fa-download"></i>
             </button>
-            <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Elytra">
+            ${!hideElytra ? `<button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:${(capeCategory !== "Bedrock" && !hideSkinStealer) ? 135 : 92.5}px!important;" title="Elytra">
               <i class="fas fa-dove"></i>
-            </button>
-            ${capeCategory == "Bedrock" ? "" : `
-              <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:135px!important;" title="Steal Cape">
+            </button>` : ''}
+            ${(capeCategory !== "Bedrock" && !hideSkinStealer) ? `
+              <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Steal Cape">
                 <i class="fas fa-user-secret"></i>
               </button>  
-            `}
+            ` : ""}
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${cape.user_count || capeOwners.length}★</h5>
           </div>
         </div>
@@ -358,9 +360,7 @@ async function loadPage() {
       fixPauseBtn()
       waitForCape(fixDownloadBtn)
       waitForCape(fixElytraBtn);
-      if (capeCategory != "Bedrock") {
-        waitForCape(fixStealBtn);
-      }
+      if (capeCategory != "Bedrock") waitForCape(fixStealBtn);
     })
 
     waitForTooltip(() => {

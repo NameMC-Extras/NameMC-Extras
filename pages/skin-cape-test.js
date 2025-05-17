@@ -121,14 +121,13 @@ const fixPauseBtn = () => {
     })
 }
 
-// add elytra button
+// add layers button
 const createLayerBtn = () => {
     waitForSelector('#play-pause-btn', () => {
         var pauseBtn = document.querySelector('#play-pause-btn');
         var layerBtn = document.createElement('button');
         layerBtn.id = 'layer-btn';
         layerBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-        layerBtn.classList.add('p-0');
         layerBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
         layerBtn.title = "No Layers";
         layerIcon = document.createElement('i');
@@ -146,11 +145,10 @@ const createElytraBtn = () => {
             var pauseBtn = document.querySelector('#play-pause-btn');
             var elytraBtn = document.createElement('button');
             elytraBtn.id = 'elytra-btn';
-            elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-            elytraBtn.classList.add('p-0');
+            elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
             elytraBtn.setAttribute('style', 'width:36px;height:36px;margin-top:177.5px!important;')
             elytraBtn.title = "Elytra";
-            elytraIcon = document.createElement('i');
+            let elytraIcon = document.createElement('i');
             elytraIcon.classList.add('fas');
             elytraIcon.classList.add('fa-dove');
             elytraBtn.innerHTML = elytraIcon.outerHTML;

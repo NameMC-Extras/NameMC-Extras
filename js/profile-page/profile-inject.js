@@ -307,7 +307,6 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         let layerBtn = document.createElement('button');
         layerBtn.id = 'layer-btn';
         layerBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-        layerBtn.classList.add('p-0');
         layerBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
         layerBtn.title = "No Layers";
         let layerIcon = document.createElement('i');
@@ -327,9 +326,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         if (skinViewer.capeTexture && !document.querySelector("#elytra-btn")) {
           let elytraBtn = document.createElement('button');
           elytraBtn.id = 'elytra-btn';
-          elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-          elytraBtn.classList.add('p-0');
-
+          elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
           let margin = 135;
           if (hideLayers) margin -= 42.5;
           if (hideSkinStealer) margin -= 42.5;
