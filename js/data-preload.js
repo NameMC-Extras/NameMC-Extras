@@ -1,21 +1,9 @@
 (async () => {
-  if (!localStorage['preloaded']) localStorage['preloaded'] = 0;
-  if (localStorage['preloaded'] === "1") {
-    localStorage['preloaded'] = 0;
-    return;
-  }
-  localStorage['preloaded'] = 1;
+  if (new Date(Number(localStorage.getItem("supabase_expires"))).valueOf() > new Date().valueOf()) return;
+
   async function fetchSupabase(endPoints) {
-    return Promise.all([...endPoints.map(async endPoint => await fetch(`https://raw.githubusercontent.com/NameMC-Extras/data/main/${endPoint}.json`, {
-      headers: {
-        'Cache-Control': 'max-age=120'
-      }
-    })),
-    await fetch('https://bedrock.lol/api/v1/capes', {
-      headers: {
-        'Cache-Control': 'max-age=120'
-      }
-    })
+    return Promise.all([...endPoints.map(async endPoint => await fetch(`https://raw.githubusercontent.com/NameMC-Extras/data/main/${endPoint}.json`)),
+    await fetch('https://bedrock.lol/api/v1/capes')
     ]);
   };
 
@@ -43,6 +31,7 @@
     }));
 
     localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(await datas)));
+    localStorage.setItem("supabase_expires", new Date().valueOf()+(300*1000))
   }
 
   fetchSupabase(Object.values(endPoints)).then(results => storeResults(results));
