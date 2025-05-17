@@ -275,7 +275,7 @@ async function loadPage() {
           ${isBedrock && capeOwners.filter(a => !a.java_uuid).length ? `<div class="card mb-3">
             <div class="d-flex flex-column" style="max-height: 25rem">
               <div class="card-header py-1"><strong>Bedrock Profiles (${capeOwners.filter(a => !a.java_uuid).length})</strong></div>
-              <div class="card-body player-list py-2"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
+              <div class="card-body player-list py-2" id="bedrockList"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
               </div>
             </div>
           </div>` : ''}
@@ -318,8 +318,8 @@ async function loadPage() {
       return userEl.outerHTML;
     }).join(" ");
 
-    if (isBedrock) {
-      document.querySelectorAll(".player-list")[1].innerHTML = capeOwners.filter(a => !a.java_uuid).map((u, i) => {
+    if (isBedrock && document.querySelector('#bedrockList')) {
+      document.querySelector("#bedrockList").innerHTML = capeOwners.filter(a => !a.java_uuid).map((u, i) => {
       let userEl;
       userEl = document.createElement("span");
         userEl.textContent = u.username;
