@@ -103,42 +103,46 @@ const fixPauseBtn = () => {
 }
 
 const fixElytraBtn = () => {
-  setTimeout(() => {
-    document.querySelector('#elytra-btn').onclick = () => {
-      var elytraIconEl = document.querySelector('#elytra-btn i');
-      if (!elytraOn) {
-        elytraOn = true;
-        elytraIconEl.classList.remove('fa-dove');
-        elytraIconEl.classList.add('fa-square');
-        elytraIconEl.parentElement.title = "No Elytra"
-        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-          backEquipment: "elytra"
-        });
-      } else {
-        elytraOn = false;
-        elytraIconEl.classList.remove('fa-square');
-        elytraIconEl.classList.add('fa-dove');
-        elytraIconEl.parentElement.title = "Elytra"
-        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+  if (!hideElytra) {
+    setTimeout(() => {
+      document.querySelector('#elytra-btn').onclick = () => {
+        var elytraIconEl = document.querySelector('#elytra-btn i');
+        if (!elytraOn) {
+          elytraOn = true;
+          elytraIconEl.classList.remove('fa-dove');
+          elytraIconEl.classList.add('fa-square');
+          elytraIconEl.parentElement.title = "No Elytra"
+          skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
+            backEquipment: "elytra"
+          });
+        } else {
+          elytraOn = false;
+          elytraIconEl.classList.remove('fa-square');
+          elytraIconEl.classList.add('fa-dove');
+          elytraIconEl.parentElement.title = "Elytra"
+          skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+        }
       }
-    }
-  })
+    });
+  }
 }
 
 const fixStealBtn = () => {
-  setTimeout(() => {
-    document.querySelector('#steal-btn').onclick = () => {
-      // get cape id (last "/" of url... account for query params)
-      const capeId = location.pathname.split("/").slice(-1)[0].split("?")[0];
-      window.location.href = `${location.origin}/extras/skin-cape-test?cape=${capeId}&nmceCape=1`;
-    }
-  })
+  if (!hideSkinStealer) {
+    setTimeout(() => {
+      document.querySelector('#steal-btn').onclick = () => {
+        // get cape id (last "/" of url... account for query params)
+        const capeId = location.pathname.split("/").slice(-1)[0].split("?")[0];
+        window.location.href = `${location.origin}/extras/skin-cape-test?cape=${capeId}&nmceCape=1`;
+      }
+    });
+  }
 }
 
 const fixDownloadBtn = () => {
   setTimeout(() => {
     document.querySelector('#download-btn').onclick = downloadCape;
-  })
+  });
 }
 
 /*

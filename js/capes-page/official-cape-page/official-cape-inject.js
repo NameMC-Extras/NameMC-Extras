@@ -286,7 +286,7 @@ waitForSelector(".col-md-6", () => {
       skinViewer.loadCape(window.namemc.images[skinContainer.getAttribute("data-cape-hash")].src);
 
       waitForCape(() => {
-        document.querySelector('#elytra-btn').onclick = () => {
+        if (!hideElytra) document.querySelector('#elytra-btn').onclick = () => {
           var elytraIconEl = document.querySelector('#elytra-btn i');
           if (!elytraOn) {
             elytraOn = true;

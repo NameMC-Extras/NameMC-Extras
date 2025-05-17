@@ -979,7 +979,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         }
 
         // make layer button work
-        document.querySelector("#layer-btn").onclick = toggleLayers;
+        if (!hideLayers) document.querySelector("#layer-btn").onclick = toggleLayers;
 
         // skins
         document.querySelectorAll('.skin-2d').forEach((el) => {
