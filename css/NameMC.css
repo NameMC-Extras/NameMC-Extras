@@ -1,6 +1,10 @@
 html {
     --head-cmd: block;
+    --servers: block;
+    --following: block;
+    --claim-profile: block;
     --degrees-of-sep: block;
+    --optifine: block;
     --bedrock-only: contents;
 }
 
@@ -261,6 +265,22 @@ option:checked {
 
 .mb-3:has(a[href*=degrees_of_separation]) {
     display: var(--degrees-of-sep);
+}
+
+.mb-3:has(.server-icon) {
+    display: var(--servers);
+}
+
+.mb-3:has(#following) {
+    display: var(--following);
+}
+
+.mb-3:has(a[href*=claim-your-profile]) {
+    display: var(--claim-profile);
+}
+
+.mb-3:has(a[href*='optifine.net/banners']) {
+    display: var(--optifine);
 }
 
 [data-java_equivalent] {

@@ -41,6 +41,10 @@
     var hideElytra = localStorage.getItem("hideElytra") === "true";
     var hideLayers = localStorage.getItem("hideLayers") === "true";
     var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
+    var hideServers = localStorage.getItem("hideServers") === "true";
+    var hideClaimProfile = localStorage.getItem("hideClaimProfile") === "true";
+    var hideFollowing = localStorage.getItem("hideFollowing") === "true";
+    var hideOptifine = localStorage.getItem("hideOptifine") === "true";
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -68,7 +72,11 @@
 
     if (customThemeOn) setCustomTheme();
     if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'block');
+    if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'block');
+    if (hideClaimProfile) document.documentElement.style.setProperty("--claim-profile", hideClaimProfile ? 'none' : 'block');
+    if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'block');
     if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'block');
+    if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'block');
 
     const createSettingsButton = () => {
         const modalHTML = `
@@ -160,12 +168,28 @@
                                 <label class="form-check-label" for="hideLayers">Hide Layers Button</label>
                             </div>
                             <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideOptifine"${hideOptifine ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideOptifine">Hide OptiFine Capes</label>
+                            </div>
+                            <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="hideSkinStealer"${hideSkinStealer ? ' checked' : ''}>
                                 <label class="form-check-label" for="hideSkinStealer">Hide Skin Stealer Button</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="hideHeadCmd"${hideHeadCmd ? ' checked' : ''}>
                                 <label class="form-check-label" for="hideHeadCmd">Hide Head Command</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideServers"${hideServers ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideServers">Hide Favorite Servers</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideFollowing"${hideFollowing ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideFollowing">Hide Following/Followers</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideClaimProfile"${hideClaimProfile ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideClaimProfile">Hide Claim Profile Prompt</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="hideDegreesOfSep"${hideDegreesOfSep ? ' checked' : ''}>

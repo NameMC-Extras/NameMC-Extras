@@ -42,6 +42,7 @@ var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "true";
 var hideElytra = localStorage.getItem("hideElytra") === "true";
 var hideLayers = localStorage.getItem("hideLayers") === "true";
 var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
+var hideOptifine = localStorage.getItem("hideOptifine") === "true";
 var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
 var bedrockOnly = localStorage.getItem("bedrockOnly") !== "false";
 
@@ -922,6 +923,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
+      var optifineSelected = document.querySelector('a[href*="optifine.net/banners"] .skin-button-selected');
 
       waitForImage(async () => {
         // has ears
@@ -940,7 +942,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           waitForImage(async () => {
             currentCape = capeHash;
             nmceCape = false;
-            await skinViewer.loadCape(window.namemc.images[capeHash].src);
+            if (!(hideOptifine && optifineSelected)) await skinViewer.loadCape(window.namemc.images[capeHash].src);
 
             setTimeout(createElytraBtn);
           }, capeHash);
