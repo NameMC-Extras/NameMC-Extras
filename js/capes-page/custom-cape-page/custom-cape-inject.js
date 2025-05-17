@@ -272,7 +272,7 @@ async function loadPage() {
               </div>
             </div>
           </div>
-          ${isBedrock ? `<div class="card mb-3">
+          ${isBedrock && capeOwners.filter(a => !a.java_uuid).length ? `<div class="card mb-3">
             <div class="d-flex flex-column" style="max-height: 25rem">
               <div class="card-header py-1"><strong>Bedrock Profiles (${capeOwners.filter(a => !a.java_uuid).length})</strong></div>
               <div class="card-body player-list py-2"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
