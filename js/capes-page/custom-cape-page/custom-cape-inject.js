@@ -200,6 +200,7 @@ async function loadPage() {
   }
   if (!cape) return;
   const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name ?? "Bedrock";
+  const isBedrock = capeCategory === "Bedrock";
   document.title = `${cape.name} | ${capeCategory} Cape | NameMC Extras`
   let capeOwners = supabase_data.user_capes.filter(user => user.cape == capeId);
   if (capeOwners.length == 0) {
@@ -266,21 +267,31 @@ async function loadPage() {
         <div class="col-md-6">
           <div class="card mb-3">
             <div class="d-flex flex-column" style="max-height: 25rem">
-              <div class="card-header py-1"><strong>Profiles (${cape.user_count || capeOwners.length})</strong></div>
+              <div class="card-header py-1"><strong>${isBedrock ? 'Java ' : ''}Profiles (${isBedrock ? capeOwners.filter(a => a.java_uuid).length : capeOwners.length})</strong></div>
               <div class="card-body player-list py-2"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
               </div>
             </div>
           </div>
+          ${isBedrock ? `<div class="card mb-3">
+            <div class="d-flex flex-column" style="max-height: 25rem">
+              <div class="card-header py-1"><strong>Bedrock Profiles (${capeOwners.filter(a => !a.java_uuid).length})</strong></div>
+              <div class="card-body player-list py-2"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
+              </div>
+            </div>
+          </div>` : ''}
         </div>
     </div>
   `);
 
   waitForSelector("main", async (mainDiv) => {
     mainDiv.append(capeHTML);
-    var badgeOwnerNames;
-    if (capeCategory == "Bedrock") {
+    let badgeOwnerNames;
+    if (isBedrock) {
       //capeOwners.push({ username: "..." });
-      badgeOwnerNames = capeOwners.map(u => u.username);
+      badgeOwnerNames = (await Promise.all(capeOwners.filter(a => a.java_uuid).map(async badge => {
+        const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.java_uuid);
+        return await resp.json();
+      }))).map(a => a.name);
     } else {
       badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
         const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
@@ -288,18 +299,13 @@ async function loadPage() {
       }))).map(a => a.name);
     }
 
-    document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
-      var userEl;
-      if (capeCategory == "Bedrock") {
-        if (u.java_uuid) {
-          userEl = document.createElement("a");
-          userEl.href = "/profile/" + u.java_uuid;
-        } else {
-          userEl = document.createElement("span");
-        }
-        userEl.textContent = u.username;
+    document.querySelector(".player-list").innerHTML = (isBedrock ? capeOwners.filter(a => a.java_uuid) : capeOwners).map((u, i) => {
+      let userEl;
+      if (isBedrock && u.java_uuid) {
+        userEl = document.createElement("a");
+        userEl.href = "/profile/" + u.java_uuid;
       } else {
-        var userEl = document.createElement("a");
+        userEl = document.createElement("a");
         userEl.href = "/profile/" + u.user;
       }
       userEl.textContent = badgeOwnerNames[i];
@@ -311,6 +317,21 @@ async function loadPage() {
 
       return userEl.outerHTML;
     }).join(" ");
+
+    if (isBedrock) {
+      document.querySelectorAll(".player-list")[1].innerHTML = capeOwners.filter(a => !a.java_uuid).map((u, i) => {
+      let userEl;
+      userEl = document.createElement("span");
+        userEl.textContent = u.username;
+      userEl.translate = "no";
+      if (u.note) {
+        userEl.setAttribute("data-note", "");
+        userEl.title = u.note;
+      }
+
+      return userEl.outerHTML;
+    }).join(" ");
+    }
 
     // create skin viewer
     waitForFunc("skinview3d", () => {
