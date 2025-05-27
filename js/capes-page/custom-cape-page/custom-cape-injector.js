@@ -6,7 +6,6 @@ skinViewScript.onload = function() {
   skinViewScript.remove();
 };
 
-// Injecter d'abord graph-utils.js
 const graphUtilsScript = document.createElement("script");
 graphUtilsScript.src = chrome.runtime.getURL("js/capes-page/graph-utils.js");
 (document.head || document.documentElement).appendChild(graphUtilsScript);
