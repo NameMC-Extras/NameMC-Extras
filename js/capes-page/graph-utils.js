@@ -10,6 +10,43 @@ function debounce(func, wait) {
   };
 }
 
+// Shared data processing function
+function processApiData(data, capeId) {
+  // Validate API response format
+  if (!Array.isArray(data)) {
+    throw new Error(`Invalid API response: expected array, got ${typeof data}`);
+  }
+  
+  if (data.length === 0) {
+    return [];
+  }
+  
+  // Check first item structure
+  const firstItem = data[0];
+  if (!firstItem.timestamp) {
+    throw new Error('Invalid API response: missing timestamp field');
+  }
+  
+  if (!firstItem.count) {
+    throw new Error('Invalid API response: missing count field');
+  }
+  
+  // Transform data to consistent format
+  const formattedData = data.map(point => ({
+    timestamp: new Date(parseInt(point.timestamp)),
+    users: point.count || 0
+  }));
+  
+  // Validate and clean the data
+  const validData = formattedData.filter(point => {
+    const isValidTimestamp = point.timestamp instanceof Date && !isNaN(point.timestamp.getTime());
+    const isValidUsers = typeof point.users === 'number' && !isNaN(point.users) && point.users >= 0;
+    return isValidTimestamp && isValidUsers;
+  });
+  
+  return validData;
+}
+
 // Main CapeUsageGraph class
 class CapeUsageGraph {
   constructor(canvas, options = {}) {
@@ -212,7 +249,7 @@ class CapeUsageGraph {
   
   setData(data) {
     // Data format: Array of {timestamp: Date, users: number}
-    this.data = data.sort((a, b) => a.timestamp - b.timestamp);
+    this.data = data.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     
     if (this.data.length > 0) {
       this.startTimestamp = this.data[0].timestamp;
@@ -221,9 +258,13 @@ class CapeUsageGraph {
       this.minUsers = Math.min(...this.data.map(d => d.users));
       // Add 10% padding to max
       this.maxUsers = Math.ceil(this.maxUsers * 1.1);
+      
+      // Set initial viewport if not set
+      if (!this.viewportStart || !this.viewportEnd) {
+        this.setTimeframe(this.options.timeframe);
+      }
     }
     
-    this.setTimeframe(this.options.timeframe);
     this.draw();
   }
   
@@ -233,8 +274,8 @@ class CapeUsageGraph {
     if (!this.data.length) {
       // Set reasonable default viewport when there's no data
       const now = new Date();
-      this.viewportStart = new Date(now - 30 * 24 * 60 * 60 * 1000).getTime(); // 30 days ago
-      this.viewportEnd = now.getTime();
+      this.viewportStart = Math.floor(new Date(now - 30 * 24 * 60 * 60 * 1000).getTime()); // 30 days ago
+      this.viewportEnd = Math.floor(now.getTime());
       this.draw();
       return;
     }
@@ -242,26 +283,26 @@ class CapeUsageGraph {
     const now = new Date();
     switch (timeframe) {
       case 'day':
-        this.viewportStart = new Date(now - 24 * 60 * 60 * 1000).getTime();
+        this.viewportStart = Math.floor(new Date(now - 24 * 60 * 60 * 1000).getTime());
         break;
       case 'week':
-        this.viewportStart = new Date(now - 7 * 24 * 60 * 60 * 1000).getTime();
+        this.viewportStart = Math.floor(new Date(now - 7 * 24 * 60 * 60 * 1000).getTime());
         break;
       case 'month':
-        this.viewportStart = new Date(now - 30 * 24 * 60 * 60 * 1000).getTime();
+        this.viewportStart = Math.floor(new Date(now - 30 * 24 * 60 * 60 * 1000).getTime());
         break;
       case 'year':
-        this.viewportStart = new Date(now - 365 * 24 * 60 * 60 * 1000).getTime();
+        this.viewportStart = Math.floor(new Date(now - 365 * 24 * 60 * 60 * 1000).getTime());
         break;
       case 'all':
       default:
-        this.viewportStart = Math.max(
+        this.viewportStart = Math.floor(Math.max(
           this.startTimestamp.getTime(), 
           new Date('2010-01-01').getTime() // Don't go before 2010
-        );
+        ));
     }
     
-    this.viewportEnd = now.getTime();
+    this.viewportEnd = Math.floor(now.getTime());
     
     // Reset lastFetchedViewport when timeframe changes
     this.lastFetchedViewport = { start: 0, end: 0 };
@@ -301,8 +342,10 @@ class CapeUsageGraph {
       this.drawGrid(displayWidth, displayHeight);
       this.drawAxes(displayWidth, displayHeight);
       
-      // Try to fetch data for this viewport
-      this.fetchDataForViewport();
+      // Try to fetch data for this viewport if we haven't already
+      if (!this.isFetching) {
+        this.fetchDataForViewport();
+      }
       return;
     }
     
@@ -321,7 +364,7 @@ class CapeUsageGraph {
     const dataToPlot = this.options.simplified && visibleData.length > 200 
       ? this.simplifyData(visibleData, 100)  // Use 100 points instead of 50
       : visibleData;
-    
+      
     dataToPlot.forEach((point, i) => {
       const x = this.timeToX(point.timestamp, displayWidth);
       const y = this.userCountToY(point.users, displayHeight);
@@ -335,48 +378,9 @@ class CapeUsageGraph {
     
     ctx.stroke();
     
-    // Area fill under the line
-    ctx.lineTo(this.timeToX(dataToPlot[dataToPlot.length-1].timestamp, displayWidth), displayHeight - p);
-    ctx.lineTo(this.timeToX(dataToPlot[0].timestamp, displayWidth), displayHeight - p);
-    ctx.closePath();
-    ctx.fillStyle = `${this.options.lineColor}20`; // 20 = 12.5% opacity
-    ctx.fill();
-    
-    // Draw points - only if fewer than 80 points or if hovering
-    if (!this.options.simplified || dataToPlot.length < 80) {
-      dataToPlot.forEach(point => {
-        const x = this.timeToX(point.timestamp, displayWidth);
-        const y = this.userCountToY(point.users, displayHeight);
-        
-        // Highlight point if it's being hovered
-        if (this.hoverPoint && this.hoverPoint.timestamp.getTime() === point.timestamp.getTime()) {
-          // Dessiner un cercle de surbrillance en 2 temps pour meilleure visibilité
-          // D'abord un cercle de fond un peu plus grand
-          ctx.beginPath();
-          ctx.arc(x, y, this.options.pointRadius + 5, 0, Math.PI * 2);
-          ctx.fillStyle = '#ffffff'; // Cercle blanc de fond
-          ctx.fill();
-          
-          // Puis un cercle de surbrillance de taille moyenne
-          ctx.beginPath();
-          ctx.arc(x, y, this.options.pointRadius + 3, 0, Math.PI * 2);
-          ctx.fillStyle = `${this.options.lineColor}40`; // 40 = 25% opacity
-          ctx.fill();
-        }
-        
-        ctx.beginPath();
-        ctx.arc(x, y, this.options.simplified ? this.options.pointRadius - 1 : this.options.pointRadius, 0, Math.PI * 2);
-        ctx.fillStyle = this.options.lineColor;
-        ctx.fill();
-      });
-    }
-    
-    // Draw legend/stats
+    // Draw points and stats
+    this.drawPoints(dataToPlot, displayWidth, displayHeight);
     this.drawStats(visibleData, displayWidth, displayHeight);
-    
-    // Check if we need to fetch more data in the background
-    // We do this after drawing to ensure good user experience
-    setTimeout(() => this.fetchDataForViewport(), 10);
   }
   
   drawGrid(width, height) {
@@ -1124,21 +1128,20 @@ class CapeUsageGraph {
     if (!needToFetchStart && !needToFetchEnd) return;
     
     // Calculate padding for fetching more data
-    const padding = currentViewportRange * this.fetchPadding;
+    const padding = Math.floor(currentViewportRange * this.fetchPadding); // Ensure integer
     
     // Set the range to fetch
-    const fetchStart = Math.max(
+    const fetchStart = Math.floor(Math.max(
       new Date('2010-01-01').getTime(), 
       this.viewportStart - padding
-    );
-    const fetchEnd = Math.min(
+    ));
+    const fetchEnd = Math.floor(Math.min(
       new Date().getTime() + 7 * 24 * 60 * 60 * 1000,
       this.viewportEnd + padding
-    );
+    ));
     
     // Check if this request recently failed to avoid spamming failed requests
     if (window.capeDataCache && window.capeDataCache.hasRecentlyFailed(this.capeId, fetchStart, fetchEnd)) {
-      console.warn(`Skipping fetch for cape ${this.capeId}: recent request failed`);
       return;
     }
     
@@ -1152,8 +1155,8 @@ class CapeUsageGraph {
         const newData = data.filter(d => !existingTimestamps.has(d.timestamp.getTime()));
         
         if (newData.length > 0) {
-          this.data = [...this.data, ...newData].sort((a, b) => a.timestamp - b.timestamp);
-          this.draw();
+          this.data = [...this.data, ...newData].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+          this.draw(); // Redraw after adding new data
         }
       } else {
         this.setData(data);
@@ -1179,7 +1182,7 @@ class CapeUsageGraph {
     
     try {
       // Fetch data from API
-      const apiUrl = `https://capes.api.fyz.sh/${this.capeId}/usage?start=${fetchStart}&end=${fetchEnd}`;
+      const apiUrl = `https://capes.fyz.sh/${this.capeId}/usage?start=${fetchStart}&end=${fetchEnd}`;
       
       const response = await fetch(apiUrl);
       
@@ -1189,27 +1192,30 @@ class CapeUsageGraph {
       
       const data = await response.json();
       
-      // Transform data
-      const formattedData = data.map(point => ({
-        timestamp: new Date(point.timestamp),
-        users: point.users
-      }));
+      // Process and validate the data using shared function
+      const validData = processApiData(data, this.capeId);
+      
+      // Hide the loading indicator
+      document.querySelectorAll('.graph-loading-indicator').forEach(el => {
+        el.style.display = 'none';
+      });
       
       // Add to cache if available
       if (window.capeDataCache) {
-        window.capeDataCache.addData(this.capeId, formattedData, fetchStart, fetchEnd);
+        window.capeDataCache.addData(this.capeId, validData, fetchStart, fetchEnd);
       }
       
       // Merge with existing data
       if (this.data && this.data.length > 0) {
         const existingTimestamps = new Set(this.data.map(d => d.timestamp.getTime()));
-        const newData = formattedData.filter(d => !existingTimestamps.has(d.timestamp.getTime()));
+        const newData = validData.filter(d => !existingTimestamps.has(d.timestamp.getTime()));
         
         if (newData.length > 0) {
-          this.data = [...this.data, ...newData].sort((a, b) => a.timestamp - b.timestamp);
+          this.data = [...this.data, ...newData].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+          this.draw(); // Redraw after adding new data
         }
       } else {
-        this.setData(formattedData);
+        this.setData(validData);
       }
       
       // Update last fetched viewport
@@ -1228,8 +1234,7 @@ class CapeUsageGraph {
       
       // Show error message to user
       if (showErrorMessage) {
-        // Afficher le message d'erreur directement
-        showErrorMessage('Failed to load data. Please try again later.');
+        showErrorMessage(`Failed to load data for cape ${this.capeId}. Please try again later.`);
       }
       
       // In case of failure, we keep the existing data
@@ -1253,30 +1258,57 @@ class CapeUsageGraph {
   }
   
   validateViewport() {
-    const now = new Date().getTime();
-    const minAllowedTime = new Date('2010-01-01').getTime(); // More restrictive
-    const maxAllowedTime = now + 7 * 24 * 60 * 60 * 1000; // Only 1 week into future
+    const now = Math.floor(new Date().getTime());
+    const minAllowedTime = Math.floor(new Date('2010-01-01').getTime()); // More restrictive
+    const maxAllowedTime = Math.floor(now + 7 * 24 * 60 * 60 * 1000); // Only 1 week into future
     
     // Limit start time
-    this.viewportStart = Math.max(this.viewportStart, minAllowedTime);
+    this.viewportStart = Math.floor(Math.max(this.viewportStart, minAllowedTime));
     
     // Limit end time
-    this.viewportEnd = Math.min(this.viewportEnd, maxAllowedTime);
+    this.viewportEnd = Math.floor(Math.min(this.viewportEnd, maxAllowedTime));
     
     // Ensure the viewport isn't too large (max 10 years)
-    const maxTimeRange = 10 * 365 * 24 * 60 * 60 * 1000;
+    const maxTimeRange = Math.floor(10 * 365 * 24 * 60 * 60 * 1000);
     if (this.viewportEnd - this.viewportStart > maxTimeRange) {
-      this.viewportStart = this.viewportEnd - maxTimeRange;
+      this.viewportStart = Math.floor(this.viewportEnd - maxTimeRange);
     }
     
     // Ensure the viewport isn't too small (min 1 hour)
-    const minTimeRange = 60 * 60 * 1000;
+    const minTimeRange = Math.floor(60 * 60 * 1000);
     if (this.viewportEnd - this.viewportStart < minTimeRange) {
-      this.viewportEnd = this.viewportStart + minTimeRange;
+      this.viewportEnd = Math.floor(this.viewportStart + minTimeRange);
     }
     
     // Fetch data for new viewport if needed
     this.fetchDataForViewport();
+  }
+
+  // Debug function to help troubleshoot graph issues
+  debugGraphState() {
+    console.log('=== Graph Debug Information ===');
+    console.log('Cape ID:', this.capeId);
+    console.log('Canvas dimensions:', this.canvas.width, 'x', this.canvas.height);
+    console.log('Display dimensions:', this.canvas.width / (window.devicePixelRatio || 1), 'x', this.canvas.height / (window.devicePixelRatio || 1));
+    console.log('Total data points:', this.data.length);
+    console.log('Data sample:', this.data.slice(0, 3));
+    console.log('Viewport:', {
+      start: new Date(this.viewportStart),
+      end: new Date(this.viewportEnd),
+      range: (this.viewportEnd - this.viewportStart) / (1000 * 60 * 60 * 24) + ' days'
+    });
+    console.log('User range:', this.minUsers, '-', this.maxUsers);
+    console.log('Is fetching:', this.isFetching);
+    console.log('Last fetched viewport:', this.lastFetchedViewport);
+    
+    // Check visible data
+    const visibleData = this.data.filter(d => {
+      const timestamp = d.timestamp.getTime();
+      return timestamp >= this.viewportStart && timestamp <= this.viewportEnd;
+    });
+    console.log('Visible data points:', visibleData.length);
+    console.log('Visible data sample:', visibleData.slice(0, 3));
+    console.log('===============================');
   }
 
   // Calculate the distance from a point to a line segment
@@ -1312,6 +1344,59 @@ class CapeUsageGraph {
     
     return Math.sqrt(dx * dx + dy * dy);
   }
+
+  drawPoints(dataToPlot, displayWidth, displayHeight) {
+    const ctx = this.ctx;
+    
+    // Draw points - only if fewer than 80 points or if hovering
+    if (!this.options.simplified || dataToPlot.length < 80) {
+      dataToPlot.forEach(point => {
+        const x = this.timeToX(point.timestamp, displayWidth);
+        const y = this.userCountToY(point.users, displayHeight);
+        
+        // Highlight point if it's being hovered
+        if (this.hoverPoint && this.hoverPoint.timestamp.getTime() === point.timestamp.getTime()) {
+          // Draw highlight circle in 2 steps for better visibility
+          // First a larger background circle
+          ctx.beginPath();
+          ctx.arc(x, y, this.options.pointRadius + 5, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff'; // White background circle
+          ctx.fill();
+          
+          // Then a medium highlight circle
+          ctx.beginPath();
+          ctx.arc(x, y, this.options.pointRadius + 3, 0, Math.PI * 2);
+          ctx.fillStyle = `${this.options.lineColor}40`; // 40 = 25% opacity
+          ctx.fill();
+        }
+        
+        // Draw the actual point
+        ctx.beginPath();
+        ctx.arc(x, y, this.options.simplified ? this.options.pointRadius - 1 : this.options.pointRadius, 0, Math.PI * 2);
+        ctx.fillStyle = this.options.lineColor;
+        ctx.fill();
+      });
+    }
+    
+    // Draw area fill under the line
+    ctx.beginPath();
+    dataToPlot.forEach((point, i) => {
+      const x = this.timeToX(point.timestamp, displayWidth);
+      const y = this.userCountToY(point.users, displayHeight);
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    
+    const p = this.options.padding;
+    ctx.lineTo(this.timeToX(dataToPlot[dataToPlot.length-1].timestamp, displayWidth), displayHeight - p);
+    ctx.lineTo(this.timeToX(dataToPlot[0].timestamp, displayWidth), displayHeight - p);
+    ctx.closePath();
+    ctx.fillStyle = `${this.options.lineColor}20`; // 20 = 12.5% opacity
+    ctx.fill();
+  }
 }
 
 // Expose the class globally
@@ -1334,8 +1419,12 @@ class CapeDataCache {
     }
     
     // Filter data already available in the requested range
+    // Convert timestamps to numbers for proper comparison
     return this.cacheData[capeId].data.filter(
-      item => item.timestamp >= startTime && item.timestamp <= endTime
+      item => {
+        const itemTimestamp = item.timestamp instanceof Date ? item.timestamp.getTime() : item.timestamp;
+        return itemTimestamp >= startTime && itemTimestamp <= endTime;
+      }
     );
   }
 
@@ -1881,7 +1970,6 @@ function initializeGraph(capeId) {
       if (modal) {
         modal.style.display = 'none';
         
-        // Forcer le redessinage du graphique pour cacher les tooltips
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;
           window.modalCapeGraph.draw();
@@ -1900,7 +1988,6 @@ function initializeGraph(capeId) {
       if (event.target === modal) {
         modal.style.display = 'none';
         
-        // Forcer le redessinage du graphique pour cacher les tooltips
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;
           window.modalCapeGraph.draw();
@@ -1916,7 +2003,6 @@ function initializeGraph(capeId) {
       if (event.key === 'Escape' && modal.style.display === 'block') {
         modal.style.display = 'none';
         
-        // Forcer le redessinage du graphique pour cacher les tooltips
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;
           window.modalCapeGraph.draw();
@@ -1930,7 +2016,6 @@ function initializeGraph(capeId) {
   
   // Function to hide all tooltips
   function hideAllTooltips() {
-    // Cache les tooltips dans les graphiques
     const graphs = [window.capeGraph, window.modalCapeGraph];
     graphs.forEach(graph => {
       if (graph && graph.options && graph.options.tooltipContainer) {
@@ -1963,35 +2048,31 @@ function initializeGraph(capeId) {
 async function getCapeUsageData(capeId, timeframe = 'week') {
   // Calculate the time range based on the timeframe
   const now = new Date();
-  let startTime, endTime = now.getTime();
+  let startTime, endTime = Math.floor(now.getTime());
   
   switch (timeframe) {
     case 'day':
-      startTime = new Date(now - 24 * 60 * 60 * 1000).getTime();
+      startTime = Math.floor(new Date(now - 24 * 60 * 60 * 1000).getTime());
       break;
     case 'week':
-      startTime = new Date(now - 7 * 24 * 60 * 60 * 1000).getTime();
+      startTime = Math.floor(new Date(now - 7 * 24 * 60 * 60 * 1000).getTime());
       break;
     case 'month':
-      startTime = new Date(now - 30 * 24 * 60 * 60 * 1000).getTime();
+      startTime = Math.floor(new Date(now - 30 * 24 * 60 * 60 * 1000).getTime());
       break;
     case 'year':
-      startTime = new Date(now - 365 * 24 * 60 * 60 * 1000).getTime();
+      startTime = Math.floor(new Date(now - 365 * 24 * 60 * 60 * 1000).getTime());
       break;
     default:
-      startTime = new Date(now - 30 * 24 * 60 * 60 * 1000).getTime();
+      startTime = Math.floor(new Date(now - 30 * 24 * 60 * 60 * 1000).getTime());
   }
   
-  // Extend the range slightly to preload additional data
-  // (10% before and 10% after)
-  const padding = (endTime - startTime) * 0.1;
-  const extendedStart = Math.max(startTime - padding, new Date('2010-01-01').getTime());
-  const extendedEnd = Math.min(endTime + padding, now.getTime() + 24 * 60 * 60 * 1000);
+  const padding = Math.floor((endTime - startTime) * 0.1);
+  const extendedStart = Math.floor(Math.max(startTime - padding, new Date('2010-01-01').getTime()));
+  const extendedEnd = Math.floor(Math.min(endTime + padding, now.getTime() + 24 * 60 * 60 * 1000));
   
   // Check if this request recently failed
   if (window.capeDataCache && window.capeDataCache.hasRecentlyFailed(capeId, extendedStart, extendedEnd)) {
-    console.warn(`Skipping fetch for cape ${capeId} (${timeframe}): recent request failed`);
-    
     // Show error message
     showErrorMessage('Could not load data. Please try again later.');
     
@@ -1999,15 +2080,14 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
     return [];
   }
   
+  
   // Check if the data is already cached
   if (window.capeDataCache && window.capeDataCache.isTimeRangeCached(capeId, startTime, endTime)) {
-    console.log(`Data for cape ${capeId} (${timeframe}) already cached`);
     return window.capeDataCache.getDataForTimeRange(capeId, startTime, endTime);
   }
   
   // Check if a similar request is already in progress
   if (window.capeDataCache && window.capeDataCache.isPendingRequest(capeId, extendedStart, extendedEnd)) {
-    console.log(`Request already in progress for cape ${capeId} (${timeframe})`);
     // Wait for the request to finish then filter the data
     const pendingRequest = window.capeDataCache.pendingRequests[capeId].find(
       req => req.startTime <= extendedStart && req.endTime >= extendedEnd
@@ -2018,13 +2098,12 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
   }
   
   // Prepare the API request
-  console.log(`Retrieving data for cape ${capeId} (${timeframe})`);
   
   // Create and track the loading promise
   const fetchPromise = (async () => {
     try {
       // URL of the API with parameters for the time range
-      const apiUrl = `https://capes.api.fyz.sh/${capeId}/usage?start=${extendedStart}&end=${extendedEnd}`;
+      const apiUrl = `https://capes.fyz.sh/${capeId}/usage?start=${extendedStart}&end=${extendedEnd}`;
       
       // Display a loading indicator on the graph
       document.querySelectorAll('.graph-loading-indicator').forEach(el => {
@@ -2039,23 +2118,20 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
       
       const data = await response.json();
       
-      // Convert timestamps to Date objects
-      const formattedData = data.map(item => ({
-        timestamp: new Date(item.timestamp),
-        users: item.users
-      }));
+      // Process and validate the data using shared function
+      const validData = processApiData(data, capeId);
       
       // Hide the loading indicator
       document.querySelectorAll('.graph-loading-indicator').forEach(el => {
         el.style.display = 'none';
       });
       
-      // Add the data to the cache
+      // Add to cache if available
       if (window.capeDataCache) {
-        window.capeDataCache.addData(capeId, formattedData, extendedStart, extendedEnd);
+        window.capeDataCache.addData(capeId, validData, extendedStart, extendedEnd);
       }
       
-      return formattedData;
+      return validData;
     } catch (error) {
       console.error('Error retrieving cape data:', error);
       
@@ -2092,11 +2168,14 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
   
   // Filter the data for the requested time range
   return result.filter(
-    item => item.timestamp >= startTime && item.timestamp <= endTime
+    item => {
+      const itemTimestamp = item.timestamp instanceof Date ? item.timestamp.getTime() : item.timestamp;
+      return itemTimestamp >= startTime && itemTimestamp <= endTime;
+    }
   );
 }
 
 // Expose functions globally
 window.createUsageGraphCard = createUsageGraphCard;
 window.initializeGraph = initializeGraph;
-window.getCapeUsageData = getCapeUsageData; 
+window.getCapeUsageData = getCapeUsageData;
