@@ -103,42 +103,46 @@ const fixPauseBtn = () => {
 }
 
 const fixElytraBtn = () => {
-  setTimeout(() => {
-    document.querySelector('#elytra-btn').onclick = () => {
-      var elytraIconEl = document.querySelector('#elytra-btn i');
-      if (!elytraOn) {
-        elytraOn = true;
-        elytraIconEl.classList.remove('fa-dove');
-        elytraIconEl.classList.add('fa-square');
-        elytraIconEl.parentElement.title = "No Elytra"
-        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-          backEquipment: "elytra"
-        });
-      } else {
-        elytraOn = false;
-        elytraIconEl.classList.remove('fa-square');
-        elytraIconEl.classList.add('fa-dove');
-        elytraIconEl.parentElement.title = "Elytra"
-        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+  if (!hideElytra) {
+    setTimeout(() => {
+      document.querySelector('#elytra-btn').onclick = () => {
+        var elytraIconEl = document.querySelector('#elytra-btn i');
+        if (!elytraOn) {
+          elytraOn = true;
+          elytraIconEl.classList.remove('fa-dove');
+          elytraIconEl.classList.add('fa-square');
+          elytraIconEl.parentElement.title = "No Elytra"
+          skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
+            backEquipment: "elytra"
+          });
+        } else {
+          elytraOn = false;
+          elytraIconEl.classList.remove('fa-square');
+          elytraIconEl.classList.add('fa-dove');
+          elytraIconEl.parentElement.title = "Elytra"
+          skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+        }
       }
-    }
-  })
+    });
+  }
 }
 
 const fixStealBtn = () => {
-  setTimeout(() => {
-    document.querySelector('#steal-btn').onclick = () => {
-      // get cape id (last "/" of url... account for query params)
-      const capeId = location.pathname.split("/").slice(-1)[0].split("?")[0];
-      window.location.href = `${location.origin}/extras/skin-cape-test?cape=${capeId}&nmceCape=1`;
-    }
-  })
+  if (!hideSkinStealer) {
+    setTimeout(() => {
+      document.querySelector('#steal-btn').onclick = () => {
+        // get cape id (last "/" of url... account for query params)
+        const capeId = location.pathname.split("/").slice(-1)[0].split("?")[0];
+        window.location.href = `${location.origin}/extras/skin-cape-test?cape=${capeId}&nmceCape=1`;
+      }
+    });
+  }
 }
 
 const fixDownloadBtn = () => {
   setTimeout(() => {
     document.querySelector('#download-btn').onclick = downloadCape;
-  })
+  });
 }
 
 /*
@@ -149,6 +153,8 @@ const categoryId = location.pathname.split("/")[2];
 const capeId = location.pathname.split("/")[3];
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
+var hideElytra = localStorage.getItem("hideElytra") === "true";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
 
 /*
  * CLASSES
@@ -168,10 +174,6 @@ class CustomCape {
     this.users = users;
   }
 }
-
-
-
-
 
 /*
  * FUNCTIONS
@@ -194,6 +196,7 @@ async function loadPage() {
   }
   if (!cape) return;
   const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name ?? "Bedrock";
+  const isBedrock = capeCategory === "Bedrock";
   document.title = `${cape.name} | ${capeCategory} Cape | NameMC Extras`
   let capeOwners = supabase_data.user_capes.filter(user => user.cape == capeId);
   if (capeOwners.length == 0) {
@@ -230,14 +233,14 @@ async function loadPage() {
             <button id="download-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:50px!important;" title="Download Cape">
               <i class="fas fa-download"></i>
             </button>
-            <button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Elytra">
+            ${!hideElytra ? `<button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:${(capeCategory !== "Bedrock" && !hideSkinStealer) ? 135 : 92.5}px!important;" title="Elytra">
               <i class="fas fa-dove"></i>
-            </button>
-            ${capeCategory == "Bedrock" ? "" : `
-              <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:135px!important;" title="Steal Cape">
+            </button>` : ''}
+            ${(capeCategory !== "Bedrock" && !hideSkinStealer) ? `
+              <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Steal Cape">
                 <i class="fas fa-user-secret"></i>
               </button>  
-            `}
+            ` : ""}
             <h5 class="position-absolute bottom-0 end-0 m-1 text-muted">${cape.user_count || capeOwners.length}★</h5>
           </div>
         </div>
@@ -256,36 +259,35 @@ async function loadPage() {
     })()}
           </div>
         </div>
-        <div id="graph-container"></div>
       </div>
         <div class="col-md-6">
           <div class="card mb-3">
             <div class="d-flex flex-column" style="max-height: 25rem">
-              <div class="card-header py-1"><strong>Profiles (${cape.user_count || capeOwners.length})</strong></div>
+              <div class="card-header py-1"><strong>${isBedrock ? 'Java ' : ''}Profiles (${isBedrock ? capeOwners.filter(a => a.java_uuid).length : capeOwners.length})</strong></div>
               <div class="card-body player-list py-2"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
               </div>
             </div>
           </div>
+          ${isBedrock && capeOwners.filter(a => !a.java_uuid).length ? `<div class="card mb-3">
+            <div class="d-flex flex-column" style="max-height: 25rem">
+              <div class="card-header py-1"><strong>Bedrock Profiles (${capeOwners.filter(a => !a.java_uuid).length})</strong></div>
+              <div class="card-body player-list py-2" id="bedrockList"><div class="col-auto saving text-center"><span>•</span><span>•</span><span>•</span></div>
+              </div>
+            </div>
+          </div>` : ''}
         </div>
     </div>
   `);
 
   waitForSelector("main", async (mainDiv) => {
     mainDiv.append(capeHTML);
-    
-    // Ajouter la carte de graphique en utilisant les fonctions de graph-utils.js
-    const graphCard = window.createUsageGraphCard(capeId);
-    document.getElementById('graph-container').appendChild(graphCard);
-    
-    // Initialiser le graphique après que tout soit configuré
-    setTimeout(() => {
-      window.initializeGraph(capeId);
-    }, 100);
-    
-    var badgeOwnerNames;
-    if (capeCategory == "Bedrock") {
+    let badgeOwnerNames;
+    if (isBedrock) {
       //capeOwners.push({ username: "..." });
-      badgeOwnerNames = capeOwners.map(u => u.username);
+      badgeOwnerNames = (await Promise.all(capeOwners.filter(a => a.java_uuid).map(async badge => {
+        const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.java_uuid);
+        return await resp.json();
+      }))).map(a => a.name);
     } else {
       badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
         const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
@@ -293,18 +295,13 @@ async function loadPage() {
       }))).map(a => a.name);
     }
 
-    document.querySelector(".player-list").innerHTML = capeOwners.map((u, i) => {
-      var userEl;
-      if (capeCategory == "Bedrock") {
-        if (u.java_uuid) {
-          userEl = document.createElement("a");
-          userEl.href = "/profile/" + u.java_uuid;
-        } else {
-          userEl = document.createElement("span");
-        }
-        userEl.textContent = u.username;
+    document.querySelector(".player-list").innerHTML = (isBedrock ? capeOwners.filter(a => a.java_uuid) : capeOwners).map((u, i) => {
+      let userEl;
+      if (isBedrock && u.java_uuid) {
+        userEl = document.createElement("a");
+        userEl.href = "/profile/" + u.java_uuid;
       } else {
-        var userEl = document.createElement("a");
+        userEl = document.createElement("a");
         userEl.href = "/profile/" + u.user;
       }
       userEl.textContent = badgeOwnerNames[i];
@@ -316,6 +313,21 @@ async function loadPage() {
 
       return userEl.outerHTML;
     }).join(" ");
+
+    if (isBedrock && document.querySelector('#bedrockList')) {
+      document.querySelector("#bedrockList").innerHTML = capeOwners.filter(a => !a.java_uuid).map((u, i) => {
+      let userEl;
+      userEl = document.createElement("span");
+        userEl.textContent = u.username;
+      userEl.translate = "no";
+      if (u.note) {
+        userEl.setAttribute("data-note", "");
+        userEl.title = u.note;
+      }
+
+      return userEl.outerHTML;
+    }).join(" ");
+    }
 
     // create skin viewer
     waitForFunc("skinview3d", () => {
@@ -359,7 +371,6 @@ async function loadPage() {
         skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36
       }
 
-
       skinContainer.addEventListener(
         "contextmenu",
         (event) => event.stopImmediatePropagation(),
@@ -369,9 +380,7 @@ async function loadPage() {
       fixPauseBtn()
       waitForCape(fixDownloadBtn)
       waitForCape(fixElytraBtn);
-      if (capeCategory != "Bedrock") {
-        waitForCape(fixStealBtn);
-      }
+      if (capeCategory != "Bedrock") waitForCape(fixStealBtn);
     })
 
     waitForTooltip(() => {
@@ -387,10 +396,6 @@ async function loadPage() {
     });
   });
 }
-
-
-
-
 
 /*
  * MAIN LOGIC

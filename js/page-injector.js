@@ -37,6 +37,14 @@
     var hideBadges = localStorage.getItem("hideBadges") === "true";
     var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
     var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
+    var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "true";
+    var hideElytra = localStorage.getItem("hideElytra") === "true";
+    var hideLayers = localStorage.getItem("hideLayers") === "true";
+    var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
+    var hideServers = localStorage.getItem("hideServers") === "true";
+    var hideClaimProfile = localStorage.getItem("hideClaimProfile") === "true";
+    var hideFollowing = localStorage.getItem("hideFollowing") === "true";
+    var hideOptifine = localStorage.getItem("hideOptifine") === "true";
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -64,7 +72,11 @@
 
     if (customThemeOn) setCustomTheme();
     if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'block');
+    if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'block');
+    if (hideClaimProfile) document.documentElement.style.setProperty("--claim-profile", hideClaimProfile ? 'none' : 'block');
+    if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'block');
     if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'block');
+    if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'block');
 
     const createSettingsButton = () => {
         const modalHTML = `
@@ -136,20 +148,52 @@
                                 <strong>Profile:</strong>
                             </label>
                             <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="bedrockCapes"${bedrockCapes ? ' checked' : ''}>
+                                <label class="form-check-label" for="bedrockCapes">Show Bedrock Capes</label>
+                            </div>
+                            <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="hideBadges"${hideBadges ? ' checked' : ''}>
                                 <label class="form-check-label" for="hideBadges">Hide Badges</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideCreatedAt"${hideCreatedAt ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideCreatedAt">Hide Created At</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideElytra"${hideElytra ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideElytra">Hide Elytra Button</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideLayers"${hideLayers ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideLayers">Hide Layers Button</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideOptifine"${hideOptifine ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideOptifine">Hide OptiFine Capes</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideSkinStealer"${hideSkinStealer ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideSkinStealer">Hide Skin Stealer Button</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="hideHeadCmd"${hideHeadCmd ? ' checked' : ''}>
                                 <label class="form-check-label" for="hideHeadCmd">Hide Head Command</label>
                             </div>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideDegreesOfSep"${hideDegreesOfSep ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideDegreesOfSep">Hide Degrees of Separation</label>
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideServers"${hideServers ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideServers">Hide Favorite Servers</label>
                             </div>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="bedrockCapes"${bedrockCapes ? ' checked' : ''}>
-                                <label class="form-check-label" for="bedrockCapes">Bedrock Capes</label>
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideFollowing"${hideFollowing ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideFollowing">Hide Following/Followers</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideClaimProfile"${hideClaimProfile ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideClaimProfile">Hide Claim Profile Prompt</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="hideDegreesOfSep"${hideDegreesOfSep ? ' checked' : ''}>
+                                <label class="form-check-label" for="hideDegreesOfSep">Hide Degrees of Separation</label>
                             </div>
                             <div class="mb-3">
                               <label for="linksTextArea" class="form-label">Links</label>
@@ -160,6 +204,15 @@
                 </div>
             </div>
         `;
+
+        const createSettingsToggle = (name) => {
+            var settingEl = document.querySelector(`#${name}`);
+            if (typeof localStorage[name] == "undefined") localStorage[name] = false;
+            settingEl.onclick = () => {
+                localStorage[name] = settingEl.checked;
+                globalThis[name] = settingEl.checked;
+            }
+        }
 
         waitForSelector("[data-bs-theme]", () => {
             if (document.querySelector(".no-js")) return;
@@ -462,26 +515,8 @@
                     }, 1000)
                 });
 
-                var hideHeadCmdEl = document.querySelector("#hideHeadCmd");
-                if (typeof localStorage.hideHeadCmd == "undefined") localStorage.hideHeadCmd = false;
-                hideHeadCmdEl.onclick = () => {
-                    localStorage.hideHeadCmd = hideHeadCmdEl.checked;
-                    hideHeadCmd = hideHeadCmdEl.checked;
-                }
-
-                var hideDegreesOfSepEl = document.querySelector("#hideDegreesOfSep");
-                if (typeof localStorage.hideDegreesOfSep == "undefined") localStorage.hideDegreesOfSep = false;
-                hideDegreesOfSepEl.onclick = () => {
-                    localStorage.hideDegreesOfSep = hideDegreesOfSepEl.checked;
-                    hideDegreesOfSep = hideDegreesOfSepEl.checked;
-                }
-
-                var hideBadgesEl = document.querySelector("#hideBadges");
-                if (typeof localStorage.hideBadges == "undefined") localStorage.hideBadges = false;
-                hideBadgesEl.onclick = () => {
-                    localStorage.hideBadges = hideBadgesEl.checked;
-                    hideBadges = hideBadgesEl.checked;
-                }
+                // PROFILE SETTINGS
+                [...document.querySelectorAll("#settingsModal [role=switch]")].forEach(a => createSettingsToggle(a.id));
 
                 var bedrockCapesEl = document.querySelector("#bedrockCapes");
                 if (typeof localStorage.bedrockCapes == "undefined") localStorage.bedrockCapes = false;

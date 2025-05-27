@@ -38,6 +38,11 @@ var skinArt = localStorage.getItem("skinArt") == "true";
 var layer = true;
 var enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
 var hideBadges = localStorage.getItem("hideBadges") === "true";
+var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "true";
+var hideElytra = localStorage.getItem("hideElytra") === "true";
+var hideLayers = localStorage.getItem("hideLayers") === "true";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
+var hideOptifine = localStorage.getItem("hideOptifine") === "true";
 var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
 var bedrockOnly = localStorage.getItem("bedrockOnly") !== "false";
 
@@ -296,97 +301,104 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
   // add layer button
   const createLayerBtn = () => {
-    waitForSelector('#play-pause-btn', () => {
-      var pauseBtn = document.querySelector('#play-pause-btn');
-      var layerBtn = document.createElement('button');
-      layerBtn.id = 'layer-btn';
-      layerBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-      layerBtn.classList.add('p-0');
-      layerBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
-      layerBtn.title = "No Layers";
-      layerIcon = document.createElement('i');
-      layerIcon.classList.add('fas');
-      layerIcon.classList.add('fa-clone');
-      layerBtn.innerHTML = layerIcon.outerHTML;
-      pauseBtn.outerHTML += layerBtn.outerHTML;
-    });
+    if (!hideLayers) {
+      waitForSelector('#play-pause-btn', () => {
+        let pauseBtn = document.querySelector('#play-pause-btn');
+        let layerBtn = document.createElement('button');
+        layerBtn.id = 'layer-btn';
+        layerBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+        layerBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
+        layerBtn.title = "No Layers";
+        let layerIcon = document.createElement('i');
+        layerIcon.classList.add('fas');
+        layerIcon.classList.add('fa-clone');
+        layerBtn.innerHTML = layerIcon.outerHTML;
+        pauseBtn.outerHTML += layerBtn.outerHTML;
+      });
+    }
   }
 
   // add elytra button
   const createElytraBtn = () => {
-    waitForSelector('#play-pause-btn', () => {
-      var pauseBtn = document.querySelector('#play-pause-btn');
-      if (skinViewer.capeTexture && !document.querySelector("#elytra-btn")) {
-        var elytraBtn = document.createElement('button');
-        elytraBtn.id = 'elytra-btn';
-        elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-        elytraBtn.classList.add('p-0');
+    if (!hideElytra) {
+      waitForSelector('#play-pause-btn', () => {
+        let pauseBtn = document.querySelector('#play-pause-btn');
+        if (skinViewer.capeTexture && !document.querySelector("#elytra-btn")) {
+          let elytraBtn = document.createElement('button');
+          elytraBtn.id = 'elytra-btn';
+          elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
+          let margin = 135;
+          if (hideLayers) margin -= 42.5;
+          if (hideSkinStealer) margin -= 42.5;
+          if (document.querySelectorAll(".skin-2d.skin-button").length > 0) elytraBtn.setAttribute('style', `width:32px;height:32px;margin-top:${margin}px!important`);
+          else {
+            elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important');
+          }
 
-        if (document.querySelectorAll(".skin-2d.skin-button").length > 0) elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:135px!important');
-        else {
-          elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important');
-        }
+          elytraBtn.title = "Elytra";
+          let elytraIcon = document.createElement('i');
+          elytraIcon.classList.add('fas');
+          elytraIcon.classList.add('fa-dove');
+          elytraBtn.innerHTML = elytraIcon.outerHTML;
+          pauseBtn.outerHTML += elytraBtn.outerHTML;
 
-        elytraBtn.title = "Elytra";
-        elytraIcon = document.createElement('i');
-        elytraIcon.classList.add('fas');
-        elytraIcon.classList.add('fa-dove');
-        elytraBtn.innerHTML = elytraIcon.outerHTML;
-        pauseBtn.outerHTML += elytraBtn.outerHTML;
-
-        document.querySelector('#elytra-btn').onclick = () => {
-          var elytraIconEl = document.querySelector('#elytra-btn i');
-          if (!elytraOn) {
-            elytraOn = true;
-            elytraIconEl.classList.remove('fa-dove');
-            elytraIconEl.classList.add('fa-square');
-            elytraIconEl.parentElement.title = "No Elytra"
-            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-              backEquipment: "elytra"
-            });
-          } else {
-            elytraOn = false;
-            elytraIconEl.classList.remove('fa-square');
-            elytraIconEl.classList.add('fa-dove');
-            elytraIconEl.parentElement.title = "Elytra"
-            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+          document.querySelector('#elytra-btn').onclick = () => {
+            let elytraIconEl = document.querySelector('#elytra-btn i');
+            if (!elytraOn) {
+              elytraOn = true;
+              elytraIconEl.classList.remove('fa-dove');
+              elytraIconEl.classList.add('fa-square');
+              elytraIconEl.parentElement.title = "No Elytra"
+              skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
+                backEquipment: "elytra"
+              });
+            } else {
+              elytraOn = false;
+              elytraIconEl.classList.remove('fa-square');
+              elytraIconEl.classList.add('fa-dove');
+              elytraIconEl.parentElement.title = "Elytra"
+              skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
 
   // add steal button
   const createStealBtn = () => {
-    waitForSelector('#play-pause-btn', () => {
-      var pauseBtn = document.querySelector('#play-pause-btn');
-      var username = document.querySelector('.text-nowrap[translate=no]').innerText;
+    if (!hideSkinStealer) {
+      waitForSelector('#play-pause-btn', () => {
+        let pauseBtn = document.querySelector('#play-pause-btn');
+        let username = document.querySelector('.text-nowrap[translate=no]').innerText;
 
-      if (!document.querySelector("#steal-btn")) {
-        var stealBtn = document.createElement('button');
-        stealBtn.id = 'steal-btn';
-        stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-        stealBtn.classList.add('p-0');
-        stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:92.5px!important;`)
-        stealBtn.title = "Steal Skin/Cape";
-        stealIcon = document.createElement('i');
-        stealIcon.classList.add('fas');
-        stealIcon.classList.add('fa-user-secret');
-        stealBtn.innerHTML = stealIcon.outerHTML;
-        pauseBtn.outerHTML += stealBtn.outerHTML;
+        if (!document.querySelector("#steal-btn")) {
+          let stealBtn = document.createElement('button');
+          stealBtn.id = 'steal-btn';
+          stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+          let margin = 92.5;
+          if (hideLayers) margin -= 42.5;
+          stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:${margin}px!important;`)
+          stealBtn.title = "Steal Skin/Cape";
+          let stealIcon = document.createElement('i');
+          stealIcon.classList.add('fas');
+          stealIcon.classList.add('fa-user-secret');
+          stealBtn.innerHTML = stealIcon.outerHTML;
+          pauseBtn.outerHTML += stealBtn.outerHTML;
 
-        document.querySelector('#steal-btn').onclick = () => {
-          const queryParams = [];
-          if (currentSkinId) queryParams.push(`skin=${currentSkinId}`);
-          if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
-          if (currentCape) queryParams.push(`cape=${currentCape}`);
-          if (username) queryParams.push(`username=${username}`);
-          if (nmceCape) queryParams.push(`nmceCape=${nmceCape}`);
-          const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
-          window.location.href = url;
+          document.querySelector('#steal-btn').onclick = () => {
+            const queryParams = [];
+            if (currentSkinId) queryParams.push(`skin=${currentSkinId}`);
+            if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
+            if (currentCape) queryParams.push(`cape=${currentCape}`);
+            if (username) queryParams.push(`username=${username}`);
+            if (nmceCape) queryParams.push(`nmceCape=${nmceCape}`);
+            const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
+            window.location.href = url;
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   // hide element not delete
@@ -430,31 +442,33 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     document.querySelector(".skin-3d").classList.remove("skin-3d");
   });
 
-  window.addEventListener("message", (json) => {
-    if (json.origin !== 'https://gadgets.faav.top') return;
-    if (typeof json.data.accountType !== 'undefined') {
-      var creationDate = json.data.creationDate;
+  if (!hideCreatedAt) {
+    window.addEventListener("message", (json) => {
+      if (json.origin !== 'https://gadgets.faav.top') return;
+      if (typeof json.data.accountType !== 'undefined') {
+        var creationDate = json.data.creationDate;
 
-      if (creationDate !== 'null') {
-        var warningCdEl = document.createElement("i")
+        if (creationDate !== 'null') {
+          var warningCdEl = document.createElement("i")
 
-        warningCdEl.id = "warningcd";
-        warningCdEl.classList.add("fas");
-        warningCdEl.classList.add("fa-exclamation-circle");
+          warningCdEl.id = "warningcd";
+          warningCdEl.classList.add("fas");
+          warningCdEl.classList.add("fa-exclamation-circle");
 
-        cdate.textContent = new Date(creationDate).toLocaleDateString() + " ";
-        cdate.append(warningCdEl);
+          cdate.textContent = new Date(creationDate).toLocaleDateString() + " ";
+          cdate.append(warningCdEl);
 
-        waitForTooltip(() => $('#warningcd').tooltip({
-          "placement": "top",
-          "boundary": "viewport",
-          "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
-        }))
-      } else {
-        cdate.textContent = 'Not Found!';
+          waitForTooltip(() => $('#warningcd').tooltip({
+            "placement": "top",
+            "boundary": "viewport",
+            "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
+          }))
+        } else {
+          cdate.textContent = 'Not Found!';
+        }
       }
-    }
-  });
+    });
+  }
 
   waitForSelector('.order-lg-2', () => {
     var username = document.querySelector('.text-nowrap[translate=no]').innerText;
@@ -475,7 +489,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
 
     document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove();
 
-    var descText = linksTextArea.toString().split('{uuid}').join(uuid);
+    var descText = linksTextArea.toString().split('{uuid}').join(uuid).split('{username}').join(username);
     var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
 
     if (!hasMdLink || descText.match(/["'`<>]/g)) {
@@ -507,10 +521,10 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     }
 
     views.outerHTML += `
-      <div class="row g-0">
+      ${!hideCreatedAt ? `<div class="row g-0">
         <div class="col col-lg-3"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
-      </div>
+      </div>` : ''}
       ${linksTextArea ? `<div class="row g-0">
         <div class="col order-lg-1 col-lg-3"><strong>Links</strong></div>
         <div class="col-12 order-lg-2 col-lg">${linksTextArea}</div>
@@ -531,6 +545,11 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
             capeTemplates.push(new CapeTemplate("data:image/png;base64," + curCape.image_data, curCape.name, curCape.description, "/cape/bedrock/" + curCape.id, curCape.java_equivalent));
           }
           createCapeCard(capeTemplates, "Bedrock Capes", (() => {
+            let hasBedrockOnly = document.querySelector("a[href*='/bedrock/']:not([data-java_equivalent])");
+            if (bedrockOnly && !hasBedrockOnly) {
+              document.documentElement.style.setProperty("--bedrock-only", "contents");
+              bedrockBtn.style.display = 'none';
+            }
             bedrockBtn.onclick = () => {
               if (bedrockOnly) {
                 document.documentElement.style.setProperty("--bedrock-only", "contents");
@@ -910,6 +929,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
       var capeHash = skinContainer.getAttribute('data-cape-hash');
       var model = skinContainer.getAttribute('data-model');
       var hasEars = false;
+      var optifineSelected = document.querySelector('a[href*="optifine.net/banners"] .skin-button-selected');
 
       waitForImage(async () => {
         // has ears
@@ -928,7 +948,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
           waitForImage(async () => {
             currentCape = capeHash;
             nmceCape = false;
-            await skinViewer.loadCape(window.namemc.images[capeHash].src);
+            if (!(hideOptifine && optifineSelected)) await skinViewer.loadCape(window.namemc.images[capeHash].src);
 
             setTimeout(createElytraBtn);
           }, capeHash);
@@ -964,7 +984,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         }
 
         // make layer button work
-        document.querySelector("#layer-btn").onclick = toggleLayers;
+        if (!hideLayers) document.querySelector("#layer-btn").onclick = toggleLayers;
 
         // skins
         document.querySelectorAll('.skin-2d').forEach((el) => {

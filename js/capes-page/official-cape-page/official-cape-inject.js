@@ -26,7 +26,7 @@ var elytraOn = false;
 
 // Fonction d'utilitaire pour attendre que les éléments soient disponibles
 const waitForSelector = function (selector, callback) {
-  query = document.querySelector(selector)
+  let query = document.querySelector(selector)
   if (query) {
     setTimeout((query) => {
       callback(query);
@@ -64,13 +64,13 @@ const waitForImage = function (callback, hash) {
 
 const waitForFunc = function (func, callback) {
   if (window[func] ?? window.wrappedJSObject?.[func]) {
-      setTimeout(() => {
-          callback(window[func] ?? window.wrappedJSObject?.[func]);
-      });
+    setTimeout(() => {
+      callback(window[func] ?? window.wrappedJSObject?.[func]);
+    });
   } else {
-      setTimeout(() => {
-          waitForFunc(func, callback);
-      });
+    setTimeout(() => {
+      waitForFunc(func, callback);
+    });
   }
 };
 
@@ -141,8 +141,7 @@ const createDownloadBtn = () => {
     var pauseBtn = document.querySelector('#play-pause-btn');
     var downloadBtn = document.createElement('button');
     downloadBtn.id = 'download-btn';
-    downloadBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-    downloadBtn.classList.add('p-0');
+    downloadBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
     downloadBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
     downloadBtn.title = "Download Cape";
     downloadIcon = document.createElement('i');
@@ -150,52 +149,56 @@ const createDownloadBtn = () => {
     downloadIcon.classList.add('fa-download');
     downloadBtn.innerHTML = downloadIcon.outerHTML;
     pauseBtn.outerHTML += downloadBtn.outerHTML;
-    
+
     document.querySelector('#download-btn').onclick = downloadCape;
   });
 }
 
 // Create elytra button
 const createElytraBtn = () => {
-  waitForSelector('#play-pause-btn', () => {
-    var pauseBtn = document.querySelector('#play-pause-btn');
-    var elytraBtn = document.createElement('button');
-    elytraBtn.id = 'elytra-btn';
-    elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-    elytraBtn.classList.add('p-0');
-    elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important;')
-    elytraBtn.title = "Elytra";
-    elytraIcon = document.createElement('i');
-    elytraIcon.classList.add('fas');
-    elytraIcon.classList.add('fa-dove');
-    elytraBtn.innerHTML = elytraIcon.outerHTML;
-    pauseBtn.outerHTML += elytraBtn.outerHTML;
-  });
+  if (!hideElytra) {
+    waitForSelector('#play-pause-btn', () => {
+      var pauseBtn = document.querySelector('#play-pause-btn');
+      var elytraBtn = document.createElement('button');
+      elytraBtn.id = 'elytra-btn';
+      let margin = 135;
+      if (hideSkinStealer) margin -= 42.5;
+      elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
+      elytraBtn.setAttribute('style', `width:32px;height:32px;margin-top:${margin}px!important;`)
+      elytraBtn.title = "Elytra";
+      let elytraIcon = document.createElement('i');
+      elytraIcon.classList.add('fas');
+      elytraIcon.classList.add('fa-dove');
+      elytraBtn.innerHTML = elytraIcon.outerHTML;
+      pauseBtn.outerHTML += elytraBtn.outerHTML;
+    });
+  }
 }
 
 // Create steal button
 const createStealBtn = () => {
-  waitForSelector('#play-pause-btn', () => {
-    var pauseBtn = document.querySelector('#play-pause-btn');
-    if (!document.querySelector("#steal-btn")) {
-      var stealBtn = document.createElement('button');
-      stealBtn.id = 'steal-btn';
-      stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-      stealBtn.classList.add('p-0');
-      stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:135px!important;`)
-      stealBtn.title = "Steal Cape";
-      stealIcon = document.createElement('i');
-      stealIcon.classList.add('fas');
-      stealIcon.classList.add('fa-user-secret');
-      stealBtn.innerHTML = stealIcon.outerHTML;
-      pauseBtn.outerHTML += stealBtn.outerHTML;
+  if (!hideSkinStealer) {
+    waitForSelector('#play-pause-btn', () => {
+      let pauseBtn = document.querySelector('#play-pause-btn');
+      if (!document.querySelector("#steal-btn")) {
+        let stealBtn = document.createElement('button');
+        stealBtn.id = 'steal-btn';
+        stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
+        stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:92.5px!important;`)
+        stealBtn.title = "Steal Cape";
+        let stealIcon = document.createElement('i');
+        stealIcon.classList.add('fas');
+        stealIcon.classList.add('fa-user-secret');
+        stealBtn.innerHTML = stealIcon.outerHTML;
+        pauseBtn.outerHTML += stealBtn.outerHTML;
 
-      document.querySelector('#steal-btn').onclick = () => {
-        const url = `${location.origin}/extras/skin-cape-test?cape=${location.pathname.split("/").slice(-1)[0].split("?")[0]}`;
-        window.location.href = url;
+        document.querySelector('#steal-btn').onclick = () => {
+          const url = `${location.origin}/extras/skin-cape-test?cape=${location.pathname.split("/").slice(-1)[0].split("?")[0]}`;
+          window.location.href = url;
+        }
       }
-    }
-  });
+    });
+  }
 }
 
 // wait for supabase before creating official description card
@@ -245,10 +248,10 @@ waitForSelector(".col-md-6", () => {
       var textAreaTag = document.createElement("textarea");
       textAreaTag.textContent = descText;
       descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
-      
+
       var elements = descText.match(/\[.*?\)/g);
-      if (elements && elements.length > 0){
-        for(el of elements){
+      if (elements && elements.length > 0) {
+        for (el of elements) {
           let text = el.match(/\[(.*?)\]/)[1];
           let url = el.match(/\((.*?)\)/)[1];
           let aTag = document.createElement("a");
@@ -260,7 +263,7 @@ waitForSelector(".col-md-6", () => {
           descText = descText.replace(el, aTag.outerHTML)
         }
       }
-  
+
       description.innerHTML = descText;
     }
   });
@@ -300,7 +303,7 @@ waitForSelector(".col-md-6", () => {
       skinViewer.loadCape(window.namemc.images[skinContainer.getAttribute("data-cape-hash")].src);
 
       waitForCape(() => {
-        document.querySelector('#elytra-btn').onclick = () => {
+        if (!hideElytra) document.querySelector('#elytra-btn').onclick = () => {
           var elytraIconEl = document.querySelector('#elytra-btn i');
           if (!elytraOn) {
             elytraOn = true;
@@ -347,7 +350,6 @@ waitForSelector(".col-md-6", () => {
       skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36
       skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36
     }
-
 
     skinContainer.addEventListener(
       "contextmenu",
