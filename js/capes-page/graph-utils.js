@@ -10,6 +10,14 @@ function debounce(func, wait) {
   };
 }
 
+// Function to format numbers with commas (e.g., 1000000 -> 1,000,000)
+function formatNumber(number) {
+  if (typeof number !== 'number' || isNaN(number)) {
+    return number;
+  }
+  return number.toLocaleString();
+}
+
 // Shared data processing function
 function processApiData(data, capeId) {
   // Validate API response format
@@ -70,8 +78,7 @@ class CapeUsageGraph {
       statElements: {
         current: document.getElementById('stat-current'),
         max: document.getElementById('stat-max'),
-        min: document.getElementById('stat-min'),
-        avg: document.getElementById('stat-avg')
+        min: document.getElementById('stat-min')
       }
     }, options);
     
@@ -109,12 +116,11 @@ class CapeUsageGraph {
     this.initTooltips();
   }
   
-  // Nouvelle méthode pour initialiser les tooltips
   initTooltips() {
-    // Récupérer le conteneur du graphique
+    // Get the graph container
     this.graphContainer = this.canvas.parentElement;
     
-    // Créer le conteneur de tooltip pour la vue simplifiée s'il n'existe pas déjà
+    // Create the tooltip container for the simplified view if it doesn't already exist
     if (!this.options.tooltipContainer) {
       const tooltipContainer = document.createElement('div');
       tooltipContainer.id = `tooltip-${Date.now()}`;
@@ -143,74 +149,73 @@ class CapeUsageGraph {
       this.options.tooltipContainer.style.position = 'absolute';
       this.options.tooltipContainer.style.pointerEvents = 'none';
       
-      // Vérifier que le parent du tooltip est le conteneur du graphique
+      // Check that the tooltip's parent is the graph container
       if (this.options.tooltipContainer.parentElement !== this.graphContainer) {
-        // Déplacer le tooltip dans le conteneur du graphique si ce n'est pas déjà le cas
+        // Move the tooltip into the graph container if it's not already there
         this.graphContainer.appendChild(this.options.tooltipContainer);
       }
     }
   }
   
-  // Nouvelle méthode pour positionner un tooltip par rapport à un point
+  // method to position a tooltip relative to a point
   positionTooltip(tooltip, x, y, content) {
     if (!tooltip) return;
     
     const graphRect = this.graphContainer.getBoundingClientRect();
     
-    // Mise à jour du contenu du tooltip
+    // Update the tooltip content
     tooltip.innerHTML = content;
     tooltip.style.display = 'block';
     
-    // Position par défaut - centré au-dessus du point
+    // Default position - centered above the point
     tooltip.style.left = `${x}px`;
     tooltip.style.top = `${y}px`;
     
-    // Obtenir les dimensions du tooltip après l'avoir rendu visible
+    // Get the dimensions of the tooltip after rendering it visible
     const tooltipRect = tooltip.getBoundingClientRect();
     
-    // Vérifier si le tooltip dépasse à gauche
+    // Check if the tooltip exceeds the left
     if (tooltipRect.left < 0) {
       tooltip.style.left = `${Math.max(tooltipRect.width / 2, x)}px`;
     }
     
-    // Vérifier si le tooltip dépasse à droite
+    // Check if the tooltip exceeds the right
     if (tooltipRect.right > window.innerWidth) {
       tooltip.style.left = `${Math.min(window.innerWidth - tooltipRect.width / 2, x)}px`;
     }
     
-    // Vérifier si le tooltip dépasse en haut
+    // Check if the tooltip exceeds the top
     if (tooltipRect.top < 0) {
-      // Placer le tooltip en dessous du point au lieu d'au-dessus
+      // Place the tooltip below the point instead of above
       tooltip.style.transform = 'translate(-50%, 10px)';
       tooltip.style.marginTop = '0';
     } else {
-      // Position normale (au-dessus)
+      // Normal position (above)
       tooltip.style.transform = 'translate(-50%, -100%)';
       tooltip.style.marginTop = '-10px';
     }
     
-    // Ajouter la flèche du tooltip
+    // Add the tooltip arrow
     this.updateTooltipArrow(tooltip);
   }
   
-  // Méthode pour mettre à jour la flèche du tooltip
   updateTooltipArrow(tooltip) {
-    // Supprimer l'ancienne flèche si elle existe
+    // Remove the old arrow if it exists
     const oldArrow = tooltip.querySelector('.tooltip-arrow');
     if (oldArrow) {
       oldArrow.remove();
     }
     
-    // Créer une nouvelle flèche
+    // Create a new arrow
     const arrow = document.createElement('div');
     arrow.className = 'tooltip-arrow';
     arrow.style.position = 'absolute';
     arrow.style.width = '0';
     arrow.style.height = '0';
     
-    // Selon la position du tooltip (au-dessus ou en-dessous)
+    // According to the tooltip position (above or below)
     if (tooltip.style.transform.includes('-100%')) {
-      // Flèche vers le bas (pour un tooltip au-dessus)
+      // Arrow pointing down (for a tooltip above)
       arrow.style.bottom = '-5px';
       arrow.style.left = '50%';
       arrow.style.marginLeft = '-5px';
@@ -218,7 +223,7 @@ class CapeUsageGraph {
       arrow.style.borderRight = '5px solid transparent';
       arrow.style.borderTop = '5px solid rgba(0,0,0,0.8)';
     } else {
-      // Flèche vers le haut (pour un tooltip en-dessous)
+      // Arrow pointing up (for a tooltip below)
       arrow.style.top = '-5px';
       arrow.style.left = '50%';
       arrow.style.marginLeft = '-5px';
@@ -298,7 +303,7 @@ class CapeUsageGraph {
       default:
         this.viewportStart = Math.floor(Math.max(
           this.startTimestamp.getTime(), 
-          new Date('2010-01-01').getTime() // Don't go before 2010
+          new Date('2010-01-01').getTime() // Don't go before 2010, overkill but I hope to get older data one day
         ));
     }
     
@@ -405,7 +410,7 @@ class CapeUsageGraph {
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.font = `12px ${this.options.fontFamily}`;
-        ctx.fillText(i.toString(), p - 10, y);
+        ctx.fillText(formatNumber(i), p - 10, y);
       }
     }
     
@@ -565,15 +570,13 @@ class CapeUsageGraph {
     const currentUsers = visibleData[visibleData.length - 1].users;
     const maxUsers = Math.max(...visibleData.map(d => d.users));
     const minUsers = Math.min(...visibleData.map(d => d.users));
-    const avgUsers = visibleData.reduce((sum, d) => sum + d.users, 0) / visibleData.length;
     
     // Update stats in the HTML
     const { statElements } = this.options;
     if (statElements) {
-      if (statElements.current) statElements.current.textContent = currentUsers;
-      if (statElements.max) statElements.max.textContent = maxUsers;
-      if (statElements.min) statElements.min.textContent = minUsers;
-      if (statElements.avg) statElements.avg.textContent = Math.round(avgUsers);
+      if (statElements.current) statElements.current.textContent = formatNumber(currentUsers);
+      if (statElements.max) statElements.max.textContent = formatNumber(maxUsers);
+      if (statElements.min) statElements.min.textContent = formatNumber(minUsers);
     }
     
     // For simplified view, add more data points and display more information
@@ -606,7 +609,7 @@ class CapeUsageGraph {
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.font = `11px ${this.options.fontFamily}`;
-        ctx.fillText(i.toString(), p - 5, y);
+        ctx.fillText(formatNumber(i), p - 5, y);
       }
       
       // Just store min/max points for tooltip without drawing special indicators
@@ -665,7 +668,7 @@ class CapeUsageGraph {
       // Calculate time at mouse position
       const timeAtMouse = this.xToTime(mouseX);
       
-      // Zoom factor - more gradual (0.9 and 1.1 instead of 0.8 and 1.2)
+      // Zoom factor
       const factor = e.deltaY < 0 ? 0.9 : 1.1;
       
       // Apply zoom
@@ -753,11 +756,11 @@ class CapeUsageGraph {
   handleMouseMove(e) {
     if (this.isDragging) return;
     
-    // Vérifier d'abord si le graphique est dans un modal et si le modal est visible
+    // First check if the graph is in a modal and if the modal is visible
     if (!this.options.simplified) {
       const modal = document.getElementById('graph-modal');
       if (modal && modal.style.display !== 'block') {
-        // Si le modal n'est pas visible, on s'assure que tout est caché
+        // If the modal is not visible, ensure everything is hidden
         if (this.options.tooltipContainer) this.options.tooltipContainer.style.display = 'none';
         if (this.options.hoverLineElement) this.options.hoverLineElement.style.display = 'none';
         return;
@@ -782,10 +785,9 @@ class CapeUsageGraph {
         if (distance <= 10) { // 10px hover radius
           const formattedDate = this.formatTooltipDate(this.maxPointInfo.timestamp);
           const tooltipContent = `
-            <strong>Maximum:</strong> ${this.maxPointInfo.users} utilisateurs<br>${formattedDate}
+            <strong>Maximum:</strong> ${formatNumber(this.maxPointInfo.users)} users<br>${formattedDate}
           `;
-          
-          // Utiliser la nouvelle méthode pour positionner le tooltip
+
           this.positionTooltip(
             this.options.tooltipContainer, 
             this.maxPointInfo.x, 
@@ -808,10 +810,9 @@ class CapeUsageGraph {
         if (distance <= 10) { // 10px hover radius
           const formattedDate = this.formatTooltipDate(this.minPointInfo.timestamp);
           const tooltipContent = `
-            <strong>Minimum:</strong> ${this.minPointInfo.users} utilisateurs<br>${formattedDate}
+            <strong>Minimum:</strong> ${formatNumber(this.minPointInfo.users)} users<br>${formattedDate}
           `;
           
-          // Utiliser la nouvelle méthode pour positionner le tooltip
           this.positionTooltip(
             this.options.tooltipContainer, 
             this.minPointInfo.x, 
@@ -871,21 +872,20 @@ class CapeUsageGraph {
       }
     }
     
-    // Traitement différent selon si on est en vue simplifiée ou détaillée
+    // Different processing depending on whether we are in simplified or detailed view
     if (this.options.simplified) {
-      // Pour la vue simplifiée
+      // For the simplified view
       if (closestDistance < 15) {
         this.hoverPoint = closestPoint;
         this.canvas.style.cursor = 'pointer';
         
-        // Afficher le tooltip simplifié
+        // Display the simplified tooltip
         const formattedDate = this.formatTooltipDate(closestPoint.timestamp);
         const tooltipContent = `
           <strong>${formattedDate}</strong><br>
-          ${closestPoint.users} utilisateurs
+          ${formatNumber(closestPoint.users)} users
         `;
         
-        // Utiliser la nouvelle méthode pour positionner le tooltip
         this.positionTooltip(
           this.options.tooltipContainer,
           closestX,
@@ -894,7 +894,7 @@ class CapeUsageGraph {
         );
       } else {
         this.hoverPoint = null;
-        // Cacher le tooltip si on n'est pas assez proche d'un point
+        // Hide the tooltip if not close enough to a point
         if (this.options.tooltipContainer) {
           this.options.tooltipContainer.style.display = 'none';
         }
@@ -902,8 +902,8 @@ class CapeUsageGraph {
         this.canvas.style.cursor = 'pointer';
       }
     } else {
-      // Pour la vue détaillée (modale)
-      // Vérifier si le curseur est dans les limites du graphique (entre les marges)
+      // For the detailed view (modal)
+      // Verify if the cursor is within the graph bounds (between the margins)
       const padding = this.options.padding;
       const isWithinGraphBounds = 
         mouseX >= padding && 
@@ -911,7 +911,7 @@ class CapeUsageGraph {
         mouseY >= padding && 
         mouseY <= displayHeight - padding;
       
-      // Vérifier également si le modal contenant ce graphique est visible
+      // Also check if the modal containing this graph is visible
       let isModalVisible = true;
       const modal = document.getElementById('graph-modal');
       if (modal) {
@@ -922,14 +922,13 @@ class CapeUsageGraph {
         this.hoverPoint = closestPoint;
         this.canvas.style.cursor = 'crosshair';
         
-        // Afficher le tooltip détaillé
+        // Display the detailed tooltip
         const formattedDate = this.formatDetailedTooltipDate(closestPoint.timestamp);
         const tooltipContent = `
           <div style="font-weight: bold;">${formattedDate}</div>
-          <div>${closestPoint.users} utilisateurs</div>
+          <div>${formatNumber(closestPoint.users)} users</div>
         `;
-        
-        // Utiliser la nouvelle méthode pour positionner le tooltip
+
         this.positionTooltip(
           this.options.tooltipContainer,
           closestX,
@@ -1064,27 +1063,6 @@ class CapeUsageGraph {
     return data.filter((_, index) => index % skipFactor === 0);
   }
   
-  // Function to fetch mock data (replace with actual API in production)
-  static generateMockData(days = 30) {
-    const data = [];
-    const now = new Date();
-    const startTime = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-    let users = Math.floor(Math.random() * 100) + 50;
-    
-    for (let time = startTime; time <= now; time = new Date(time.getTime() + 5 * 60 * 1000)) {
-      // Random walk with trend
-      const trend = Math.sin(time.getHours() / 24 * Math.PI) * 5; // Daily cycle
-      const change = Math.random() * 4 - 2 + trend;
-      users = Math.max(0, users + change);
-      
-      data.push({
-        timestamp: new Date(time),
-        users: Math.floor(users)
-      });
-    }
-    
-    return data;
-  }
   
   // Add this new method to fetch data when viewport changes
   async fetchDataForViewport() {
@@ -1259,7 +1237,7 @@ class CapeUsageGraph {
   
   validateViewport() {
     const now = Math.floor(new Date().getTime());
-    const minAllowedTime = Math.floor(new Date('2010-01-01').getTime()); // More restrictive
+    const minAllowedTime = Math.floor(new Date('2010-01-01').getTime());
     const maxAllowedTime = Math.floor(now + 7 * 24 * 60 * 60 * 1000); // Only 1 week into future
     
     // Limit start time
@@ -1630,19 +1608,19 @@ function showErrorMessage(message) {
     return;
   }
   
-  // Mettre à jour le timestamp du dernier message
+  // Update the timestamp of the last message
   window.lastErrorMessageTimestamp = now;
   
-  // Utiliser les conteneurs d'erreur prédéfinis
+  // Use the predefined error containers
   const simplifiedContainer = document.getElementById('simplified-graph-error-container');
   const modalContainer = document.getElementById('modal-graph-error-container');
   
-  // Afficher le message dans les conteneurs s'ils existent
+  // Display the message in the containers if they exist
   if (simplifiedContainer) {
     simplifiedContainer.textContent = message;
     simplifiedContainer.style.display = 'block';
     
-    // Masquer après 5 secondes
+    // Hide after 5 seconds
     setTimeout(() => {
       simplifiedContainer.style.display = 'none';
     }, 5000);
@@ -1652,7 +1630,7 @@ function showErrorMessage(message) {
     modalContainer.textContent = message;
     modalContainer.style.display = 'block';
     
-    // Masquer après 5 secondes
+    // Hide after 5 seconds
     setTimeout(() => {
       modalContainer.style.display = 'none';
     }, 5000);
@@ -1685,7 +1663,6 @@ function createUsageGraphCard(capeId) {
           <span>Current: <span id="stat-current">-</span></span>
           <span>Max: <span id="stat-max">-</span></span>
           <span>Min: <span id="stat-min">-</span></span>
-          <span>Avg: <span id="stat-avg">-</span></span>
         </div>
       </div>
       <div class="card-body py-2">
@@ -1751,28 +1728,22 @@ function createUsageGraphCard(capeId) {
               <div class="card">
                 <div class="card-body py-2">
                   <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <div class="d-flex flex-column align-items-center">
                         <div class="text-muted small">Current</div>
                         <div class="h4" id="modal-stat-current">-</div>
                       </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <div class="d-flex flex-column align-items-center">
                         <div class="text-muted small">Maximum</div>
                         <div class="h4" id="modal-stat-max">-</div>
                       </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <div class="d-flex flex-column align-items-center">
                         <div class="text-muted small">Minimum</div>
                         <div class="h4" id="modal-stat-min">-</div>
-                      </div>
-                    </div>
-                    <div class="col-md-3">
-                      <div class="d-flex flex-column align-items-center">
-                        <div class="text-muted small">Average</div>
-                        <div class="h4" id="modal-stat-avg">-</div>
                       </div>
                     </div>
                   </div>
@@ -1826,8 +1797,7 @@ function initializeGraph(capeId) {
     statElements: {
       current: document.getElementById('stat-current'),
       max: document.getElementById('stat-max'),
-      min: document.getElementById('stat-min'),
-      avg: document.getElementById('stat-avg')
+      min: document.getElementById('stat-min')
     }
   });
   window.capeGraph = graph;
@@ -1849,8 +1819,7 @@ function initializeGraph(capeId) {
         statElements: {
           current: document.getElementById('modal-stat-current'),
           max: document.getElementById('modal-stat-max'),
-          min: document.getElementById('modal-stat-min'),
-          avg: document.getElementById('modal-stat-avg')
+          min: document.getElementById('modal-stat-min')
         }
       });
       window.modalCapeGraph = modalGraph;
@@ -2038,13 +2007,13 @@ function initializeGraph(capeId) {
       if (line) line.style.display = 'none';
     });
     
-    // Forcer le redessinage
+    // Force redraw
     if (window.capeGraph) window.capeGraph.draw();
     if (window.modalCapeGraph) window.modalCapeGraph.draw();
   }
 }
 
-// Improved function to retrieve cape data with caching
+// retrieve cape data with caching
 async function getCapeUsageData(capeId, timeframe = 'week') {
   // Calculate the time range based on the timeframe
   const now = new Date();
