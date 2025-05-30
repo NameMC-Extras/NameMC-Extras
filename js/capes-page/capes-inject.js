@@ -1,7 +1,7 @@
 console.log("Injecting capes page...");
 
 const waitForSelector = function (selector, callback) {
-  query = document.querySelector(selector)
+  let query = document.querySelector(selector)
   if (query) {
     setTimeout(() => {
       callback(query);
@@ -151,8 +151,7 @@ function addCapes(mainDiv) {
     var categoryRange = document.createRange();
     var categoryFrag = categoryRange.createContextualFragment(`
           <temp>
-            <br/>
-            <h1 class="text-center">Bedrock Capes</h1>
+            <h1 class="text-center pt-4">Bedrock Capes</h1>
             <hr class="mt-0">
             <div class="mb-2">
               <div class="row gx-2 justify-content-center">
@@ -183,8 +182,7 @@ function addCapes(mainDiv) {
     var categoryRange = document.createRange();
     var categoryHTML = categoryRange.createContextualFragment(`
         <temp>
-          <br/>
-          <h1 class="text-center"></h1>
+          <h1 class="text-center pt-4"></h1>
           <hr class="mt-0">
           <div class="mb-2">
             <div class="row gx-2 justify-content-center">

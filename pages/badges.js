@@ -1,5 +1,5 @@
 const waitForSelector = function (selector, callback) {
-  query = document.querySelector(selector)
+  let query = document.querySelector(selector)
   if (query) {
     setTimeout(() => {
       callback(query);

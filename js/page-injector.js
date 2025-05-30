@@ -1,6 +1,6 @@
 (async () => {
     const waitForSelector = function (selector, callback) {
-        query = document.querySelector(selector)
+        let query = document.querySelector(selector)
         if (query) {
             setTimeout((query) => {
                 callback(query);
@@ -32,19 +32,18 @@
     var customLink = localStorage.getItem("customLink") || "#7ba7ce";
     var customBtn = localStorage.getItem("customBtn") || "#848BB0";
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
-    var hideHeadCmd = localStorage.getItem("hideHeadCmd") === "true";
-    var hideDegreesOfSep = localStorage.getItem("hideDegreesOfSep") === "true";
-    var hideBadges = localStorage.getItem("hideBadges") === "true";
+    var hideHeadCmd = localStorage.getItem("hideHeadCmd") === "false";
+    var hideDegreesOfSep = localStorage.getItem("hideDegreesOfSep") === "false";
+    var hideBadges = localStorage.getItem("hideBadges") === "false";
     var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
     var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
-    var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "true";
-    var hideElytra = localStorage.getItem("hideElytra") === "true";
-    var hideLayers = localStorage.getItem("hideLayers") === "true";
-    var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
-    var hideServers = localStorage.getItem("hideServers") === "true";
-    var hideClaimProfile = localStorage.getItem("hideClaimProfile") === "true";
-    var hideFollowing = localStorage.getItem("hideFollowing") === "true";
-    var hideOptifine = localStorage.getItem("hideOptifine") === "true";
+    var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "false";
+    var hideElytra = localStorage.getItem("hideElytra") === "false";
+    var hideLayers = localStorage.getItem("hideLayers") === "false";
+    var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
+    var hideServers = localStorage.getItem("hideServers") === "false";
+    var hideFollowing = localStorage.getItem("hideFollowing") === "false";
+    var hideOptifine = localStorage.getItem("hideOptifine") === "false";
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -73,7 +72,6 @@
     if (customThemeOn) setCustomTheme();
     if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'block');
     if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'block');
-    if (hideClaimProfile) document.documentElement.style.setProperty("--claim-profile", hideClaimProfile ? 'none' : 'block');
     if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'block');
     if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'block');
     if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'block');
@@ -90,10 +88,10 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <label for="theme" class="form-label">
+                            <label class="form-label">
                                 <strong>Base Theme:</strong>
                             </label>
-                            <div class="btn-group w-100" role="group" aria-label="Theme">
+                            <div class="btn-group w-100 pb-4" role="group" aria-label="Theme">
                                 <button type="button" class="btn btn-light" data-bs-theme-value="light" id="lightTheme">
                                     <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/2600-fe0f.svg" alt="☀️">
                                     Light
@@ -107,9 +105,7 @@
                                     Custom
                                 </button>
                             </div>
-                            <br>
-                            <br>
-                            <label for="customTheme" class="form-label" style="display:flex;">
+                            <label class="form-label" style="display:flex;">
                                 <strong>Custom Theme:</strong>
                                 <a class="color-inherit" title="Reset back to base colors" style="margin-left:.3rem" id="resetcustom" href="javascript:void(0)">
                                     <i class="fas fa-fw fa-undo-alt"></i>
@@ -121,82 +117,64 @@
                                     <i class="fas fa-fw fa-upload"></i>
                                 </a>
                             </label>
-                            <div class="input-group mb-3">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text">Base Theme</span>
                                 <select class="form-select" id="selectBase">
                                     <option value="light">Light</option>
                                     <option value="dark" ${(customBase == "dark") ? "selected" : ""}>Dark</option>
                                 </select>
                             </div>
-                            <div class="input-group mb-3">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text">Background Color</span>
                                 <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right'}" >
                             </div>
-                            <div class="input-group mb-3">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text">Text Color</span>
                                 <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right'}" >
                             </div>
-                            <div class="input-group mb-3">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text">Link Color</span>
                                 <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right'}" >
                             </div>
-                            <div class="input-group mb-3">
+                            <div class="input-group pb-4">
                                 <span class="input-group-text">Button Color</span>
                                 <input type="text" class="form-control" placeholder="#848BB0" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}" >
                             </div>
-                            <label for="theme" class="form-label">
-                                <strong>Profile:</strong>
+                            <label class="form-label">
+                                <strong>Buttons:</strong>
                             </label>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="bedrockCapes"${bedrockCapes ? ' checked' : ''}>
-                                <label class="form-check-label" for="bedrockCapes">Show Bedrock Capes</label>
+                            <div class="btn-group w-100 toggle-group mb-2" role="group" aria-label="Buttons">
+                                <button type="button" class="btn btn-outline-primary${!hideLayers ? ' active' : ''}" id="hideLayers"><i class="fas fa-clone"></i> Layers</button>
+                                <button type="button" class="btn btn-outline-primary${!hideSkinStealer ? ' active' : ''}" id="hideSkinStealer"><i class="fas fa-user-secret"></i> Steal Skin</button>
+                                <button type="button" class="btn btn-outline-primary${!hideElytra ? ' active' : ''}" id="hideElytra"><i class="fas fa-dove"></i> Elytra</button>
                             </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideBadges"${hideBadges ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideBadges">Hide Badges</label>
+                            <label class="form-label">
+                                <strong>Profile Info:</strong>
+                            </label>
+                            <div class="btn-group w-100 toggle-group mb-2" role="group" aria-label="Profile Info">
+                                <button type="button" class="btn btn-outline-primary${!hideCreatedAt ? ' active' : ''}" id="hideCreatedAt">Created At</button>
+                                <button type="button" class="btn btn-outline-primary${!hideBadges ? ' active' : ''}" id="hideBadges">Badges</button>
+                                <button type="button" class="btn btn-outline-primary${!hideFollowing ? ' active' : ''}" id="hideFollowing">Follows</button>
                             </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideCreatedAt"${hideCreatedAt ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideCreatedAt">Hide Created At</label>
+                            <label class="form-label">
+                                <strong>Capes:</strong>
+                            </label>
+                            <div class="btn-group w-100 toggle-group mb-2" role="group" aria-label="Capes">
+                                <button type="button" class="btn btn-outline-primary${!hideOptifine ? ' active' : ''}" id="hideOptifine">OptiFine</button>
+                                <button type="button" class="btn btn-outline-primary${bedrockCapes ? ' active' : ''}" id="bedrockCapes">Bedrock</button>
                             </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideElytra"${hideElytra ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideElytra">Hide Elytra Button</label>
+                            <label class="form-label">
+                                <strong>Extras:</strong>
+                            </label>
+                            <div class="btn-group w-100 toggle-group mb-2" role="group" aria-label="Extras">
+                                <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers">Servers</button>
+                                <button type="button" class="btn btn-outline-primary${!hideHeadCmd ? ' active' : ''}" id="hideHeadCmd">Head Command</button>
+                                <button type="button" class="btn btn-outline-primary${!hideDegreesOfSep ? ' active' : ''}" id="hideDegreesOfSep">Separation</button>
                             </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideLayers"${hideLayers ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideLayers">Hide Layers Button</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideOptifine"${hideOptifine ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideOptifine">Hide OptiFine Capes</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideSkinStealer"${hideSkinStealer ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideSkinStealer">Hide Skin Stealer Button</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideHeadCmd"${hideHeadCmd ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideHeadCmd">Hide Head Command</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideServers"${hideServers ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideServers">Hide Favorite Servers</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideFollowing"${hideFollowing ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideFollowing">Hide Following/Followers</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideClaimProfile"${hideClaimProfile ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideClaimProfile">Hide Claim Profile Prompt</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="hideDegreesOfSep"${hideDegreesOfSep ? ' checked' : ''}>
-                                <label class="form-check-label" for="hideDegreesOfSep">Hide Degrees of Separation</label>
-                            </div>
-                            <div class="mb-3">
-                              <label for="linksTextArea" class="form-label">Links</label>
+                            <div>
+                              <label for="linksTextArea" class="form-label">
+                                <strong>Links:</strong>
+                              </label>
                               <textarea class="form-control" id="linksTextArea" rows="2" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
                             </div>
                         </div>
@@ -207,10 +185,14 @@
 
         const createSettingsToggle = (name) => {
             var settingEl = document.querySelector(`#${name}`);
-            if (typeof localStorage[name] == "undefined") localStorage[name] = false;
+            if (typeof localStorage[name] == "undefined") {
+                if (name.startsWith('hide')) localStorage[name] = true;
+                else localStorage[name] = false;
+            }
             settingEl.onclick = () => {
-                localStorage[name] = settingEl.checked;
-                globalThis[name] = settingEl.checked;
+                settingEl.classList.toggle('active');
+                localStorage[name] = settingEl.classList.contains('active');
+                globalThis[name] = settingEl.classList.contains('active');
             }
         }
 
@@ -516,14 +498,7 @@
                 });
 
                 // PROFILE SETTINGS
-                [...document.querySelectorAll("#settingsModal [role=switch]")].forEach(a => createSettingsToggle(a.id));
-
-                var bedrockCapesEl = document.querySelector("#bedrockCapes");
-                if (typeof localStorage.bedrockCapes == "undefined") localStorage.bedrockCapes = false;
-                bedrockCapesEl.onclick = () => {
-                    localStorage.bedrockCapes = bedrockCapesEl.checked;
-                    bedrockCapes = bedrockCapesEl.checked;
-                }
+                [...document.querySelectorAll("#settingsModal .btn-outline-primary")].forEach(a => createSettingsToggle(a.id));
 
                 var linksTextAreaEl = document.querySelector("#linksTextArea");
                 if (typeof localStorage.linksTextArea == "undefined") localStorage.linksTextArea = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;

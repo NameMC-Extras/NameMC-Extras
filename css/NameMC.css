@@ -2,7 +2,6 @@ html {
     --head-cmd: block;
     --servers: block;
     --following: block;
-    --claim-profile: block;
     --degrees-of-sep: block;
     --optifine: block;
     --bedrock-only: contents;
@@ -275,14 +274,31 @@ option:checked {
     display: var(--following);
 }
 
-.mb-3:has(a[href*=claim-your-profile]) {
-    display: var(--claim-profile);
-}
-
 .mb-3:has(a[href*='optifine.net/banners']) {
     display: var(--optifine);
 }
 
 [data-java_equivalent] {
     display: var(--bedrock-only);
+}
+
+.toggle-group > button {
+    border-top-left-radius: var(--bs-btn-border-radius)!important;
+    border-top-right-radius: var(--bs-btn-border-radius)!important;
+    border-bottom-left-radius: var(--bs-btn-border-radius)!important;
+    border-bottom-right-radius: var(--bs-btn-border-radius)!important;
+    border: 0!important;
+    width: 20%
+}
+
+.toggle-group > button:not(.active) {
+    background: var(--bs-tertiary-bg);
+    color: white;
+}
+
+.toggle-group {
+    border-radius: 0.5rem!important;
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    padding: 4px;
+    gap: 4px;
 }

@@ -186,8 +186,8 @@ const createStealBtn = () => {
 
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
-var hideElytra = localStorage.getItem("hideElytra") === "true";
-var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
+var hideElytra = localStorage.getItem("hideElytra") === "false";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
 
 /*
  * CLASSES

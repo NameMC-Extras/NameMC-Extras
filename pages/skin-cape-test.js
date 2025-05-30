@@ -35,7 +35,7 @@ const UUIDRegex = /([0-9a-f]{8})(?:-|)([0-9a-f]{4})(?:-|)(4[0-9a-f]{3})(?:-|)([8
 var model = "auto-detect";
 
 const waitForSelector = function (selector, callback) {
-    query = document.querySelector(selector)
+    let query = document.querySelector(selector)
     if (query) {
         setTimeout((query) => {
             callback(query);

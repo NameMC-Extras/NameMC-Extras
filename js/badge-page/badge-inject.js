@@ -7,7 +7,7 @@ function getCookie(name) {
 }
 
 const waitForSelector = function (selector, callback) {
-  query = document.querySelector(selector)
+  let query = document.querySelector(selector)
   if (query) {
     setTimeout((query) => {
       callback(query);
