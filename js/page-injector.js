@@ -610,6 +610,8 @@
         menus.forEach(menu => setTimeout(customMenuItem(...menu), i))
     }
 
+    if (document.title === 'Just a moment...') return;
+
     // INJECT SETTINGS BUTTON
     createSettingsButton();
 
