@@ -199,7 +199,7 @@
         waitForSelector("[data-bs-theme]", () => {
             if (document.querySelector(".no-js")) return;
 
-            waitForSelector("html", () => {
+            waitForSelector("[href*=namemc]", () => {
                 // inject modal html
                 document.documentElement.insertAdjacentHTML('beforeend', modalHTML);
 
@@ -609,8 +609,6 @@
     const injectMenus = (menus, i) => {
         menus.forEach(menu => setTimeout(customMenuItem(...menu), i))
     }
-
-    if (document.title === 'Just a moment...') return;
 
     // INJECT SETTINGS BUTTON
     createSettingsButton();
