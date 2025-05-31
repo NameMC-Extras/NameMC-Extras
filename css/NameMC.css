@@ -293,7 +293,7 @@ option:checked {
 
 .toggle-group > button:not(.active) {
     background: var(--bs-tertiary-bg);
-    color: white;
+    color: var(--bs-body-color);
 }
 
 .toggle-group {
