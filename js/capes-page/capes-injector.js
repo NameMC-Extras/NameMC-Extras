@@ -1,7 +1,6 @@
 var graphUtils = document.createElement('script');
 graphUtils.src = chrome.runtime.getURL('js/capes-page/graph-utils.js');
 graphUtils.onload = function () {
-    // Une fois que graph-utils.js est chargé, charger capes-inject.js
     var inject1 = document.createElement('script');
     inject1.src = chrome.runtime.getURL('js/capes-page/capes-inject.js');
     inject1.onload = function () {
