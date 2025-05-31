@@ -219,15 +219,17 @@ waitForSelector(".col-md-6", () => {
   const leftColumn = document.getElementsByClassName("col-md-6")[0];
   leftColumn.innerHTML += descriptionCard;
 
-  // Ajouter la carte de graphique en utilisant les fonctions de graph-utils.js
   const capeHash = location.href.split("/").pop();
-  const graphCard = window.createUsageGraphCard(capeHash);
-  leftColumn.appendChild(graphCard);
-  
-  // Initialiser le graphique après que tout soit configuré
-  setTimeout(() => {
-    window.initializeGraph(capeHash);
-  }, 100);
+  if (window.createUsageGraphCard && localStorage.getItem("historyGraph") !== "false") {
+    const graphCard = window.createUsageGraphCard(capeHash);
+    leftColumn.appendChild(graphCard);
+
+    setTimeout(() => {
+      if (window.initializeGraph && localStorage.getItem("historyGraph") !== "false") {
+        window.initializeGraph(capeHash);
+      }
+    }, 100);
+  }
 
   waitForStorage("supabase_data", () => {
     // get cape data from supabase
