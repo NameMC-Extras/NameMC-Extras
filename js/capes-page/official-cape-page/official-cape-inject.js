@@ -1,10 +1,29 @@
-console.log("Injecting official cape page...");
+// Add debounce helper at the top of the file
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
+
+console.log("Creating official cape page...");
 
 // only use for getting animate cookie
 function getCookie(name) {
   let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));
   return cookies[name];
 }
+
+/*
+ * UNIVERSAL VARIABLES
+ */
+
+var paused = (getCookie("animate") === "false");
+var elytraOn = false;
+var hideElytra = localStorage.getItem("hideElytra") === "false";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
 
 const waitForSelector = function (selector, callback) {
   let query = document.querySelector(selector)
@@ -79,6 +98,7 @@ const waitForCape = function (callback) {
   }
 };
 
+// Fix for pause button
 const fixPauseBtn = () => {
   setTimeout(() => {
     var pauseBtn = document.querySelector('#play-pause-btn');
@@ -107,6 +127,7 @@ const fixPauseBtn = () => {
   })
 }
 
+// Function to download the cape
 const downloadCape = () => {
   var a = document.createElement("a");
   a.href = skinViewer.capeCanvas.toDataURL();
@@ -114,7 +135,7 @@ const downloadCape = () => {
   a.click();
 }
 
-// add download button
+// Create download button
 const createDownloadBtn = () => {
   waitForSelector('#play-pause-btn', () => {
     var pauseBtn = document.querySelector('#play-pause-btn');
@@ -133,7 +154,7 @@ const createDownloadBtn = () => {
   });
 }
 
-// add elytra button
+// Create elytra button
 const createElytraBtn = () => {
   if (!hideElytra) {
     waitForSelector('#play-pause-btn', () => {
@@ -154,6 +175,7 @@ const createElytraBtn = () => {
   }
 }
 
+// Create steal button
 const createStealBtn = () => {
   if (!hideSkinStealer) {
     waitForSelector('#play-pause-btn', () => {
@@ -179,20 +201,6 @@ const createStealBtn = () => {
   }
 }
 
-
-/*
- * UNIVERSAL VARIABLES
- */
-
-var paused = (getCookie("animate") === "false");
-var elytraOn = false;
-var hideElytra = localStorage.getItem("hideElytra") === "false";
-var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
-
-/*
- * CLASSES
- */
-
 // wait for supabase before creating official description card
 waitForSelector(".col-md-6", () => {
   // create html for card
@@ -211,10 +219,21 @@ waitForSelector(".col-md-6", () => {
   const leftColumn = document.getElementsByClassName("col-md-6")[0];
   leftColumn.innerHTML += descriptionCard;
 
+  const capeHash = location.href.split("/").pop();
+  if (window.createUsageGraphCard && localStorage.getItem("historyGraph") !== "false") {
+    const graphCard = window.createUsageGraphCard(capeHash);
+    leftColumn.appendChild(graphCard);
+
+    setTimeout(() => {
+      if (window.initializeGraph && localStorage.getItem("historyGraph") !== "false") {
+        window.initializeGraph(capeHash);
+      }
+    }, 100);
+  }
+
   waitForStorage("supabase_data", () => {
     // get cape data from supabase
     const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
-    const capeHash = location.href.split("/").pop();
     let cape = supabase_data.nmc_capes.filter(cape => cape.id == capeHash)[0];
     if (!cape) {
       cape = {
@@ -333,7 +352,6 @@ waitForSelector(".col-md-6", () => {
       skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36
       skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36
     }
-
 
     skinContainer.addEventListener(
       "contextmenu",

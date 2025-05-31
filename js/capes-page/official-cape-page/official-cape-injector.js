@@ -1,13 +1,21 @@
-var inject1 = document.createElement('script');
-inject1.src = chrome.runtime.getURL('js/skinview3d.bundle.js');
-inject1.onload = function () {
-    this.remove();
+// Inject skinview3d
+const skinViewScript = document.createElement("script");
+skinViewScript.src = chrome.runtime.getURL("js/skinview3d.bundle.js");
+(document.head || document.documentElement).appendChild(skinViewScript);
+skinViewScript.onload = function() {
+  skinViewScript.remove();
 };
-(document.head || document.documentElement).appendChild(inject1);
 
-var inject2 = document.createElement('script');
-inject2.src = chrome.runtime.getURL('js/capes-page/official-cape-page/official-cape-inject.js');
-inject2.onload = function () {
-    this.remove();
+const graphUtilsScript = document.createElement("script");
+graphUtilsScript.src = chrome.runtime.getURL("js/capes-page/graph-utils.js");
+(document.head || document.documentElement).appendChild(graphUtilsScript);
+graphUtilsScript.onload = function() {
+  const script = document.createElement("script");
+  script.src = chrome.runtime.getURL("js/capes-page/official-cape-page/official-cape-inject.js");
+  (document.head || document.documentElement).appendChild(script);
+  script.onload = function() {
+    script.remove();
+  };
+  
+  graphUtilsScript.remove();
 };
-(document.head || document.documentElement).appendChild(inject2);

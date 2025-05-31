@@ -19,6 +19,7 @@ Install the Chromium extension [here](https://chrome.google.com/webstore/detail/
 - Skin & Cape Tester
 - Show Custom Optifine capes
 - Generate a image of all your profiles
+- Usage history of capes
 
 Create a issue or message me on discord (faav) if you have any suggestions.
 

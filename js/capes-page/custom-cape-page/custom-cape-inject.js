@@ -175,10 +175,6 @@ class CustomCape {
   }
 }
 
-
-
-
-
 /*
  * FUNCTIONS
  */
@@ -285,6 +281,21 @@ async function loadPage() {
 
   waitForSelector("main", async (mainDiv) => {
     mainDiv.append(capeHTML);
+    
+    // Add the graph card to the left column using functions from graph-utils.js
+    const leftColumn = document.querySelector('.col-md-6');
+    if (leftColumn && window.createUsageGraphCard && localStorage.getItem("historyGraph") !== "false") {
+      const graphCard = window.createUsageGraphCard(capeId);
+      leftColumn.appendChild(graphCard);
+      
+      // Initialize the graph after everything is set up
+      setTimeout(() => {
+        if (window.initializeGraph && localStorage.getItem("historyGraph") !== "false") {
+          window.initializeGraph(capeId);
+        }
+      }, 100);
+    }
+    
     let badgeOwnerNames;
     if (isBedrock) {
       //capeOwners.push({ username: "..." });
@@ -375,7 +386,6 @@ async function loadPage() {
         skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36
       }
 
-
       skinContainer.addEventListener(
         "contextmenu",
         (event) => event.stopImmediatePropagation(),
@@ -401,10 +411,6 @@ async function loadPage() {
     });
   });
 }
-
-
-
-
 
 /*
  * MAIN LOGIC

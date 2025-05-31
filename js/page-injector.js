@@ -44,6 +44,7 @@
     var hideServers = localStorage.getItem("hideServers") === "false";
     var hideFollowing = localStorage.getItem("hideFollowing") === "false";
     var hideOptifine = localStorage.getItem("hideOptifine") === "false";
+    var historyGraph = localStorage.getItem("historyGraph") !== "false";
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -79,103 +80,161 @@
     const createSettingsButton = () => {
         const modalHTML = `
             <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="settingsModalLabel">Extras Settings</h5>
+                            <h5 class="modal-title" id="settingsModalLabel">NameMC Extras Settings</h5>
                             <button type="button" class="btn" data-bs-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
-                            <label class="form-label">
-                                <strong>Base Theme:</strong>
-                            </label>
-                            <div class="btn-group w-100 pb-4" role="group" aria-label="Theme">
-                                <button type="button" class="btn btn-light" data-bs-theme-value="light" id="lightTheme">
-                                    <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/2600-fe0f.svg" alt="☀️">
-                                    Light
-                                </button>
-                                <button type="button" class="btn btn-dark" data-bs-theme-value="dark" id="darkTheme">
-                                    <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/1f319.svg" alt=" ">
-                                    Dark
-                                </button>
-                                <button type="button" class="btn btn-secondary" id="customTheme">
-                                    <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/1f308.svg" alt=" ">
-                                    Custom
-                                </button>
+                            <div class="settings-section mb-4">
+                                <h6 class="settings-heading">
+                                    <i class="fas fa-palette me-2"></i>Theme Settings
+                                </h6>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <label class="form-label mb-2">
+                                            <strong>Base Theme:</strong>
+                                            <small class="text-muted ms-2">Choose between light, dark, or custom theme</small>
+                                        </label>
+                                        <div class="btn-group w-100 mb-4" role="group" aria-label="Theme">
+                                            <button type="button" class="btn btn-light" data-bs-theme-value="light" id="lightTheme">
+                                                <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/2600-fe0f.svg" alt="☀️">
+                                                Light
+                                            </button>
+                                            <button type="button" class="btn btn-dark" data-bs-theme-value="dark" id="darkTheme">
+                                                <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/1f319.svg" alt=" ">
+                                                Dark
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" id="customTheme">
+                                                <img class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/google/1f308.svg" alt=" ">
+                                                Custom
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="custom-theme-section">
+                                            <label class="form-label d-flex align-items-center mb-3">
+                                                <strong>Custom Theme:</strong>
+                                                <div class="ms-auto">
+                                                    <a class="btn btn-sm btn-outline-secondary me-1" title="Reset back to base colors" id="resetcustom" href="javascript:void(0)">
+                                                        <i class="fas fa-undo-alt"></i> Reset
+                                                    </a>
+                                                    <a class="btn btn-sm btn-outline-secondary me-1" title="Export custom theme" id="exportcustom" href="javascript:void(0)">
+                                                        <i class="fas fa-download"></i> Export
+                                                    </a>
+                                                    <a class="btn btn-sm btn-outline-secondary" title="Import custom theme" id="importcustom" href="javascript:void(0)">
+                                                        <i class="fas fa-upload"></i> Import
+                                                    </a>
+                                                </div>
+                                            </label>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text">Base Theme</span>
+                                                <select class="form-select" id="selectBase">
+                                                    <option value="light">Light</option>
+                                                    <option value="dark" ${(customBase == "dark") ? "selected" : ""}>Dark</option>
+                                                </select>
+                                                <div class="form-text w-100">Select the base theme that custom colors will be built upon</div>
+                                            </div>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text">Background</span>
+                                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <div class="form-text w-100">Main background color for the website</div>
+                                            </div>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text">Text</span>
+                                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <div class="form-text w-100">Primary text color used throughout the site</div>
+                                            </div>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text">Links</span>
+                                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <div class="form-text w-100">Color for clickable links and hover states</div>
+                                            </div>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text">Buttons</span>
+                                                <input type="text" class="form-control" placeholder="#848BB0" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}" >
+                                                <div class="form-text w-100">Color for interactive buttons and controls</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <label class="form-label" style="display:flex;">
-                                <strong>Custom Theme:</strong>
-                                <a class="color-inherit" title="Reset back to base colors" style="margin-left:.3rem" id="resetcustom" href="javascript:void(0)">
-                                    <i class="fas fa-fw fa-undo-alt"></i>
-                                </a>
-                                <a class="color-inherit" title="Export custom theme" style="margin-left:.3rem" id="exportcustom" href="javascript:void(0)">
-                                    <i class="fas fa-fw fa-download"></i>
-                                </a>
-                                <a class="color-inherit" title="Import custom theme" style="margin-left:.3rem" id="importcustom" href="javascript:void(0)">
-                                    <i class="fas fa-fw fa-upload"></i>
-                                </a>
-                            </label>
-                            <div class="input-group mb-2">
-                                <span class="input-group-text">Base Theme</span>
-                                <select class="form-select" id="selectBase">
-                                    <option value="light">Light</option>
-                                    <option value="dark" ${(customBase == "dark") ? "selected" : ""}>Dark</option>
-                                </select>
+
+                            <div class="settings-section mb-4">
+                                <h6 class="settings-heading">
+                                    <i class="fas fa-sliders-h me-2"></i>Interface Elements
+                                </h6>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="mb-4">
+                                            <label class="form-label"><strong>Skin Viewer Controls:</strong></label>
+                                            <div class="btn-group w-100 toggle-group" role="group">
+                                                <button type="button" class="btn btn-outline-primary${!hideLayers ? ' active' : ''}" id="hideLayers" data-bs-toggle="tooltip" title="Toggle skin layer visibility controls">
+                                                    <i class="fas fa-clone"></i> Layers
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary${!hideSkinStealer ? ' active' : ''}" id="hideSkinStealer" data-bs-toggle="tooltip" title="Enable skin download functionality">
+                                                    <i class="fas fa-user-secret"></i> Steal Skin
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary${!hideElytra ? ' active' : ''}" id="hideElytra" data-bs-toggle="tooltip" title="Show elytra on player model">
+                                                    <i class="fas fa-dove"></i> Elytra
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label"><strong>Profile Information:</strong></label>
+                                            <div class="btn-group w-100 toggle-group" role="group">
+                                                <button type="button" class="btn btn-outline-primary${!hideCreatedAt ? ' active' : ''}" id="hideCreatedAt" data-bs-toggle="tooltip" title="Show account creation date">Created At</button>
+                                                <button type="button" class="btn btn-outline-primary${!hideBadges ? ' active' : ''}" id="hideBadges" data-bs-toggle="tooltip" title="Display profile badges">Badges</button>
+                                                <button type="button" class="btn btn-outline-primary${!hideFollowing ? ' active' : ''}" id="hideFollowing" data-bs-toggle="tooltip" title="Show following/follower information">Follows</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label"><strong>Cape Settings:</strong></label>
+                                            <div class="btn-group w-100 toggle-group" role="group">
+                                                <button type="button" class="btn btn-outline-primary${!hideOptifine ? ' active' : ''}" id="hideOptifine" data-bs-toggle="tooltip" title="Display OptiFine capes">OptiFine</button>
+                                                <button type="button" class="btn btn-outline-primary${bedrockCapes ? ' active' : ''}" id="bedrockCapes" data-bs-toggle="tooltip" title="Show Bedrock Edition capes">Bedrock</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label"><strong>Graph Settings:</strong></label>
+                                            <div class="btn-group w-100 toggle-group" role="group">
+                                                <button type="button" class="btn btn-outline-primary${historyGraph ? ' active' : ''}" id="historyGraph" data-bs-toggle="tooltip" title="Display capes history graph">Capes History</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label"><strong>Additional Features:</strong></label>
+                                            <div class="btn-group w-100 toggle-group" role="group">
+                                                <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers" data-bs-toggle="tooltip" title="Show favorite servers on profile">Servers</button>
+                                                <button type="button" class="btn btn-outline-primary${!hideHeadCmd ? ' active' : ''}" id="hideHeadCmd" data-bs-toggle="tooltip" title="Display head command">Head Command</button>
+                                                <button type="button" class="btn btn-outline-primary${!hideDegreesOfSep ? ' active' : ''}" id="hideDegreesOfSep" data-bs-toggle="tooltip" title="Show degrees of separation">Separation</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="input-group mb-2">
-                                <span class="input-group-text">Background Color</span>
-                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right'}" >
-                            </div>
-                            <div class="input-group mb-2">
-                                <span class="input-group-text">Text Color</span>
-                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right'}" >
-                            </div>
-                            <div class="input-group mb-2">
-                                <span class="input-group-text">Link Color</span>
-                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right'}" >
-                            </div>
-                            <div class="input-group pb-4">
-                                <span class="input-group-text">Button Color</span>
-                                <input type="text" class="form-control" placeholder="#848BB0" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}" >
-                            </div>
-                            <label class="form-label">
-                                <strong>Buttons:</strong>
-                            </label>
-                            <div class="btn-group w-100 toggle-group mb-2" role="group" aria-label="Buttons">
-                                <button type="button" class="btn btn-outline-primary${!hideLayers ? ' active' : ''}" id="hideLayers"><i class="fas fa-clone"></i> Layers</button>
-                                <button type="button" class="btn btn-outline-primary${!hideSkinStealer ? ' active' : ''}" id="hideSkinStealer"><i class="fas fa-user-secret"></i> Steal Skin</button>
-                                <button type="button" class="btn btn-outline-primary${!hideElytra ? ' active' : ''}" id="hideElytra"><i class="fas fa-dove"></i> Elytra</button>
-                            </div>
-                            <label class="form-label">
-                                <strong>Profile Info:</strong>
-                            </label>
-                            <div class="btn-group w-100 toggle-group mb-2" role="group" aria-label="Profile Info">
-                                <button type="button" class="btn btn-outline-primary${!hideCreatedAt ? ' active' : ''}" id="hideCreatedAt">Created At</button>
-                                <button type="button" class="btn btn-outline-primary${!hideBadges ? ' active' : ''}" id="hideBadges">Badges</button>
-                                <button type="button" class="btn btn-outline-primary${!hideFollowing ? ' active' : ''}" id="hideFollowing">Follows</button>
-                            </div>
-                            <label class="form-label">
-                                <strong>Capes:</strong>
-                            </label>
-                            <div class="btn-group w-100 toggle-group mb-2" role="group" aria-label="Capes">
-                                <button type="button" class="btn btn-outline-primary${!hideOptifine ? ' active' : ''}" id="hideOptifine">OptiFine</button>
-                                <button type="button" class="btn btn-outline-primary${bedrockCapes ? ' active' : ''}" id="bedrockCapes">Bedrock</button>
-                            </div>
-                            <label class="form-label">
-                                <strong>Extras:</strong>
-                            </label>
-                            <div class="btn-group w-100 toggle-group mb-2" role="group" aria-label="Extras">
-                                <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers">Servers</button>
-                                <button type="button" class="btn btn-outline-primary${!hideHeadCmd ? ' active' : ''}" id="hideHeadCmd">Head Command</button>
-                                <button type="button" class="btn btn-outline-primary${!hideDegreesOfSep ? ' active' : ''}" id="hideDegreesOfSep">Separation</button>
-                            </div>
-                            <div>
-                              <label for="linksTextArea" class="form-label">
-                                <strong>Links:</strong>
-                              </label>
-                              <textarea class="form-control" id="linksTextArea" rows="2" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
+
+                            <div class="settings-section">
+                                <h6 class="settings-heading">
+                                    <i class="fas fa-link me-2"></i>Quick Links
+                                </h6>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="mb-2">
+                                            <label for="linksTextArea" class="form-label">
+                                                <strong>External Profile Links:</strong>
+                                                <small class="text-muted ms-2">Configure links to external Minecraft profile services</small>
+                                            </label>
+                                            <textarea class="form-control" id="linksTextArea" rows="3" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
+                                            <div class="form-text">Use Markdown format: [Label](URL) with {uuid} as a placeholder for the player's UUID</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -186,7 +245,8 @@
         const createSettingsToggle = (name) => {
             var settingEl = document.querySelector(`#${name}`);
             if (typeof localStorage[name] == "undefined") {
-                if (name.startsWith('hide')) localStorage[name] = true;
+                if (name === "historyGraph") localStorage[name] = true;
+                else if (name.startsWith('hide')) localStorage[name] = true;
                 else localStorage[name] = false;
             }
             settingEl.onclick = () => {
@@ -656,4 +716,36 @@
         var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://github.com/NameMC-Extras/NameMC-Extras" target="_blank">NameMC Extras</a></small></div>`);
         footer?.insertBefore(creditsHTML, footer?.lastElementChild)
     });
+
+    // Add some CSS styles
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+        .settings-section .settings-heading {
+            margin-bottom: 1rem;
+            color: var(--bs-primary);
+            font-weight: 600;
+        }
+        .settings-section .card {
+            border: 1px solid rgba(0,0,0,.125);
+            background-color: var(--bs-body-bg);
+        }
+        .settings-section .form-text {
+            font-size: 0.875rem;
+            color: var(--bs-secondary);
+            margin-top: 0.25rem;
+        }
+        .btn-group .btn {
+            border-radius: 0.25rem;
+            margin: 0 2px;
+        }
+        .custom-theme-section {
+            border-top: 1px solid rgba(0,0,0,.125);
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+        .modal-lg {
+            max-width: 800px;
+        }
+    `;
+    document.head.appendChild(styleSheet);
 })()
