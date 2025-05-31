@@ -85,7 +85,7 @@
                         <div class="modal-header">
                             <h5 class="modal-title" id="settingsModalLabel">NameMC Extras Settings</h5>
                             <button type="button" class="btn" data-bs-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
+                                <i class="fas fa-times"></i>
                             </button>
                         </div>
                         <div class="modal-body">
@@ -115,7 +115,7 @@
                                         </div>
                                         
                                         <div class="custom-theme-section">
-                                            <label class="form-label d-flex align-items-center mb-3">
+                                            <label class="form-label d-flex align-items-end mb-2">
                                                 <strong>Custom Theme:</strong>
                                                 <div class="ms-auto">
                                                     <a class="btn btn-sm btn-outline-secondary me-1" title="Reset back to base colors" id="resetcustom" href="javascript:void(0)">
@@ -129,7 +129,7 @@
                                                     </a>
                                                 </div>
                                             </label>
-                                            <div class="input-group mb-3">
+                                            <div class="input-group mb-2">
                                                 <span class="input-group-text">Base Theme</span>
                                                 <select class="form-select" id="selectBase">
                                                     <option value="light">Light</option>
@@ -137,22 +137,22 @@
                                                 </select>
                                                 <div class="form-text w-100">Select the base theme that custom colors will be built upon</div>
                                             </div>
-                                            <div class="input-group mb-3">
+                                            <div class="input-group mb-2">
                                                 <span class="input-group-text">Background</span>
                                                 <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right'}" >
                                                 <div class="form-text w-100">Main background color for the website</div>
                                             </div>
-                                            <div class="input-group mb-3">
+                                            <div class="input-group mb-2">
                                                 <span class="input-group-text">Text</span>
                                                 <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right'}" >
                                                 <div class="form-text w-100">Primary text color used throughout the site</div>
                                             </div>
-                                            <div class="input-group mb-3">
+                                            <div class="input-group mb-2">
                                                 <span class="input-group-text">Links</span>
                                                 <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right'}" >
                                                 <div class="form-text w-100">Color for clickable links and hover states</div>
                                             </div>
-                                            <div class="input-group mb-3">
+                                            <div class="input-group">
                                                 <span class="input-group-text">Buttons</span>
                                                 <input type="text" class="form-control" placeholder="#848BB0" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}" >
                                                 <div class="form-text w-100">Color for interactive buttons and controls</div>
@@ -168,7 +168,7 @@
                                 </h6>
                                 <div class="card">
                                     <div class="card-body">
-                                        <div class="mb-4">
+                                        <div class="mb-2">
                                             <label class="form-label"><strong>Skin Viewer Controls:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
                                                 <button type="button" class="btn btn-outline-primary${!hideLayers ? ' active' : ''}" id="hideLayers" data-bs-toggle="tooltip" title="Toggle skin layer visibility controls">
@@ -183,7 +183,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="mb-4">
+                                        <div class="mb-2">
                                             <label class="form-label"><strong>Profile Information:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
                                                 <button type="button" class="btn btn-outline-primary${!hideCreatedAt ? ' active' : ''}" id="hideCreatedAt" data-bs-toggle="tooltip" title="Show account creation date">Created At</button>
@@ -192,22 +192,16 @@
                                             </div>
                                         </div>
 
-                                        <div class="mb-4">
+                                        <div class="mb-2">
                                             <label class="form-label"><strong>Cape Settings:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
                                                 <button type="button" class="btn btn-outline-primary${!hideOptifine ? ' active' : ''}" id="hideOptifine" data-bs-toggle="tooltip" title="Display OptiFine capes">OptiFine</button>
                                                 <button type="button" class="btn btn-outline-primary${bedrockCapes ? ' active' : ''}" id="bedrockCapes" data-bs-toggle="tooltip" title="Show Bedrock Edition capes">Bedrock</button>
+                                                <button type="button" class="btn btn-outline-primary${historyGraph ? ' active' : ''}" id="historyGraph" data-bs-toggle="tooltip" title="Display capes history graph">History</button>
                                             </div>
                                         </div>
 
-                                        <div class="mb-4">
-                                            <label class="form-label"><strong>Graph Settings:</strong></label>
-                                            <div class="btn-group w-100 toggle-group" role="group">
-                                                <button type="button" class="btn btn-outline-primary${historyGraph ? ' active' : ''}" id="historyGraph" data-bs-toggle="tooltip" title="Display capes history graph">Capes History</button>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-4">
+                                        <div>
                                             <label class="form-label"><strong>Additional Features:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
                                                 <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers" data-bs-toggle="tooltip" title="Show favorite servers on profile">Servers</button>
@@ -225,7 +219,7 @@
                                 </h6>
                                 <div class="card">
                                     <div class="card-body">
-                                        <div class="mb-2">
+                                        <div>
                                             <label for="linksTextArea" class="form-label">
                                                 <strong>External Profile Links:</strong>
                                                 <small class="text-muted ms-2">Configure links to external Minecraft profile services</small>

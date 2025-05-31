@@ -1691,7 +1691,7 @@ function createUsageGraphCard(capeId) {
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Cape Usage Statistics</h5>
-            <button type="button" class="btn btn-outline-secondary rounded-circle" id="close-modal" aria-label="Close" style="width: 32px; height: 32px; padding: 0; line-height: 1;">
+            <button type="button" class="btn" id="close-modal" aria-label="Close">
               <i class="fas fa-times"></i>
             </button>
           </div>
