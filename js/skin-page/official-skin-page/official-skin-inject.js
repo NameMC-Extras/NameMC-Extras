@@ -50,7 +50,7 @@ const createStealBtn = () => {
  * UNIVERSAL VARIABLES
  */
 
-var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
 
 /*
  * CLASSES

@@ -31,18 +31,18 @@ const rows = 9;
 const columns = 3;
 const size = 32;
 
-var paused = getCookie("animate") !== "true";
+var paused = getCookie("animate") === "false";
 var elytraOn = false;
 var isHidden = localStorage.getItem("isHidden") !== "false";
 var skinArt = localStorage.getItem("skinArt") == "true";
 var layer = true;
 var enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
-var hideBadges = localStorage.getItem("hideBadges") === "true";
-var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "true";
-var hideElytra = localStorage.getItem("hideElytra") === "true";
-var hideLayers = localStorage.getItem("hideLayers") === "true";
-var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
-var hideOptifine = localStorage.getItem("hideOptifine") === "true";
+var hideBadges = localStorage.getItem("hideBadges") === "false";
+var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "false";
+var hideElytra = localStorage.getItem("hideElytra") === "false";
+var hideLayers = localStorage.getItem("hideLayers") === "false";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
+var hideOptifine = localStorage.getItem("hideOptifine") === "false";
 var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
 var bedrockOnly = localStorage.getItem("bedrockOnly") !== "false";
 

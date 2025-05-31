@@ -7,7 +7,7 @@ function getCookie(name) {
 }
 
 const waitForSelector = function (selector, callback) {
-  query = document.querySelector(selector)
+  let query = document.querySelector(selector)
   if (query) {
     setTimeout((query) => {
       callback(query);
@@ -153,8 +153,8 @@ const categoryId = location.pathname.split("/")[2];
 const capeId = location.pathname.split("/")[3];
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
-var hideElytra = localStorage.getItem("hideElytra") === "true";
-var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "true";
+var hideElytra = localStorage.getItem("hideElytra") === "false";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
 
 /*
  * CLASSES

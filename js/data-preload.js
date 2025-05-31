@@ -8,7 +8,7 @@
   };
 
   function initBooleanKey(key) {
-    if (!localStorage.getItem(key) || localStorage.getItem(key) !== "true") localStorage.setItem(key, "false");
+    if (!localStorage.getItem(key) || localStorage.getItem(key) === "false") localStorage.setItem(key, "false");
   }
 
   var endPoints = {

@@ -16,8 +16,14 @@ function getCookie(name) {
   return cookies[name];
 }
 
+/*
+ * UNIVERSAL VARIABLES
+ */
+
 var paused = (getCookie("animate") === "false");
 var elytraOn = false;
+var hideElytra = localStorage.getItem("hideElytra") === "false";
+var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
 
 const waitForSelector = function (selector, callback) {
   let query = document.querySelector(selector)
