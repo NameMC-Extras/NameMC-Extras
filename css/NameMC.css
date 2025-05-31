@@ -122,12 +122,12 @@ body main {
 .customTheme ul.pagination>li.active>.page-link {
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
     border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
-    transition: background-color 100ms linear, border 100ms linear;
+    transition: background-color 200ms linear, border 200ms linear;
 }
 
 .customTheme .btn-outline-primary.active {
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
-    transition: background-color 100ms linear;
+    transition: background-color 200ms linear;
 }
 
 .customTheme .btn-primary:hover,
