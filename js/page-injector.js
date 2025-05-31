@@ -225,7 +225,7 @@
                                                 <small class="text-muted ms-2">Configure links to external Minecraft profile services</small>
                                             </label>
                                             <textarea class="form-control" id="linksTextArea" rows="3" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
-                                            <div class="form-text">Use Markdown format: [Label](URL) with {uuid} as a placeholder for the player's UUID</div>
+                                            <div class="form-text">Use Markdown format: [Label](URL) with {uuid} as a placeholder for the player's UUID and {name} for the player's username</div>
                                         </div>
                                     </div>
                                 </div>
