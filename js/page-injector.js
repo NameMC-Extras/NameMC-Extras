@@ -122,10 +122,10 @@
                                                         <i class="fas fa-undo-alt"></i> Reset
                                                     </a>
                                                     <a class="btn btn-outline-secondary" title="Export custom theme" id="exportcustom" href="javascript:void(0)">
-                                                        <i class="fas fa-download"></i> Export
+                                                        <i class="fas fa-upload"></i> Export
                                                     </a>
                                                     <a class="btn btn-outline-secondary" title="Import custom theme" id="importcustom" href="javascript:void(0)">
-                                                        <i class="fas fa-upload"></i> Import
+                                                        <i class="fas fa-download"></i> Import
                                                     </a>
                                                 </div>
                                             </div>
