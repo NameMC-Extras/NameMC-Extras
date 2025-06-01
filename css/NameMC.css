@@ -308,3 +308,13 @@ option:checked {
     padding: 4px;
     gap: 4px;
 }
+
+.modal-dialog {
+    margin: 2% auto!important;
+    width: 90%!important;
+}
+
+#modal-usage-graph {
+    width: 100%;
+    height: 100%;
+}

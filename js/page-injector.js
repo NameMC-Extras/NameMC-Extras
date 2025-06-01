@@ -80,7 +80,7 @@
     const createSettingsButton = () => {
         const modalHTML = `
             <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width:600px">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="settingsModalLabel">NameMC Extras Settings</h5>
@@ -710,53 +710,4 @@
         var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://github.com/NameMC-Extras/NameMC-Extras" target="_blank">NameMC Extras</a></small></div>`);
         footer?.insertBefore(creditsHTML, footer?.lastElementChild)
     });
-
-    // Add some CSS styles
-    const styleSheet = document.createElement("style");
-    styleSheet.textContent = `
-        .settings-section .settings-heading {
-            margin-bottom: 1rem;
-            color: var(--bs-primary);
-            font-weight: 600;
-        }
-        .settings-section .card {
-            border: 1px solid rgba(0,0,0,.125);
-            background-color: var(--bs-body-bg);
-        }
-        .settings-section .form-text {
-            font-size: 0.875rem;
-            color: var(--bs-secondary);
-            margin-top: 0.25rem;
-        }
-        .btn-group .btn {
-            border-radius: 0.25rem;
-            margin: 0 2px;
-        }
-        .custom-theme-section {
-            border-top: 1px solid rgba(0,0,0,.125);
-            margin-top: 1rem;
-            padding-top: 1rem;
-        }
-        .modal-lg {
-            max-width: 800px;
-        }
-        .btn-group-sm .btn {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-        }
-        .btn-group.flex-wrap .btn {
-            margin-bottom: 0.25rem;
-        }
-        @media (max-width: 575.98px) {
-            .btn-group.flex-wrap {
-                width: 100%;
-                justify-content: flex-start;
-            }
-            .btn-group.flex-wrap .btn {
-                flex: 1 1 auto;
-                text-align: center;
-            }
-        }
-    `;
-    document.head.appendChild(styleSheet);
 })()

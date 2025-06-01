@@ -1669,9 +1669,9 @@ function createUsageGraphCard(capeId) {
         <div id="graph-container" style="position: relative; height: 300px; width: 100%;">
           <canvas id="usage-graph" style="width: 100%; height: 100%;"></canvas>
           <div id="hover-line" style="position: absolute; display: none; width: 1px; background: rgba(0,0,0,0.3); pointer-events: none; top: 0; bottom: 0;"></div>
-          <div id="hover-value" style="position: absolute; display: none; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px; pointer-events: none; z-index: 100;"></div>
-          <div id="simplified-graph-error-container" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background-color: rgba(220, 53, 69, 0.9); color: white; padding: 8px 16px; border-radius: 4px; z-index: 1000; font-size: 14px; display: none;"></div>
-          <div class="graph-loading-indicator" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 110;">
+          <div id="hover-value" style="position: absolute; display: none; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px; font-size: 12px; pointer-events: none; z-index: 100;"></div>
+          <div id="simplified-graph-error-container" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); padding: 8px 16px; border-radius: 4px; z-index: 1000; font-size: 14px; display: none;"></div>
+          <div class="graph-loading-indicator" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: none; justify-content: center; align-items: center; z-index: 110;">
             <div class="text-center">
               <div class="spinner-border text-primary mb-2" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -1686,8 +1686,8 @@ function createUsageGraphCard(capeId) {
   
   // Create modal HTML structure
   const modalHtml = `
-    <div id="graph-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1050; overflow: auto;">
-      <div class="modal-dialog modal-xl" style="margin: 2% auto; width: 90%; max-width: 1200px;">
+    <div id="graph-modal" class="modal fade">
+      <div class="modal-dialog modal-xl" style="max-width: 1200px;">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Cape Usage Statistics</h5>
@@ -1751,10 +1751,10 @@ function createUsageGraphCard(capeId) {
               </div>
             </div>
             <div id="modal-graph-container" style="position: relative; height: 60vh; width: 100%;">
-              <canvas id="modal-usage-graph" style="width: 100%; height: 100%; position: relative; z-index: 1;"></canvas>
-              <div id="modal-hover-line" style="position: absolute; display: none; width: 1px; background: rgba(0,0,0,0.3); pointer-events: none; top: 0; bottom: 0; z-index: 2;"></div>
-              <div id="modal-graph-error-container" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background-color: rgba(220, 53, 69, 0.9); color: white; padding: 8px 16px; border-radius: 4px; z-index: 1000; font-size: 14px; display: none;"></div>
-              <div class="graph-loading-indicator" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 110;">
+              <canvas id="modal-usage-graph" style="width: 100%; height: 100%;"></canvas>
+              <div id="modal-hover-line" style="position: absolute; display: none; width: 1px; background: rgba(0,0,0,0.3); pointer-events: none; top: 0; bottom: 0;"></div>
+              <div id="modal-graph-error-container" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); padding: 8px 16px; border-radius: 4px; z-index: 1000; font-size: 14px; display: none;"></div>
+              <div class="graph-loading-indicator" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: none; justify-content: center; align-items: center; z-index: 110;">
                 <div class="text-center">
                   <div class="spinner-border text-primary mb-2" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -1923,8 +1923,8 @@ function initializeGraph(capeId) {
     const modal = document.getElementById('graph-modal');
     if (modal) {
       modal.style.display = 'block';
-      
-      // Ensure modal graph is properly sized
+      $('#graph-modal').modal('show');
+    
       if (window.modalCapeGraph) {
         window.modalCapeGraph.resizeCanvas();
       }
@@ -1937,7 +1937,7 @@ function initializeGraph(capeId) {
     closeButton.addEventListener('click', () => {
       const modal = document.getElementById('graph-modal');
       if (modal) {
-        modal.style.display = 'none';
+        $('#graph-modal').modal('hide');
         
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;
@@ -1955,7 +1955,7 @@ function initializeGraph(capeId) {
   if (modal) {
     modal.addEventListener('click', (event) => {
       if (event.target === modal) {
-        modal.style.display = 'none';
+        $('#graph-modal').modal('hide');
         
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;
@@ -1970,7 +1970,7 @@ function initializeGraph(capeId) {
     // Close modal with Escape key
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && modal.style.display === 'block') {
-        modal.style.display = 'none';
+        $('#graph-modal').modal('hide');
         
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;
