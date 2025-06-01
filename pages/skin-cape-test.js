@@ -440,6 +440,10 @@ waitForSelector('main', (main) => {
                         });
                     }
                 }
+            } else {
+                skinViewer.loadSkin(skinViewer.skinCanvas.toDataURL(), {
+                    model
+                });
             }
 
             if (currentCape && !noElytra.includes(currentCape.split("/").at(-1))) {
