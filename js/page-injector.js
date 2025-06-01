@@ -720,9 +720,9 @@
             <div class="col">
                 <strong>Name History</strong>
             </div>
-            <div class="col-auto">
+            ${history.length ? `<div class="col-auto">
                 <a class="px-1" id="hideAll"><i class="far fa-toggle-${history.includes(true) ? 'on' : 'off'}"></i></a>
-            </div>
+            </div>` : ''}
         </div>
     </div>`);
 
