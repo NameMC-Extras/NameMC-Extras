@@ -41,7 +41,7 @@ Try different combinations of skins and capes in real-time.
 
 ### OptiFine Cape Support
 View and preview custom OptiFine capes.  
-<img src="https://i.imgur.com/guO3p50.gif" width="400"/>
+<img src="https://github.com/user-attachments/assets/ce58eefd-01d5-47a5-821e-e4e19f92fe2e" width="400"/>
 
 ### Profile Collection
 Generate an image showcasing all your profiles in one place.  
