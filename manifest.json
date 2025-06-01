@@ -115,5 +115,10 @@
   "host_permissions": [
     "https://raw.githubusercontent.com/*",
     "https://bedrock.lol/*"
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{499f5f73-58cb-4eb9-a320-127f42cccb5e}"
+    }
+  }
 }
