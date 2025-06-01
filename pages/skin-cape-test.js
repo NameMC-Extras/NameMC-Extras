@@ -218,6 +218,8 @@ waitForSelector('main', (main) => {
     const modelParam = urlParams.get('model');
     const nameParam = urlParams.get('username');
 
+    if (modelParam) model = modelParam;
+
     main.innerHTML = `<h1 class="text-center">Skin & Cape Tester</h1>
         <hr class="mt-0">
         <div class="row">
