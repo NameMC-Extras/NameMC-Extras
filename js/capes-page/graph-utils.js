@@ -1160,7 +1160,7 @@ class CapeUsageGraph {
     
     try {
       // Fetch data from API
-      const apiUrl = `https://capes.fyz.sh/${this.capeId}/usage?start=${fetchStart}&end=${fetchEnd}`;
+      const apiUrl = `https://cors.faav.top/fyz/${this.capeId}/usage?start=${fetchStart}&end=${fetchEnd}`;
       
       const response = await fetch(apiUrl);
       
@@ -2072,7 +2072,7 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
   const fetchPromise = (async () => {
     try {
       // URL of the API with parameters for the time range
-      const apiUrl = `https://capes.fyz.sh/${capeId}/usage?start=${extendedStart}&end=${extendedEnd}`;
+      const apiUrl = `https://cors.faav.top/fyz/${capeId}/usage?start=${extendedStart}&end=${extendedEnd}`;
       
       // Display a loading indicator on the graph
       document.querySelectorAll('.graph-loading-indicator').forEach(el => {
