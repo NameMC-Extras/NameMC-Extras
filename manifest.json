@@ -1,6 +1,6 @@
 {
   "name": "NameMC Extras",
-  "description": "A extension which adds extra features to NameMC!",
+  "description": "An extension that enhances your NameMC experience with a range of powerful features.",
   "author": "Faav",
   "icons": {
     "16": "icons/icon16.png",
@@ -91,6 +91,15 @@
         "*://*.namemc.com/profile/*"
       ],
       "run_at": "document_start"
+    },
+    {
+      "js": [
+        "js/my-profile-page/names-page/names-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/my-profile/names"
+      ],
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
@@ -102,5 +111,9 @@
         "*://*.namemc.com/*"
       ]
     }
+  ],
+  "host_permissions": [
+    "https://raw.githubusercontent.com/*",
+    "https://bedrock.lol/*"
   ]
 }
