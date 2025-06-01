@@ -318,3 +318,7 @@ option:checked {
     width: 100%;
     height: 100%;
 }
+
+#hideAll {
+    cursor: pointer;
+}

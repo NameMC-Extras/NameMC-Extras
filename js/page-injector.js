@@ -710,4 +710,46 @@
         var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://github.com/NameMC-Extras/NameMC-Extras" target="_blank">NameMC Extras</a></small></div>`);
         footer?.insertBefore(creditsHTML, footer?.lastElementChild)
     });
+
+    if (location.pathname === '/my-profile/names') {
+        waitForSelector('.card.mt-3', () => {
+            let historyEl = document.querySelector('.card.mt-3');
+            let history = [...historyEl.querySelectorAll('[class*=fa-toggle-]')].map(a => a.classList.contains('fa-toggle-on'));
+            historyEl.insertAdjacentHTML('afterbegin', `<div class="card-header py-1">
+        <div class="row">
+            <div class="col">
+                <strong>Name History</strong>
+            </div>
+            <div class="col-auto">
+                <a class="px-1" id="hideAll"><i class="far fa-toggle-${history.includes(true) ? 'on' : 'off'}"></i></a>
+            </div>
+        </div>
+    </div>`);
+
+            document.querySelector('#hideAll').onclick = async () => {
+                const requests = history.map((shouldSend, index) => {
+                    if (history.includes(true)) {
+                        if (!shouldSend) return Promise.resolve();
+                    } else {
+                        if (shouldSend) return Promise.resolve();
+                    }
+
+                    const formData = new URLSearchParams();
+                    formData.append("task", "toggle-name-visibility");
+                    formData.append("name_index", history.length - index);
+
+                    return fetch("https://namemc.com/my-profile/names", {
+                        method: "POST",
+                        body: formData.toString(),
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                });
+
+                await Promise.all(requests);
+                location.reload();
+            }
+        });
+    }
 })()
