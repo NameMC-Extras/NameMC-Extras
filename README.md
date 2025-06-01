@@ -11,19 +11,24 @@ Install the Firefox version from the [Firefox Addons Store](https://addons.mozil
 ## ✨ Features
 
 ### Creation Dates
-View the exact creation dates for Minecraft accounts.  
+View the exact creation dates for Minecraft accounts.
+
 <img src="https://i.imgur.com/B5BduTZ.gif" width="400"/>
 
 ### Deadmau5 Ear Display
-See which players have the Deadmau5 ears.  
-<img src="https://i.imgur.com/JCsrJ1g.gif" width="250"/>
+See which players have the Deadmau5 ears.
+
+<img src="https://github.com/user-attachments/assets/2f0389bb-ab38-4cb4-b6ae-1230339db507" width="250"/>
+
 
 ### Elytra Preview
-Quick access button to preview skins with Elytra.  
-<img src="https://i.imgur.com/dVjtjQS.gif" width="250"/>
+Quick access button to preview skins with Elytra.
+
+<img src="https://github.com/user-attachments/assets/6188a43f-e3c4-4e39-b3a9-da93f0e74566" width="250"/>
 
 ### Clean Name History
-Option to hide dashed-out names from name history for a cleaner view.  
+Option to hide dashed-out names from name history for a cleaner view.
+
 <img src="https://i.imgur.com/FhpDraw.gif" width="450"/>
 
 ### Enhanced Skin Art
@@ -33,7 +38,8 @@ Option to hide dashed-out names from name history for a cleaner view.
 
 ### Customizable Skin Display
 Toggle individual skin layers for better viewing.  
-<img src="https://i.imgur.com/Wroslas.gif" width="400"/>
+<img src="https://github.com/user-attachments/assets/6bbc5642-5b03-40bb-821d-bfcd0823b8e3" width="250"/>
+
 
 ### Advanced Skin & Cape Testing
 Try different combinations of skins and capes in real-time.  
