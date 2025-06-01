@@ -1697,7 +1697,7 @@ function createUsageGraphCard(capeId) {
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div class="btn-group btn-group-sm" role="group">
                   <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe" data-timeframe="day">Day</button>
                   <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe active" data-timeframe="week">Week</button>
@@ -1706,10 +1706,10 @@ function createUsageGraphCard(capeId) {
                 </div>
                 <div class="btn-group btn-group-sm" role="group">
                   <button type="button" class="btn btn-outline-secondary btn-sm" id="modal-reset-zoom">
-                    <i class="fas fa-sync-alt"></i> Reset Zoom
+                    <i class="fas fa-sync-alt me-1"></i>Reset Zoom
                   </button>
                   <button type="button" class="btn btn-outline-info btn-sm" id="modal-help">
-                    <i class="fas fa-info-circle"></i> Help
+                    <i class="fas fa-info-circle me-1"></i>Help
                   </button>
                 </div>
               </div>

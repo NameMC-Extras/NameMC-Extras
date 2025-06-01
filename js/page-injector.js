@@ -115,20 +115,20 @@
                                         </div>
                                         
                                         <div class="custom-theme-section">
-                                            <label class="form-label d-flex align-items-end mb-2">
-                                                <strong>Custom Theme:</strong>
-                                                <div class="ms-auto">
-                                                    <a class="btn btn-sm btn-outline-secondary me-1" title="Reset back to base colors" id="resetcustom" href="javascript:void(0)">
+                                            <div class="d-flex flex-wrap align-items-center mb-2">
+                                                <strong class="me-auto">Custom Theme:</strong>
+                                                <div class="btn-group btn-group-sm flex-wrap mt-2 mt-sm-0">
+                                                    <a class="btn btn-outline-secondary" title="Reset back to base colors" id="resetcustom" href="javascript:void(0)">
                                                         <i class="fas fa-undo-alt"></i> Reset
                                                     </a>
-                                                    <a class="btn btn-sm btn-outline-secondary me-1" title="Export custom theme" id="exportcustom" href="javascript:void(0)">
+                                                    <a class="btn btn-outline-secondary" title="Export custom theme" id="exportcustom" href="javascript:void(0)">
                                                         <i class="fas fa-download"></i> Export
                                                     </a>
-                                                    <a class="btn btn-sm btn-outline-secondary" title="Import custom theme" id="importcustom" href="javascript:void(0)">
+                                                    <a class="btn btn-outline-secondary" title="Import custom theme" id="importcustom" href="javascript:void(0)">
                                                         <i class="fas fa-upload"></i> Import
                                                     </a>
                                                 </div>
-                                            </label>
+                                            </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Base Theme</span>
                                                 <select class="form-select" id="selectBase">
@@ -225,7 +225,7 @@
                                                 <small class="text-muted ms-2">Configure links to external Minecraft profile services</small>
                                             </label>
                                             <textarea class="form-control" id="linksTextArea" rows="3" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
-                                            <div class="form-text">Use Markdown format: [Label](URL) with {uuid} as a placeholder for the player's UUID</div>
+                                            <div class="form-text">Use Markdown format: [Label](URL) with {uuid} as a placeholder for the player's UUID and {username} for the player's username</div>
                                         </div>
                                     </div>
                                 </div>
@@ -739,6 +739,23 @@
         }
         .modal-lg {
             max-width: 800px;
+        }
+        .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .btn-group.flex-wrap .btn {
+            margin-bottom: 0.25rem;
+        }
+        @media (max-width: 575.98px) {
+            .btn-group.flex-wrap {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .btn-group.flex-wrap .btn {
+                flex: 1 1 auto;
+                text-align: center;
+            }
         }
     `;
     document.head.appendChild(styleSheet);
