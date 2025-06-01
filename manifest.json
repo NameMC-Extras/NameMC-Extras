@@ -1,5 +1,5 @@
 {
-  "name": "NameMC Extras (Beta)",
+  "name": "NameMC Extras",
   "description": "A extension which adds extra features to NameMC!",
   "author": "Faav",
   "icons": {
@@ -8,7 +8,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "3.5.3",
+  "version": "3.5.4",
   "content_scripts": [
     {
       "js": [

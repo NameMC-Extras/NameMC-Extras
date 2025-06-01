@@ -115,7 +115,7 @@
                                         </div>
                                         
                                         <div class="custom-theme-section">
-                                            <div class="d-flex flex-wrap align-items-center mb-2">
+                                            <div class="d-flex flex-wrap align-items-end mb-2">
                                                 <strong class="me-auto">Custom Theme:</strong>
                                                 <div class="btn-group btn-group-sm flex-wrap mt-2 mt-sm-0">
                                                     <a class="btn btn-outline-secondary" title="Reset back to base colors" id="resetcustom" href="javascript:void(0)">
@@ -225,7 +225,7 @@
                                                 <small class="text-muted ms-2">Configure links to external Minecraft profile services</small>
                                             </label>
                                             <textarea class="form-control" id="linksTextArea" rows="3" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
-                                            <div class="form-text">Use Markdown format: [Label](URL) with {uuid} as a placeholder for the player's UUID and {username} for the player's username</div>
+                                            <div class="form-text">Use Markdown format: [Label](URL) with {uuid} and {username} as placeholders</div>
                                         </div>
                                     </div>
                                 </div>
