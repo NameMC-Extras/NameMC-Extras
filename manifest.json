@@ -46,7 +46,7 @@
         "js/capes-page/capes-injector.js"
       ],
       "matches": [
-        "*://*.namemc.com/capes"
+        "*://*.namemc.com/capes*"
       ],
       "run_at": "document_start"
     },
@@ -97,7 +97,7 @@
         "js/my-profile-page/names-page/names-injector.js"
       ],
       "matches": [
-        "*://*.namemc.com/my-profile/names"
+        "*://*.namemc.com/my-profile/names*"
       ],
       "run_at": "document_start"
     },
@@ -106,7 +106,16 @@
         "js/my-profile-page/capes-page/capes-injector.js"
       ],
       "matches": [
-        "*://*.namemc.com/my-profile/capes"
+        "*://*.namemc.com/my-profile/capes*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
+        "js/my-profile-page/emoji-page/emoji-injector.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/my-profile/emoji*"
       ],
       "run_at": "document_start"
     }
