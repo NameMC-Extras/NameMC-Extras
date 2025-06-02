@@ -74,7 +74,7 @@ Special thanks to:
 - M6
 - Orius
 - Arky
-- Swede
+- Fyz
 
 ---
 *NameMC Extras is not affiliated with or endorsed by NameMC.*
