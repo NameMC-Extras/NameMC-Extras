@@ -52,9 +52,10 @@ waitForSelector('.nav.mt-3', (navEl) => {
     const emojisForm = document.querySelector('main form[method=POST]');
 
     const capitalizeWords = (str) => {
-        return str.toLowerCase().split('-').join(' ').split(' ').map(word => {
-            return word.charAt(0).toUpperCase() + word.slice(1);
-        }).join(' ');
+        return str
+            .split(/(\s|-)/)
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join('');
     }
 
     const parseEmoji = (emoji) => {
@@ -73,7 +74,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
 
         if (emojiSearchAPI.status === 200) {
             let emojiJSON = await emojiSearchAPI.json();
-            emojiJSON = emojiJSON.filter(a => a.unicode < 15 && !blocked.includes(a.hexcode));
+            emojiJSON = emojiJSON.filter(a => a.unicode < 15 && a.group !== 'component' && !blocked.includes(a.hexcode));
 
             if (emojiJSON.length > 500) {
                 container.innerHTML = '<p class="text-muted text-center">1 – 500 of ' + emojiJSON.length.toLocaleString() + ' results</p>';
