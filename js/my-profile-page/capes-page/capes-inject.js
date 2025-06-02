@@ -11,34 +11,35 @@ const waitForSelector = function (selector, callback) {
     }
 };
 
-waitForSelector('.card.mt-3', (historyEl) => {
-    let history = [...historyEl.querySelectorAll('[class*=fa-toggle-]')].map(a => a.classList.contains('fa-toggle-on'));
-    let hasTrue = history.some(a => a === true);
-    historyEl.insertAdjacentHTML('afterbegin', `<div class="card-header py-1">
-        <div class="row">
+waitForSelector('.card.my-3', (capesEl) => {
+    let capes = [...capesEl.querySelectorAll('[class*=fa-toggle-]')].map(a => a.classList.contains('fa-toggle-on'));
+    let capeValues = [...capesEl.querySelectorAll('[class*=fa-toggle-]')].map(a => a.parentElement.value);
+    let hasTrue = capes.some(a => a === true);
+    if (capes.length) {
+        capesEl.querySelector('.card-header').innerHTML = `<div class="row">
             <div class="col">
-                <strong>Name History</strong>
+                <strong>Capes</strong>
             </div>
-            ${history.length ? `<div class="col-auto">
+            <div class="col-auto">
                 <a class="px-1" id="hideAll"><i class="far fa-toggle-${hasTrue ? 'on' : 'off'}"></i></a>
-            </div>` : ''}
-        </div>
-    </div>`);
+            </div>
+        </div>`;
+    }
 
     document.querySelector('#hideAll').onclick = () => {
         document.querySelector('#hideAll').classList.add('disabled');
-        const datas = history
-            .map((a, i) => ({ value: a, index: i }))
+        const datas = capes
+            .map((a, i) => ({ value: a, cape: capeValues[i] }))
             .filter(({ value }) => value === hasTrue)
-            .map(({ index }) => {
+            .map(({ cape }) => {
                 const formData = new URLSearchParams();
-                formData.append("task", "toggle-name-visibility");
-                formData.append("name_index", history.length - index);
+                formData.append("task", "toggle-cape");
+                formData.append("cape", cape);
 
                 return formData.toString();
             });
 
-        Promise.all(datas.map(formData => fetch("https://namemc.com/my-profile/names", {
+        Promise.all(datas.map(formData => fetch("https://namemc.com/my-profile/capes", {
             method: "POST",
             body: formData,
             headers: {

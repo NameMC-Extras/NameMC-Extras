@@ -44,7 +44,6 @@
     var hideServers = localStorage.getItem("hideServers") === "false";
     var hideFollowing = localStorage.getItem("hideFollowing") === "false";
     var hideOptifine = localStorage.getItem("hideOptifine") === "false";
-    var historyGraph = localStorage.getItem("historyGraph") !== "false";
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -117,14 +116,14 @@
                                         <div class="custom-theme-section">
                                             <div class="d-flex flex-wrap align-items-end mb-2">
                                                 <strong class="me-auto">Custom Theme:</strong>
-                                                <div class="btn-group btn-group-sm flex-wrap mt-2 mt-sm-0">
-                                                    <a class="btn btn-outline-secondary" title="Reset back to base colors" id="resetcustom" href="javascript:void(0)">
+                                                <div class="btn-group btn-group-sm flex-wrap mt-2 mt-sm-0 clean-control">
+                                                    <a class="btn bg-body-tertiary" title="Reset back to base colors" id="resetcustom" href="javascript:void(0)">
                                                         <i class="fas fa-undo-alt"></i> Reset
                                                     </a>
-                                                    <a class="btn btn-outline-secondary" title="Export custom theme" id="exportcustom" href="javascript:void(0)">
+                                                    <a class="btn bg-body-tertiary" title="Export custom theme" id="exportcustom" href="javascript:void(0)">
                                                         <i class="fas fa-upload"></i> Export
                                                     </a>
-                                                    <a class="btn btn-outline-secondary" title="Import custom theme" id="importcustom" href="javascript:void(0)">
+                                                    <a class="btn bg-body-tertiary" title="Import custom theme" id="importcustom" href="javascript:void(0)">
                                                         <i class="fas fa-download"></i> Import
                                                     </a>
                                                 </div>
@@ -197,16 +196,15 @@
                                             <div class="btn-group w-100 toggle-group" role="group">
                                                 <button type="button" class="btn btn-outline-primary${!hideOptifine ? ' active' : ''}" id="hideOptifine" data-bs-toggle="tooltip" title="Display OptiFine capes">OptiFine</button>
                                                 <button type="button" class="btn btn-outline-primary${bedrockCapes ? ' active' : ''}" id="bedrockCapes" data-bs-toggle="tooltip" title="Show Bedrock Edition capes">Bedrock</button>
-                                                <button type="button" class="btn btn-outline-primary${historyGraph ? ' active' : ''}" id="historyGraph" data-bs-toggle="tooltip" title="Display capes history graph">History</button>
                                             </div>
                                         </div>
 
                                         <div>
                                             <label class="form-label"><strong>Additional Features:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
-                                                <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers" data-bs-toggle="tooltip" title="Show favorite servers on profile">Servers</button>
+                                                <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers" data-bs-toggle="tooltip" title="Show favorite servers on profile">Favorite Servers</button>
                                                 <button type="button" class="btn btn-outline-primary${!hideHeadCmd ? ' active' : ''}" id="hideHeadCmd" data-bs-toggle="tooltip" title="Display head command">Head Command</button>
-                                                <button type="button" class="btn btn-outline-primary${!hideDegreesOfSep ? ' active' : ''}" id="hideDegreesOfSep" data-bs-toggle="tooltip" title="Show degrees of separation">Separation</button>
+                                                <button type="button" class="btn btn-outline-primary${!hideDegreesOfSep ? ' active' : ''}" id="hideDegreesOfSep" data-bs-toggle="tooltip" title="Show degree of separation">Degree of Separation</button>
                                             </div>
                                         </div>
                                     </div>
@@ -239,8 +237,7 @@
         const createSettingsToggle = (name) => {
             var settingEl = document.querySelector(`#${name}`);
             if (typeof localStorage[name] == "undefined") {
-                if (name === "historyGraph") localStorage[name] = true;
-                else if (name.startsWith('hide')) localStorage[name] = true;
+                if (name.startsWith('hide')) localStorage[name] = true;
                 else localStorage[name] = false;
             }
             settingEl.onclick = () => {

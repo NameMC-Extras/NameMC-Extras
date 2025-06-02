@@ -1,4 +1,4 @@
-# NameMC Extras (v1)
+# NameMC Extras
 
 A powerful browser extension that enhances your NameMC experience with additional features and improved functionality.
 
@@ -74,7 +74,7 @@ Special thanks to:
 - M6
 - Orius
 - Arky
-- Swede
+- Fyz
 
 ---
 *NameMC Extras is not affiliated with or endorsed by NameMC.*

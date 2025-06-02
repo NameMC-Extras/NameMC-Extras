@@ -119,7 +119,8 @@ body main {
 .customTheme ul.nav-pills>li.active>a,
 .customTheme ul.nav-pills>li>.page-link.active,
 .customTheme ul.nav-pills>li.active>.page-link,
-.customTheme ul.pagination>li.active>.page-link {
+.customTheme ul.pagination>li.active>.page-link,
+.customTheme .clean-control>.active {
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
     border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
     transition: background-color 200ms linear, border 200ms linear;
@@ -321,4 +322,29 @@ option:checked {
 
 #hideAll {
     cursor: pointer;
+}
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+}
+
+.clean-control > * {
+    font-size: 12px!important;
+    border: var(--bs-border-width) solid var(--bs-border-color)!important;
+}
+
+.clean-control > *:hover {
+    color: var(--bs-link-hover-color)!important;
+}
+
+.btn-control > *:hover {
+    color: var(--bs-btn-hover-color)!important;
+}
+
+.clean-control > .active {
+    background-color: #236DAD!important;
+    border-color: #236DAD!important;
+    pointer-events: none!important;
+    z-index: 5!important;
 }

@@ -13,18 +13,6 @@ const waitForSelector = function (selector, callback) {
   }
 };
 
-const waitForFunc = function (func, callback) {
-  if (window[func] ?? window.wrappedJSObject?.[func]) {
-    setTimeout(() => {
-      callback(window[func] ?? window.wrappedJSObject?.[func]);
-    });
-  } else {
-    setTimeout(() => {
-      waitForFunc(func, callback);
-    });
-  }
-};
-
 const waitForStorage = function (key, callback) {
   if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
     setTimeout(() => {
@@ -42,6 +30,7 @@ const waitForStorage = function (key, callback) {
  */
 
 const enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
+var hideOptifine = localStorage.getItem("hideOptifine") === "false";
 
 
 /*
@@ -163,7 +152,8 @@ function addCapes(mainDiv) {
     mainDiv.append(categoryFrag);
   }
 
-  const categories = supabase_data.categories.filter(cat => cat.hidden === false);
+  let categories = supabase_data.categories.filter(cat => cat.hidden === false);
+  if (hideOptifine) categories = categories.filter(cat => cat.id !== 'optifine');
 
   var categoriesHTML = categories.map(cat => {
     const capes = supabase_data.capes.filter(cape => cape.category == cat.id)

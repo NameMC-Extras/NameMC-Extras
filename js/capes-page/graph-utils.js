@@ -1649,12 +1649,12 @@ function createUsageGraphCard(capeId) {
       <div class="card-header py-1">
         <div class="d-flex justify-content-between align-items-center">
           <strong>History</strong>
-          <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe" data-timeframe="day">Day</button>
-            <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe active" data-timeframe="week">Week</button>
-            <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe" data-timeframe="month">Month</button>
-            <button type="button" class="btn btn-outline-secondary btn-sm graph-timeframe" data-timeframe="year">Year</button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" id="expand-graph">
+          <div class="btn-group btn-group-sm clean-control" role="group">
+            <button type="button" class="btn bg-body-tertiary graph-timeframe" data-timeframe="day">Day</button>
+            <button type="button" class="btn bg-body-tertiary graph-timeframe active" data-timeframe="week">Week</button>
+            <button type="button" class="btn bg-body-tertiary graph-timeframe" data-timeframe="month">Month</button>
+            <button type="button" class="btn bg-body-tertiary graph-timeframe" data-timeframe="year">Year</button>
+            <button type="button" class="btn bg-body-tertiary" id="expand-graph">
               <i class="fas fa-expand"></i>
             </button>
           </div>
@@ -1698,13 +1698,13 @@ function createUsageGraphCard(capeId) {
           <div class="modal-body">
             <div class="mb-3">
               <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <div class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe" data-timeframe="day">Day</button>
-                  <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe active" data-timeframe="week">Week</button>
-                  <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe" data-timeframe="month">Month</button>
-                  <button type="button" class="btn btn-outline-secondary btn-sm modal-timeframe" data-timeframe="year">Year</button>
+                <div class="btn-group btn-group-sm clean-control" role="group">
+                  <button type="button" class="btn bg-body-tertiary modal-timeframe" data-timeframe="day">Day</button>
+                  <button type="button" class="btn bg-body-tertiary modal-timeframe active" data-timeframe="week">Week</button>
+                  <button type="button" class="btn bg-body-tertiary modal-timeframe" data-timeframe="month">Month</button>
+                  <button type="button" class="btn bg-body-tertiary modal-timeframe" data-timeframe="year">Year</button>
                 </div>
-                <div class="btn-group btn-group-sm" role="group">
+                <div class="btn-group btn-group-sm clean-control btn-control" role="group">
                   <button type="button" class="btn btn-outline-secondary btn-sm" id="modal-reset-zoom">
                     <i class="fas fa-sync-alt me-1"></i>Reset Zoom
                   </button>
