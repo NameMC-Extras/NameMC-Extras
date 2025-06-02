@@ -284,13 +284,13 @@ async function loadPage() {
     
     // Add the graph card to the left column using functions from graph-utils.js
     const leftColumn = document.querySelector('.col-md-6');
-    if (leftColumn && window.createUsageGraphCard && localStorage.getItem("historyGraph") !== "false") {
+    if (leftColumn && window.createUsageGraphCard) {
       const graphCard = window.createUsageGraphCard(capeId);
       leftColumn.appendChild(graphCard);
       
       // Initialize the graph after everything is set up
       setTimeout(() => {
-        if (window.initializeGraph && localStorage.getItem("historyGraph") !== "false") {
+        if (window.initializeGraph) {
           window.initializeGraph(capeId);
         }
       }, 100);

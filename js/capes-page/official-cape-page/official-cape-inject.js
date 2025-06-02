@@ -220,12 +220,12 @@ waitForSelector(".col-md-6", () => {
   leftColumn.innerHTML += descriptionCard;
 
   const capeHash = location.href.split("/").pop();
-  if (window.createUsageGraphCard && localStorage.getItem("historyGraph") !== "false") {
+  if (window.createUsageGraphCard) {
     const graphCard = window.createUsageGraphCard(capeHash);
     leftColumn.appendChild(graphCard);
 
     setTimeout(() => {
-      if (window.initializeGraph && localStorage.getItem("historyGraph") !== "false") {
+      if (window.initializeGraph) {
         window.initializeGraph(capeHash);
       }
     }, 100);
