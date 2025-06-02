@@ -53,28 +53,34 @@ waitForSelector('.nav.mt-3', (navEl) => {
     const capitalizeWords = (str) => {
         return str
             .split(/(\s|-)/)
+            .slice(1)
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join('');
     }
 
+    const getEmojiVersion = (unicodeName) => {
+        const match = unicodeName.match(/E(\d+\.\d+)/);
+        return match ? parseFloat(match[1]) : null;
+    }
+
     const parseEmoji = (emoji) => {
-        const emojiPresentationRegex = /\p{Emoji_Presentation}/u;
-        if (emoji.startsWith('00')) emoji = emoji.replace('00', '');
-        return emojiPresentationRegex.test(emoji.split('-').map(a => String.fromCodePoint(parseInt(a, 16))).join('')) || emoji.includes('fe0f') ? emoji : emoji + '-fe0f';
-    };
+        if (emoji.startsWith('00')) emoji = emoji.replace('00', '')
+        return emoji.toLowerCase().split(' ').join('-');
+    }
 
     async function searchEmoji(query) {
         if (subCats) [...subCats.querySelectorAll('.active')].forEach(cat => cat.classList.remove('active'));
         emojisForm.innerHTML = '<div id="emojiBox" class="text-center row g-2 justify-content-center mb-3"></div>';
 
         let container = document.querySelector('#emojiBox');
-        container.innerHTML = '<p class="text-muted text-center">0 results</p>';
+        container.innerHTML = '<p class="text-muted text-center">? results</p>';
 
         const emojiSearchAPI = await fetch(`https://cors.faav.top/emojis?search=${encodeURIComponent(query)}`);
 
         if (emojiSearchAPI.status === 200) {
             let emojiJSON = await emojiSearchAPI.json();
-            emojiJSON = emojiJSON.filter(a => a.unicode < 15 && a.group !== 'component' && !blacklist.includes(a.hexcode));
+            if (emojiJSON.status === 'error') emojiJSON = [];
+            emojiJSON = emojiJSON.filter(a => getEmojiVersion(a.unicodeName) < 15 && a.group !== 'component' && !blacklist.includes(a.codePoint.toLowerCase().split(' ')[0]));
 
             if (emojiJSON.length > 500) {
                 container.innerHTML = '<p class="text-muted text-center">1 – 500 of ' + emojiJSON.length.toLocaleString() + ' results</p>';
@@ -87,10 +93,10 @@ waitForSelector('.nav.mt-3', (navEl) => {
                 emojiJSON.forEach(emoji => {
                     container.insertAdjacentHTML('beforeend', `<div class="col-6 col-md-4 col-lg-2">
         <div class="card">
-          <button type="submit" class="btn p-0" style="height: initial !important;" name="emoji" value="${parseEmoji(emoji.hexcode)}"${disabled.includes(emoji.hexcode.split('-')[0]) || noEmerald ? ' disabled' : ''}>
-            <div class="card-header text-center text-nowrap text-ellipsis py-1" translate="no">${capitalizeWords(emoji.annotation)}</div>
+          <button type="submit" class="btn p-0" style="height: initial !important;" name="emoji" value="${parseEmoji(emoji.codePoint)}"${disabled.includes(emoji.codePoint.toLowerCase().split(' ')[0]) || noEmerald ? ' disabled' : ''}>
+            <div class="card-header text-center text-nowrap text-ellipsis py-1" translate="no">${capitalizeWords(emoji.unicodeName)}</div>
             <div class="position-relative text-center p-4">
-                <img style="width: 80px; height: 80px;" class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/twitter/${parseEmoji(emoji.hexcode)}.svg" alt="${emoji.emoji}">
+                <img style="width: 80px; height: 80px;" class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/twitter/${parseEmoji(emoji.codePoint).toLowerCase().split(' ').join('-')}.svg" alt="${emoji.character}">
                 <div class="position-absolute top-0 start-0 m-1"><img src="https://s.namemc.com/img/emerald-32.png" title="Available to Emerald Members"></div>
             </div>
           </button>
