@@ -13,10 +13,12 @@
     {
       "js": [
         "js/data-preload.js",
+        "js/announcement.js",
         "js/page-injector.js"
       ],
       "css": [
-        "css/NameMC.css"
+        "css/NameMC.css",
+        "css/announcement.css"
       ],
       "matches": [
         "*://*.namemc.com/*"
