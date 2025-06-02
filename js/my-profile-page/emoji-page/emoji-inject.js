@@ -52,11 +52,9 @@ waitForSelector('.nav.mt-3', (navEl) => {
     const emojisForm = document.querySelector('main form[method=POST]');
 
     const capitalizeWords = (str) => {
-        return str
-            .toLowerCase()
-            .split(/[\s-]+/)
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join('-');
+        return str.toLowerCase().split('-').join(' ').split(' ').map(word => {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }).join(' ');
     }
 
     const parseEmoji = (emoji) => {
@@ -70,18 +68,20 @@ waitForSelector('.nav.mt-3', (navEl) => {
 
         let container = document.querySelector('#emojiBox');
 
-        if (query.length < 3) {
-            container.innerHTML = 'Please enter at least 3 characters'
-            return;
-        }
         const emojiSearchAPI = await fetch(`https://cors.faav.top/emojis?search=${encodeURIComponent(query)}`);
 
         if (emojiSearchAPI.status === 200) {
             let emojiJSON = await emojiSearchAPI.json();
             emojiJSON = emojiJSON.filter(a => a.unicode < 15 && !blocked.includes(a.hexcode));
 
+            if (emojiJSON.length > 500) {
+                container.innerHTML = '<p class="text-muted text-center">1 – 500 of ' + emojiJSON.length.toLocaleString() + ' results</p>';
+                emojiJSON.length = 500;
+            } else {
+                container.innerHTML = '<p class="text-muted text-center">' + emojiJSON.length.toLocaleString() + ' results</p>';
+            }
+
             if (emojiJSON.length) {
-                container.innerHTML = '';
                 emojiJSON.forEach(emoji => {
                     container.insertAdjacentHTML('beforeend', `<div class="col-6 col-md-4 col-lg-2">
         <div class="card">
@@ -95,8 +95,6 @@ waitForSelector('.nav.mt-3', (navEl) => {
         </div>
       </div>`)
                 });
-            } else {
-                container.innerHTML = 'No emoji(s) found'
             }
         }
     }
