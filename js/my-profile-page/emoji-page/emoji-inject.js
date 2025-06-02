@@ -33,9 +33,8 @@ const disabled = [
     '1f30f'
 ]
 
-const blocked = [
-    '00ae',
-    '00a9'
+const blacklist = [
+    '00ae'
 ]
 
 waitForSelector('.nav.mt-3', (navEl) => {
@@ -60,7 +59,8 @@ waitForSelector('.nav.mt-3', (navEl) => {
 
     const parseEmoji = (emoji) => {
         const emojiPresentationRegex = /\p{Emoji_Presentation}/u;
-        return emojiPresentationRegex.test(emoji.split('-').map(a => String.fromCodePoint(parseInt(a, 16))).join('')) ? emoji : emoji + '-fe0f';
+        if (emoji.startsWith('00')) emoji = emoji.replace('00', '');
+        return emojiPresentationRegex.test(emoji.split('-').map(a => String.fromCodePoint(parseInt(a, 16))).join('')) || emoji.includes('fe0f') ? emoji : emoji + '-fe0f';
     };
 
     async function searchEmoji(query) {
@@ -74,7 +74,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
 
         if (emojiSearchAPI.status === 200) {
             let emojiJSON = await emojiSearchAPI.json();
-            emojiJSON = emojiJSON.filter(a => a.unicode < 15 && a.group !== 'component' && !blocked.includes(a.hexcode));
+            emojiJSON = emojiJSON.filter(a => a.unicode < 15 && a.group !== 'component' && !blacklist.includes(a.hexcode));
 
             if (emojiJSON.length > 500) {
                 container.innerHTML = '<p class="text-muted text-center">1 – 500 of ' + emojiJSON.length.toLocaleString() + ' results</p>';
