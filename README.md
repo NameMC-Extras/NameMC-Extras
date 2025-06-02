@@ -4,9 +4,9 @@ A powerful browser extension that enhances your NameMC experience with additiona
 
 ## 🚀 Installation
 
-Install the Chromium version from the [Chrome Web Store](https://chrome.google.com/webstore/detail/namemc-extras-beta/cpphfojhgkppblcdhjbcploikanimgek)!
+Install the Chromium version from the [Chrome Web Store](https://chrome.google.com/webstore/detail/cpphfojhgkppblcdhjbcploikanimgek)!
 
-Install the Firefox version from the [Firefox Addons Store](https://addons.mozilla.org/en-US/firefox/addon/namemc-extras-beta/)!
+Install the Firefox version from the [Firefox Addons Store](https://addons.mozilla.org/en-US/firefox/addon/namemc-extras/)!
 
 ## ✨ Features
 
