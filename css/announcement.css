@@ -1,0 +1,70 @@
+.announcement-banner {
+  position: relative;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease-in-out;
+  background-color: rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  opacity: 0;
+}
+
+.announcement-banner.visible {
+  opacity: 1;
+}
+
+/* Theme integration */
+.customTheme .announcement-banner {
+  border: none;
+  color: var(--bs-body-color);
+}
+
+.customTheme[data-bs-theme=light] .announcement-banner {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.customTheme[data-bs-theme=dark] .announcement-banner {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.announcement-banner .message {
+  margin-right: 0.5rem;
+  flex-grow: 0;
+  font-weight: 500;
+  text-align: center;
+}
+
+.announcement-banner .close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.25rem;
+  opacity: 0.7;
+  color: var(--bs-body-color);
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+}
+
+.announcement-banner .close-button:hover {
+  opacity: 1;
+}
+
+.announcement-banner.hidden {
+  height: 0;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* Remove the body margin since we're not fixed anymore */
+body.has-announcement {
+  margin-top: 0;
+} 

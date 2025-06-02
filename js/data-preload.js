@@ -21,6 +21,7 @@
     "user_badges": "user_badges",
     "user_capes": "user_capes",
     "user_emoji_overrides": "user_emoji_overrides",
+    "announcements": "announcements"
   };
 
   async function storeResults(results) {
