@@ -1,8 +1,8 @@
 .announcement-banner {
   position: relative;
   width: 100%;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -35,14 +35,15 @@
   flex-grow: 0;
   font-weight: 500;
   text-align: center;
+  font-size: 0.95rem !important;
 }
 
 .announcement-banner .close-button {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  font-size: 1.25rem;
+  padding: 0;
+  font-size: 1.1rem;
   opacity: 0.7;
   color: var(--bs-body-color);
   transition: opacity 0.2s;
@@ -64,7 +65,6 @@
   overflow: hidden;
 }
 
-/* Remove the body margin since we're not fixed anymore */
 body.has-announcement {
   margin-top: 0;
 } 

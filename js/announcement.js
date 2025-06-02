@@ -7,26 +7,46 @@ class AnnouncementManager {
     }
 
     initialize() {
-        try {
-            const supabaseData = JSON.parse(localStorage.getItem('supabase_data') || '{}');
-            const announcements = supabaseData.announcements || [];
-            console.debug('[Announcements] Loaded announcements:', announcements);
-            
-            // Only consider the first announcement
-            const latestAnnouncement = announcements[0];
-            console.debug('[Announcements] Latest announcement:', latestAnnouncement);
-            
-            if (latestAnnouncement && !this.isDismissed(latestAnnouncement.id)) {
-                console.debug('[Announcements] Showing announcement:', latestAnnouncement.id);
-                this.currentAnnouncement = latestAnnouncement;
-                this.createAnnouncementBanner();
-            } else {
-                console.debug('[Announcements] No announcement to show.',
-                    latestAnnouncement ? 'Latest announcement was dismissed.' : 'No announcements available.');
-            }
-        } catch (error) {
-            console.error('[Announcements] Failed to load announcements:', error);
+        // Skip announcements only on store subdomain
+        if (window.location.hostname === 'store.namemc.com') {
+            console.debug('[Announcements] Skipping announcements on store subdomain');
+            return;
         }
+
+        const waitForSupabase = (callback) => {
+            const supabaseData = localStorage.getItem('supabase_data');
+            if (supabaseData && supabaseData.length > 0) {
+                setTimeout(() => {
+                    callback(JSON.parse(supabaseData));
+                });
+            } else {
+                setTimeout(() => {
+                    waitForSupabase(callback);
+                });
+            }
+        };
+
+        waitForSupabase((supabaseData) => {
+            try {
+                const announcements = supabaseData.announcements || [];
+                console.debug('[Announcements] Loaded announcements:', announcements);
+                
+                // Only consider the first announcement
+                const latestAnnouncement = announcements[0];
+                console.debug('[Announcements] Latest announcement:', latestAnnouncement);
+                
+                if (latestAnnouncement && !this.isDismissed(latestAnnouncement.id)) {
+                    console.debug('[Announcements] Showing announcement:', latestAnnouncement.id);
+                    this.currentAnnouncement = latestAnnouncement;
+                    this.createAnnouncementBanner();
+                } else {
+                    console.debug('[Announcements] No announcement to show.',
+                        latestAnnouncement ? 'Latest announcement was dismissed.' : 'No announcements available.');
+                }
+            } catch (error) {
+                console.error('[Announcements] Failed to load announcements:', error);
+            }
+        });
     }
 
     isDismissed(id) {
@@ -60,31 +80,23 @@ class AnnouncementManager {
     }
 
     parseMarkdownLinks(text) {
-        var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(text);
+        // Check if text contains markdown-style links
+        const regex = /\[(.*?)\]\((.*?)\)/g;
+        let result = text;
         
-        if (!hasMdLink) {
-            return text;
+        // Replace each markdown link with an HTML link
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            const [fullMatch, linkText, url] = match;
+            const aTag = document.createElement("a");
+            aTag.href = url.startsWith('http') ? url : `https://${url}`;
+            aTag.textContent = linkText;
+            aTag.target = '_blank';
+            aTag.className = 'announcement-link';
+            result = result.replace(fullMatch, aTag.outerHTML);
         }
-
-        var textAreaTag = document.createElement("textarea");
-        textAreaTag.textContent = text;
-        text = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
-
-        var elements = text.match(/\[.*?\)/g);
-        if (elements && elements.length > 0) {
-            for (let el of elements) {
-                let text = el.match(/\[(.*?)\]/)[1];
-                let url = el.match(/\((.*?)\)/)[1];
-                let aTag = document.createElement("a");
-                let urlHref = new URL(url);
-                urlHref.protocol = "https:";
-                aTag.href = urlHref;
-                aTag.textContent = text;
-                aTag.target = '_blank';
-                text = text.replace(el, aTag.outerHTML);
-            }
-        }
-        return text;
+        
+        return result;
     }
 
     createAnnouncementBanner() {
@@ -103,19 +115,13 @@ class AnnouncementManager {
         banner.querySelector('.close-button').addEventListener('click', () => {
             this.dismissAnnouncement(this.currentAnnouncement.id);
         });
-
-        // Insert as the first element in the body, with a delay to allow the page to load
+        document.body.insertBefore(banner, document.body.firstChild);
+        // Add delay before showing the banner
         setTimeout(() => {
-            document.body.insertBefore(banner, document.body.firstChild);
-            // Add delay before showing the banner
-            setTimeout(() => {
-                banner.classList.add('visible');
-                this.saveDismissedAnnouncement(this.currentAnnouncement.id);
-                document.body.classList.add('has-announcement');
-            }, 100);
-        }, 200);
-        
-
+            banner.classList.add('visible');
+            this.saveDismissedAnnouncement(this.currentAnnouncement.id);
+            document.body.classList.add('has-announcement');
+        }, 100);
         this.announcementContainer = banner;
     }
 }
