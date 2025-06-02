@@ -1,0 +1,10 @@
+[
+  {
+    "id": "announcement-ex-2",
+    "message": "Hello World"
+  },
+  {
+    "id": "announcement-ex-1",
+    "message": "foo bar"
+  }
+]
