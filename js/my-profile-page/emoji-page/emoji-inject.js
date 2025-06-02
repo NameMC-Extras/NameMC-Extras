@@ -37,12 +37,16 @@ const blacklist = [
     '00ae'
 ]
 
+const free = [
+    '1f437'
+]
+
 waitForSelector('.nav.mt-3', (navEl) => {
     const noEmerald = !!document.querySelector('.alert');
 
     navEl.insertAdjacentHTML('beforebegin', `<form>
         <div class="input-group input-group-lg">
-            <input id="emoji-search" class="form-control" type="search" name="emoji" placeholder="Search Emojis" autocomplete="off" spellcheck="false">
+            <input id="emoji-search" class="form-control" type="search" name="search" placeholder="Search Emojis" autocomplete="off" spellcheck="false">
             <button class="btn btn-primary" id="searchEmoji" type="submit" title="Search"><i class="far fa-search"></i></button>
         </div>
     </form>`);
@@ -80,6 +84,10 @@ waitForSelector('.nav.mt-3', (navEl) => {
         if (emojiSearchAPI.status === 200) {
             let emojiJSON = await emojiSearchAPI.json();
             if (emojiJSON.status === 'error') emojiJSON = [];
+
+            // free flags
+            free.push(...new Set(emojiJSON.filter(a=>a.subGroup == 'country-flag').map(a=>parseEmoji(a.codePoint).split('-')[0])));
+
             emojiJSON = emojiJSON.filter(a => getEmojiVersion(a.unicodeName) < 15 && a.group !== 'component' && !blacklist.includes(a.codePoint.toLowerCase().split(' ')[0]));
 
             if (emojiJSON.length > 500) {
@@ -93,11 +101,11 @@ waitForSelector('.nav.mt-3', (navEl) => {
                 emojiJSON.forEach(emoji => {
                     container.insertAdjacentHTML('beforeend', `<div class="col-6 col-md-4 col-lg-2">
         <div class="card">
-          <button type="submit" class="btn p-0" style="height: initial !important;" name="emoji" value="${parseEmoji(emoji.codePoint)}"${disabled.includes(emoji.codePoint.toLowerCase().split(' ')[0]) || noEmerald ? ' disabled' : ''}>
+          <button type="submit" class="btn p-0" style="height: initial !important;" name="emoji" value="${parseEmoji(emoji.codePoint)}"${disabled.includes(emoji.codePoint.toLowerCase().split(' ')[0]) || (noEmerald && !free.includes(emoji.codePoint.toLowerCase().split(' ')[0])) ? ' disabled' : ''}>
             <div class="card-header text-center text-nowrap text-ellipsis py-1" translate="no">${capitalizeWords(emoji.unicodeName)}</div>
             <div class="position-relative text-center p-4">
                 <img style="width: 80px; height: 80px;" class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/twitter/${parseEmoji(emoji.codePoint).toLowerCase().split(' ').join('-')}.svg" alt="${emoji.character}">
-                <div class="position-absolute top-0 start-0 m-1"><img src="https://s.namemc.com/img/emerald-32.png" title="Available to Emerald Members"></div>
+                <div class="position-absolute top-0 start-0 m-1"><img src="https://s.namemc.com/img/${free.includes(emoji.codePoint.toLowerCase().split(' ')[0]) ? 'egg' : 'emerald'}-32.png" title="Available to ${free.includes(emoji.codePoint.toLowerCase().split(' ')[0]) ? 'Everyone' : 'Emerald Members'}"></div>
             </div>
           </button>
         </div>
@@ -108,7 +116,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const query = urlParams.get('emoji');
+    const query = urlParams.get('search');
 
     if (query) {
         document.querySelector('#emoji-search').value = query;
