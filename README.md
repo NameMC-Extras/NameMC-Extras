@@ -1,4 +1,4 @@
-# NameMC Extras (v1)
+# NameMC Extras
 
 A powerful browser extension that enhances your NameMC experience with additional features and improved functionality.
 
