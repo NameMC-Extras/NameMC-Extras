@@ -67,6 +67,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
         emojisForm.innerHTML = '<div id="emojiBox" class="text-center row g-2 justify-content-center mb-3"></div>';
 
         let container = document.querySelector('#emojiBox');
+        container.innerHTML = '<p class="text-muted text-center">0 results</p>';
 
         const emojiSearchAPI = await fetch(`https://cors.faav.top/emojis?search=${encodeURIComponent(query)}`);
 
