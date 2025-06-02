@@ -39,6 +39,8 @@ const blocked = [
 ]
 
 waitForSelector('.nav.mt-3', (navEl) => {
+    const noEmerald = !!document.querySelector('.alert');
+
     navEl.insertAdjacentHTML('beforebegin', `<form>
         <div class="input-group input-group-lg">
             <input id="emoji-search" class="form-control" type="search" name="emoji" placeholder="Search Emojis" autocomplete="off" spellcheck="false">
@@ -83,10 +85,11 @@ waitForSelector('.nav.mt-3', (navEl) => {
                 emojiJSON.forEach(emoji => {
                     container.insertAdjacentHTML('beforeend', `<div class="col-6 col-md-4 col-lg-2">
         <div class="card">
-          <button type="submit" class="btn p-0" style="height: initial !important;" name="emoji" value="${parseEmoji(emoji.hexcode)}"${disabled.includes(emoji.hexcode.split('-')[0]) ? ' disabled' : ''}>
+          <button type="submit" class="btn p-0" style="height: initial !important;" name="emoji" value="${parseEmoji(emoji.hexcode)}"${disabled.includes(emoji.hexcode.split('-')[0]) || noEmerald ? ' disabled' : ''}>
             <div class="card-header text-center text-nowrap text-ellipsis py-1" translate="no">${capitalizeWords(emoji.annotation)}</div>
             <div class="position-relative text-center p-4">
-<img style="width: 80px; height: 80px;" class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/twitter/${parseEmoji(emoji.hexcode)}.svg" alt="${emoji.emoji}">                <div class="position-absolute top-0 start-0 m-1"><img src="https://s.namemc.com/img/emerald-32.png" title="Available to Emerald Members"></div>
+                <img style="width: 80px; height: 80px;" class="emoji" draggable="false" src="https://s.namemc.com/img/emoji/twitter/${parseEmoji(emoji.hexcode)}.svg" alt="${emoji.emoji}">
+                <div class="position-absolute top-0 start-0 m-1"><img src="https://s.namemc.com/img/emerald-32.png" title="Available to Emerald Members"></div>
             </div>
           </button>
         </div>
