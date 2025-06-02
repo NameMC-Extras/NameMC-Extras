@@ -322,3 +322,8 @@ option:checked {
 #hideAll {
     cursor: pointer;
 }
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+}
