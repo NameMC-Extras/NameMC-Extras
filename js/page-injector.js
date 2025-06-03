@@ -70,11 +70,11 @@
     }
 
     if (customThemeOn) setCustomTheme();
-    if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'block');
-    if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'block');
-    if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'block');
-    if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'block');
-    if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'block');
+    if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'flex');
+    if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'flex');
+    if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'flex');
+    if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'flex');
+    if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'flex');
 
     const createSettingsButton = () => {
         const modalHTML = `

@@ -51,6 +51,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
         </div>
     </form>`);
 
+    const cats = document.querySelector('.nav.mt-3');
     const subCats = document.querySelector('.nav.nav-tabs');
     const emojisForm = document.querySelector('main form[method=POST]');
 
@@ -73,7 +74,11 @@ waitForSelector('.nav.mt-3', (navEl) => {
     }
 
     async function searchEmoji(query) {
-        if (subCats) [...subCats.querySelectorAll('.active')].forEach(cat => cat.classList.remove('active'));
+        if (subCats) {
+            subCats.remove();
+            emojisForm.insertAdjacentHTML('beforebegin', '<hr class="mt-0">')
+        }
+        if (cats) [...cats.querySelectorAll('.active')].forEach(cat => cat.classList.remove('active'));
         emojisForm.innerHTML = '<div id="emojiBox" class="text-center row g-2 justify-content-center mb-3"></div>';
 
         let container = document.querySelector('#emojiBox');

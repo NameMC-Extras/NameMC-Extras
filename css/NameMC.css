@@ -1,9 +1,9 @@
 html {
-    --head-cmd: block;
-    --servers: block;
-    --following: block;
-    --degrees-of-sep: block;
-    --optifine: block;
+    --head-cmd: flex;
+    --servers: flex;
+    --following: flex;
+    --degrees-of-sep: flex;
+    --optifine: flex;
     --bedrock-only: contents;
 }
 
