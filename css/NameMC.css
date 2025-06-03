@@ -111,7 +111,8 @@ body main {
     background-blend-mode: exclusion;
 }
 
-.customTheme .btn:not(.btn-light):not(.btn-warning):not(.btn-info),
+.customTheme span.rounded,  
+.customTheme .btn:not(.btn-light):not(.btn-warning):not(.btn-info):not(.btn-link),
 .customTheme ul.nav-pills button,
 .customTheme ul.nav-pills>li>a,
 .customTheme ul.nav-pills>li>a,
@@ -123,8 +124,7 @@ body main {
 
 .customTheme .btn-primary,
 .customTheme .btn-secondary,
-.customTheme .badge,
-.customTheme span.rounded,
+.customTheme .badge:not(.text-bg-light):not(.text-bg-warning):not(.text-bg-info),
 .customTheme ul.nav-pills button.active,
 .customTheme ul.nav-pills>li>a.active,
 .customTheme ul.nav-pills>li.active>a,
@@ -176,7 +176,7 @@ body main {
 }
 
 .customTheme a.copy-button:not(.color-inherit),
-.customTheme a:not([class]),
+.customTheme a:not([class]):not(:has([class*=fa-eye])),
 .customTheme a[class=""],
 .customTheme a[class="fw-bold"],
 .customTheme a[class="float-end"],
@@ -195,7 +195,7 @@ body main {
 
 .customTheme .btn-link:hover,
 .customTheme a.copy-button:not(.color-inherit):hover,
-.customTheme a:not([class]):hover,
+.customTheme a:not([class]):not(:has([class*=fa-eye])):hover,
 .customTheme a[class=""]:hover,
 .customTheme a[class="fw-bold"]:hover,
 .customTheme a[class="float-end"]:hover,
@@ -401,4 +401,8 @@ a.disabled {
     border-color: #236DAD !important;
     pointer-events: none !important;
     z-index: 5 !important;
+}
+
+a:has([class*=fa-eye]) {
+    color: inherit !important;
 }
