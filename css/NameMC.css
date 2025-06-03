@@ -145,7 +145,7 @@ body main {
 .customTheme[data-bs-theme="dark"] .clean-control>.active {
     color: var(--bs-body-color) !important;
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
-    border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
+    border-color: rgba(var(--ne-btn-rgb), .5) !important;
     transition: background-color 200ms linear, border 200ms linear;
 }
 
@@ -161,7 +161,7 @@ body main {
 .customTheme[data-bs-theme="light"] .clean-control>.active {
     color: white !important;
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
-    border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
+    border-color: rgba(var(--ne-btn-rgb), .5) !important;
     transition: background-color 200ms linear, border 200ms linear;
 }
 
@@ -183,7 +183,7 @@ body main {
 .customTheme .btn-secondary:hover {
     color: var(--bs-body-color) !important;
     background-color: rgba(var(--ne-btn-rgb), .75) !important;
-    border: 1px solid rgba(var(--ne-btn-rgb), .3) !important;
+    border-color: rgba(var(--ne-btn-rgb), .3) !important;
 }
 
 .customTheme a[class="px-1"],
@@ -204,7 +204,7 @@ body main {
     opacity: 1;
 }
 
-.customTheme a[class="nav-link active"] {
+.customTheme ul.navbar-nav>li>a[class="nav-link active"] {
     color: var(--bs-body-color) !important;
     opacity: 1;
 }
@@ -397,7 +397,7 @@ select > *:checked {
 
 .toggle-group {
     border-radius: 0.5rem !important;
-    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-color: var(--bs-border-color);
     padding: 4px;
     gap: 4px;
 }
@@ -424,6 +424,10 @@ a.disabled {
 .clean-control>* {
     font-size: 12px !important;
     border: var(--bs-border-width) solid var(--bs-border-color) !important;
+}
+
+.clean-control .active {
+    color: #dee2e6 !important;
 }
 
 .clean-control>*:hover {
