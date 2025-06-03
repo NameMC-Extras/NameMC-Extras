@@ -112,13 +112,13 @@ body main {
 }
 
 .customTheme span.rounded,  
-.customTheme .btn:not(.btn-light):not(.btn-warning):not(.btn-info):not(.btn-link),
+.customTheme .btn:not(.btn-light):not(.btn-warning):not(.btn-info):not(.btn-link):not([class*=outline]),
 .customTheme ul.nav-pills button,
 .customTheme ul.nav-pills>li>a,
 .customTheme ul.nav-pills>li>a,
 .customTheme ul.nav-pills>li>.page-link,
 .customTheme ul.pagination>li>.page-link,
-.customTheme .clean-control>* {
+.customTheme .clean-control>*:not([class*=outline]) {
     color: var(--bs-body-color) !important;
 }
 
