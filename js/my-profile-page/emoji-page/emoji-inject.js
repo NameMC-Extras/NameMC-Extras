@@ -61,7 +61,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
     navEl.insertAdjacentHTML('beforebegin', `<form id="emojiSearch">
         <div class="input-group input-group-lg">
             <input type="hidden" name="filter" id="filterinp">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <span id="selected-value">${filter === 'free' ? 'Free' : 'All'}</span>
             </button>
             <ul class="dropdown-menu">
