@@ -65,7 +65,7 @@ class CapeUsageGraph {
       timeframe: 'week', // day, week, month, year, all
       lineColor: (localStorage['customTheme'] === "true" && localStorage['customBtn']) || '#007bff',
       gridColor: '#e9ecef',
-      textColor: (localStorage['customTheme'] === "true" && localStorage['customText']) || '#dee2e6',
+      textColor: (localStorage['customTheme'] === "true" && localStorage['customText']) || getComputedStyle(document.documentElement).getPropertyValue("--bs-body-color"),
       padding: 40,
       animationDuration: 500,
       pointRadius: 3,
@@ -127,7 +127,7 @@ class CapeUsageGraph {
       tooltipContainer.className = 'graph-tooltip';
       tooltipContainer.style.position = 'absolute';
       tooltipContainer.style.backgroundColor = 'rgba(0,0,0,0.8)';
-      tooltipContainer.style.color = (localStorage['customTheme'] === "true" && localStorage['customText']) || '#dee2e6';
+      tooltipContainer.style.color = (localStorage['customTheme'] === "true" && localStorage['customText']) || getComputedStyle(document.documentElement).getPropertyValue("--bs-body-color");
       tooltipContainer.style.padding = '5px 10px';
       tooltipContainer.style.borderRadius = '4px';
       tooltipContainer.style.fontSize = '12px';

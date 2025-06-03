@@ -92,7 +92,7 @@ body main {
 }
 
 .customTheme[data-bs-theme=light] .card {
-    --bs-card-bg: rgba(255, 255, 255, 0.9) !important;
+    --bs-card-bg: rgba(255, 255, 255, 0.7) !important;
 }
 
 .customTheme[data-bs-theme=dark] .card {
@@ -111,40 +111,70 @@ body main {
     background-blend-mode: exclusion;
 }
 
-.customTheme span.rounded,  
-.customTheme .btn:not(.btn-light):not(.btn-warning):not(.btn-info):not(.btn-link):not([class*=outline]),
-.customTheme ul.nav-pills button,
-.customTheme ul.nav-pills>li>a,
-.customTheme ul.nav-pills>li>a,
-.customTheme ul.nav-pills>li>.page-link,
-.customTheme ul.pagination>li>.page-link,
+.customTheme[data-bs-theme="dark"] span.rounded,
+.customTheme[data-bs-theme="dark"] :not(.btn-group):not(.pagination) > .btn:not(.btn-light):not(.btn-dark):not(.btn-warning):not(.btn-info):not(.btn-link):not([class*=outline]):not(.bg-body-secondary):not([class="btn"]),
+.customTheme[data-bs-theme="dark"] ul.nav-pills button,
+.customTheme[data-bs-theme="dark"] ul.nav-pills>li>a,
+.customTheme[data-bs-theme="dark"] ul.nav-pills>li>.page-link,
 .customTheme .clean-control>*:not([class*=outline]) {
     color: var(--bs-body-color) !important;
 }
+
+.customTheme[data-bs-theme="light"] span.rounded,
+.customTheme[data-bs-theme="light"] :not(.btn-group):not(.pagination) > .btn:not(.btn-light):not(.btn-dark):not(.btn-warning):not(.btn-info):not(.btn-link):not([class*=outline]):not(.bg-body-secondary):not([class="btn"]),
+.customTheme[data-bs-theme="light"] ul.nav-pills button,
+.customTheme[data-bs-theme="light"] ul.nav-pills>li>a,
+.customTheme[data-bs-theme="light"] ul.nav-pills>li>.page-link {
+    color: white !important;
+}
+
 
 .customTheme .text-primary {
     color: rgba(var(--ne-btn-rgb), 1) !important;
 }
 
-.customTheme .btn-primary,
-.customTheme .btn-secondary,
-.customTheme .badge:not(.text-bg-light):not(.text-bg-warning):not(.text-bg-info),
-.customTheme ul.nav-pills button.active,
-.customTheme ul.nav-pills>li>a.active,
-.customTheme ul.nav-pills>li.active>a,
-.customTheme ul.nav-pills>li>.page-link.active,
-.customTheme ul.nav-pills>li.active>.page-link,
-.customTheme ul.pagination>li.active>.page-link,
-.customTheme .clean-control>.active {
+.customTheme[data-bs-theme="dark"] .btn-primary,
+.customTheme[data-bs-theme="dark"] .btn-secondary,
+.customTheme[data-bs-theme="dark"] .badge:not(.text-bg-light):not(.text-bg-dark):not(.text-bg-warning):not(.text-bg-info),
+.customTheme[data-bs-theme="dark"] ul.nav-pills button.active,
+.customTheme[data-bs-theme="dark"] ul.nav-pills>li>a.active,
+.customTheme[data-bs-theme="dark"] ul.nav-pills>li.active>a,
+.customTheme[data-bs-theme="dark"] ul.nav-pills>li>.page-link.active,
+.customTheme[data-bs-theme="dark"] ul.nav-pills>li.active>.page-link,
+.customTheme[data-bs-theme="dark"] ul.pagination>li.active>.page-link,
+.customTheme[data-bs-theme="dark"] .clean-control>.active {
     color: var(--bs-body-color) !important;
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
     border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
     transition: background-color 200ms linear, border 200ms linear;
 }
 
-.customTheme .btn-outline-primary.active,
-.customTheme .btn-outline-primary:active {
+.customTheme[data-bs-theme="light"] .btn-primary,
+.customTheme[data-bs-theme="light"] .btn-secondary,
+.customTheme[data-bs-theme="light"] .badge:not(.text-bg-light):not(.text-bg-dark):not(.text-bg-warning):not(.text-bg-info),
+.customTheme[data-bs-theme="light"] ul.nav-pills button.active,
+.customTheme[data-bs-theme="light"] ul.nav-pills>li>a.active,
+.customTheme[data-bs-theme="light"] ul.nav-pills>li.active>a,
+.customTheme[data-bs-theme="light"] ul.nav-pills>li>.page-link.active,
+.customTheme[data-bs-theme="light"] ul.nav-pills>li.active>.page-link,
+.customTheme[data-bs-theme="light"] ul.pagination>li.active>.page-link,
+.customTheme[data-bs-theme="light"] .clean-control>.active {
+    color: white !important;
+    background-color: rgba(var(--ne-btn-rgb), 1) !important;
+    border: 1px solid rgba(var(--ne-btn-rgb), .5) !important;
+    transition: background-color 200ms linear, border 200ms linear;
+}
+
+.customTheme[data-bs-theme="dark"] .btn-outline-primary.active,
+.customTheme[data-bs-theme="dark"] .btn-outline-primary:active {
     color: var(--bs-body-color) !important;
+    background-color: rgba(var(--ne-btn-rgb), 1) !important;
+    transition: background-color 200ms linear;
+}
+
+.customTheme[data-bs-theme="light"] .btn-outline-primary.active,
+.customTheme[data-bs-theme="light"] .btn-outline-primary:active {
+    color: white !important;
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
     transition: background-color 200ms linear;
 }
@@ -162,15 +192,15 @@ body main {
     transition: color 200ms linear;
 }
 
-.customTheme ul:not(.nav-tabs):not(.nav-pills) > li > a[class="nav-link"],
-.customTheme span[class=""] {
+.customTheme ul.navbar-nav>li>a[class="nav-link"],
+.customTheme span[class=""][translate="no"] {
     color: var(--bs-body-color) !important;
     opacity: 0.75;
     transition: color 200ms linear, opacity 200ms linear;
 }
 
-.customTheme ul:not(.nav-tabs):not(.nav-pills) > li > a[class="nav-link"]:hover,
-.customTheme span[class=""]:hover {
+.customTheme ul.navbar-nav>li>a[class="nav-link"]:hover,
+.customTheme span[class=""][translate="no"]:hover {
     opacity: 1;
 }
 
@@ -215,18 +245,23 @@ body main {
     color: rgba(var(--ne-link-rgb), .75) !important;
 }
 
-.customTheme[data-bs-theme=light] .form-control,
-.customTheme[data-bs-theme=light] .form-control:focus,
-.customTheme[data-bs-theme=light] .form-select,
-.customTheme[data-bs-theme=light] .form-select:focus {
+.customTheme select:not(#uuid-select),
+.customTheme .form-control,
+.customTheme .form-control:focus,
+.customTheme .form-select,
+.customTheme .form-select:focus {
     color: var(--bs-body-color) !important;
-    background-color: rgba(255, 255, 255, 0.9) !important;
+    background-color: transparent !important;
 }
 
-.customTheme[data-bs-theme=dark] .form-control,
-.customTheme[data-bs-theme=dark] .form-control:focus,
-.customTheme[data-bs-theme=dark] .form-select,
-.customTheme[data-bs-theme=dark] .form-select:focus {
+.customTheme[data-bs-theme=light] header .form-control,
+.customTheme[data-bs-theme=light] header .form-control:focus {
+    color: var(--bs-body-color) !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.customTheme[data-bs-theme=dark] header .form-control,
+.customTheme[data-bs-theme=dark] header .form-control:focus {
     color: var(--bs-body-color) !important;
     background-color: rgba(255, 255, 255, 0.05) !important;
 }
@@ -246,12 +281,6 @@ body main {
     color: var(--bs-body-color) !important;
     box-shadow: 0 0 6px rgb(var(--ne-btn-rgb)) !important;
     background-color: rgb(var(--ne-btn-rgb)) !important;
-}
-
-select:not(#uuid-select),
-select:not(#uuid-select) * {
-    background: var(--bs-body-bg) !important;
-    color: var(--bs-body-color) !important;
 }
 
 select {
@@ -281,12 +310,17 @@ select:focus {
     z-index: 10
 }
 
-option:hover {
+select > * {
+    background: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+}
+
+select > *:hover {
     background-color: var(--selectHoverCol);
     color: #fff;
 }
 
-option:checked {
+select > *:checked {
     box-shadow: 0 0 1em 100px var(--selectedCol) inset;
 }
 
