@@ -58,7 +58,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
     const query = urlParams.get('search');
     filter = urlParams.get('filter') === 'free' ? 'free' : 'all';
 
-    navEl.insertAdjacentHTML('beforebegin', `<form>
+    navEl.insertAdjacentHTML('beforebegin', `<form id="emojiSearch">
         <div class="input-group input-group-lg">
             <input type="hidden" name="filter" id="filterinp">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -78,6 +78,17 @@ waitForSelector('.nav.mt-3', (navEl) => {
     const cats = document.querySelector('.nav.mt-3');
     const subCats = document.querySelector('.nav.nav-tabs');
     const emojisForm = document.querySelector('main form[method=POST]');
+
+    document.getElementById('emojiSearch').addEventListener("formdata", (e) => {
+        const entries = [...e.formData.entries()];
+        for (let i = 0; i < entries.length; i++) {
+            const [key, value] = entries[i];
+            console.log(key, value)
+            if (key === "filter" && value === "all") {
+                e.formData.delete(key);
+            }
+        }
+    });
 
     const capitalizeWords = (str) => {
         return str
