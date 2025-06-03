@@ -111,7 +111,7 @@ body main {
     background-blend-mode: exclusion;
 }
 
-.customTheme .btn,
+.customTheme .btn:not(.btn-light):not(.btn-warning):not(.btn-info),
 .customTheme ul.nav-pills button,
 .customTheme ul.nav-pills>li>a,
 .customTheme ul.nav-pills>li>a,
