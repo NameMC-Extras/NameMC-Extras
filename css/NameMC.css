@@ -406,3 +406,10 @@ a.disabled {
 a:has([class*=fa-eye]) {
     color: inherit !important;
 }
+
+#filterDropdown {
+    padding: .5rem;
+    border-top-left-radius: .5rem;
+    border-bottom-left-radius: .5rem;
+    width: 4.7rem;
+}
