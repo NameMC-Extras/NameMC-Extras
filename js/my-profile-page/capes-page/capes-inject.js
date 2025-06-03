@@ -39,7 +39,7 @@ waitForSelector('.card.my-3', (capesEl) => {
                 return formData.toString();
             });
 
-        Promise.all(datas.map(formData => fetch("https://namemc.com/my-profile/capes", {
+        Promise.all(datas.map(formData => fetch("/my-profile/capes", {
             method: "POST",
             body: formData,
             headers: {
