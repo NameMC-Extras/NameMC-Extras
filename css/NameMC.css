@@ -122,6 +122,10 @@ body main {
     color: var(--bs-body-color) !important;
 }
 
+.customTheme .text-primary {
+    color: rgba(var(--ne-btn-rgb), 1) !important;
+}
+
 .customTheme .btn-primary,
 .customTheme .btn-secondary,
 .customTheme .badge:not(.text-bg-light):not(.text-bg-warning):not(.text-bg-info),
@@ -213,7 +217,7 @@ body main {
 
 .customTheme[data-bs-theme=light] .form-control,
 .customTheme[data-bs-theme=light] .form-control:focus,
-.customTheme .customTheme[data-bs-theme=light] .form-select,
+.customTheme[data-bs-theme=light] .form-select,
 .customTheme[data-bs-theme=light] .form-select:focus {
     color: var(--bs-body-color) !important;
     background-color: rgba(255, 255, 255, 0.9) !important;
