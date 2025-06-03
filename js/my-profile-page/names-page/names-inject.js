@@ -44,6 +44,6 @@ waitForSelector('.card.mt-3', (historyEl) => {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
-        }))).then(() => location.reload());
+        }))).then(() => window.location.href = window.location.pathname);
     }
 });

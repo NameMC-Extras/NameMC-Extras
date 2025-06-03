@@ -582,7 +582,7 @@
             var isPage = location.pathname == "/extras/" + page;
             var storeNavBar = document.querySelector('.nav-link[href="https://store.namemc.com/category/emerald"]').parentElement;
             var customNavRange = document.createRange();
-            var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link ${isPage ? "active" : ""}' href='/extras/${page}'>${name}</a></li>`);
+            var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link${isPage ? " active" : ""}' href='/extras/${page}'>${name}</a></li>`);
             var customNavDropRange = document.createRange();
             var customNavDropHTML = customNavDropRange.createContextualFragment(`<a class='dropdown-item' id='${page}' href='/extras/${page}' title='${name}'><i class="${icon} menu-icon"></i>${name}</a>`);
             storeNavBar.before(customNavHTML);
