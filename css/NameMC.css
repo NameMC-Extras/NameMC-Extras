@@ -245,7 +245,7 @@ body main {
     color: rgba(var(--ne-link-rgb), .75) !important;
 }
 
-.customTheme select:not(#uuid-select),
+.customTheme select:not(#filterDropdown),
 .customTheme .form-control,
 .customTheme .form-control:focus,
 .customTheme .form-select,
@@ -294,10 +294,6 @@ select * {
 
 .color-inherit {
     color: inherit;
-}
-
-#uuid-select {
-    background-color: rgba(255, 255, 255, 0) !important;
 }
 
 #uuid-select * {
@@ -411,9 +407,10 @@ a:has([class*=fa-eye]) {
 }
 
 #filterDropdown {
-    padding: .5rem;
+    padding: .25rem;
     border-top-left-radius: .5rem;
     border-bottom-left-radius: .5rem;
-    width: 4.7rem;
     border: var(--bs-border-width) solid var(--bs-border-color);
+    font-size: 18px;
+    text-align-last: center;
 }

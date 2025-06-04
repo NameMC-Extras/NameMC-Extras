@@ -41,39 +41,24 @@ const free = [
     '1f437'
 ];
 
-var filter = "all";
-
-window.selectValue = (event) => {
-    let value = event.srcElement.dataset.value;
-    let normal = event.srcElement.innerText;
-    event.preventDefault()
-    filter = value;
-    document.getElementById('filterinp').value = value;
-    document.getElementById('selected-value').innerHTML = normal;
-}
+var isFree = false;
 
 waitForSelector('.nav.mt-3', (navEl) => {
     const noEmerald = !!document.querySelector('.alert');
     const urlParams = new URLSearchParams(window.location.search);
     const query = urlParams.get('search');
-    filter = urlParams.get('filter') === 'free' ? 'free' : 'all';
+    isFree = urlParams.get('filter') === 'free';
 
     navEl.insertAdjacentHTML('beforebegin', `<form id="emojiSearch">
         <div class="input-group input-group-lg">
-            <input type="hidden" name="filter" id="filterinp">
-            <button class="btn bg-body-tertiary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <span id="selected-value">${filter === 'free' ? 'Free' : 'All'}</span>
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="selectValue(event)" data-value="all">All</a></li>
-                <li><a class="dropdown-item" href="#" onclick="selectValue(event)" data-value="free">Free</a></li>
-            </ul>
+            <select id="filterDropdown" class="bg-body-tertiary" name="filter">
+                <option value="all"${!isFree ? ' selected' : ''}>All</option>
+                <option value="free"${isFree ? ' selected' : ''}>Free</option>
+            </select>
             <input id="emoji-search" class="form-control" type="search" name="search" placeholder="Search Emojis" autocomplete="off" spellcheck="false">
             <button class="btn btn-primary" id="searchEmoji" type="submit" title="Search"><i class="far fa-search"></i></button>
         </div>
     </form>`);
-
-    document.getElementById('filterinp').value = filter;
 
     const cats = document.querySelector('.nav.mt-3');
     const subCats = document.querySelector('.nav.nav-tabs');
@@ -129,7 +114,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
             free.push(...new Set(emojiJSON.filter(a => a.subGroup == 'country-flag').map(a => parseEmoji(a.codePoint).split('-')[0])));
 
             emojiJSON = emojiJSON.filter(a => getEmojiVersion(a.unicodeName) < 15 && a.group !== 'component' && !blacklist.includes(a.codePoint.toLowerCase().split(' ')[0]));
-            if (filter === 'free') emojiJSON = emojiJSON.filter(a => free.includes(a.codePoint.toLowerCase().split(' ')[0]));
+            if (isFree) emojiJSON = emojiJSON.filter(a => free.includes(a.codePoint.toLowerCase().split(' ')[0]));
 
             if (emojiJSON.length > 500) {
                 container.innerHTML = '<p class="text-muted text-center">1 – 500 of ' + emojiJSON.length.toLocaleString() + ' results</p>';
