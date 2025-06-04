@@ -3,13 +3,11 @@ class AnnouncementManager {
         this.storageKey = 'namemc_extras_dismissed_announcements';
         this.announcementContainer = null;
         this.currentAnnouncement = null;
-        console.debug('[Announcements] Manager initialized');
     }
 
     initialize() {
         // Skip announcements only on store subdomain
         if (window.location.hostname === 'store.namemc.com') {
-            console.debug('[Announcements] Skipping announcements on store subdomain');
             return;
         }
 
@@ -29,19 +27,13 @@ class AnnouncementManager {
         waitForSupabase((supabaseData) => {
             try {
                 const announcements = supabaseData.announcements || [];
-                console.debug('[Announcements] Loaded announcements:', announcements);
                 
                 // Only consider the first announcement
                 const latestAnnouncement = announcements[0];
-                console.debug('[Announcements] Latest announcement:', latestAnnouncement);
                 
                 if (latestAnnouncement && !this.isDismissed(latestAnnouncement.id)) {
-                    console.debug('[Announcements] Showing announcement:', latestAnnouncement.id);
                     this.currentAnnouncement = latestAnnouncement;
                     this.createAnnouncementBanner();
-                } else {
-                    console.debug('[Announcements] No announcement to show.',
-                        latestAnnouncement ? 'Latest announcement was dismissed.' : 'No announcements available.');
                 }
             } catch (error) {
                 console.error('[Announcements] Failed to load announcements:', error);
