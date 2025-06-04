@@ -29,8 +29,8 @@
     var customThemeOn = localStorage.getItem("customTheme") === "true";
     var customBg = localStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
     var customText = localStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
-    var customLink = localStorage.getItem("customLink") || "#7ba7ce";
-    var customBtn = localStorage.getItem("customBtn") || "#848BB0";
+    var customLink = localStorage.getItem("customLink") || (theme == "dark" ? "#7ba7ce" : "#236dad");
+    var customBtn = localStorage.getItem("customBtn") || "#236dad";
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
     var hideHeadCmd = localStorage.getItem("hideHeadCmd") === "false";
     var hideDegreesOfSep = localStorage.getItem("hideDegreesOfSep") === "false";
@@ -66,15 +66,22 @@
         localStorage.theme = customBase;
 
         var bgRgb = hexToRgb(customBg);
-        document.documentElement.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * 1.75}, ${bgRgb["g"] * 1.75}, ${bgRgb["b"] * 1.75}, .5)`);
+        let multiplier = 1.15;
+        let opacity = .5;
+        if (customBase === 'dark') {
+            multiplier = 1.35;
+            opacity = .45;
+        }
+
+        document.documentElement.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * multiplier}, ${bgRgb["g"] * multiplier}, ${bgRgb["b"] * multiplier}, ${opacity})`);
     }
 
     if (customThemeOn) setCustomTheme();
-    if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'block');
-    if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'block');
-    if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'block');
-    if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'block');
-    if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'block');
+    if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'flex');
+    if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'flex');
+    if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'flex');
+    if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'flex');
+    if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'flex');
 
     const createSettingsButton = () => {
         const modalHTML = `
@@ -138,22 +145,22 @@
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Background</span>
-                                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Main background color for the website</div>
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Text</span>
-                                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Primary text color used throughout the site</div>
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Links</span>
-                                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Color for clickable links and hover states</div>
                                             </div>
                                             <div class="input-group">
                                                 <span class="input-group-text">Buttons</span>
-                                                <input type="text" class="form-control" placeholder="#848BB0" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}" >
+                                                <input type="text" class="form-control" placeholder="#236DAD" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Color for interactive buttons and controls</div>
                                             </div>
                                         </div>
@@ -303,12 +310,15 @@
                         localStorage.customBg = "#EEF0F2";
                         localStorage.customText = "#212529";
                         localStorage.customBase = "light";
+                        localStorage.customLink = "#236dad";
                         customBg = "#EEF0F2";
                         customText = "#212529";
                         customBase = "light";
+                        customLink = "#236dad";
                         custombgcolor.value = "#EEF0F2";
                         customtextcolor.value = "#212529";
                         selectBase.value = "light";
+                        customlinkcolor.value = "#236dad";
                     }
                 }
 
@@ -340,12 +350,15 @@
                         localStorage.customBg = "#12161A";
                         localStorage.customText = "#dee2e6";
                         localStorage.customBase = "dark";
+                        localStorage.customLink = "#7ba7ce";
                         customBg = "#12161A";
                         customText = "#dee2e6";
                         customBase = "dark";
+                        customLink = "#7ba7ce";
                         custombgcolor.value = "#12161A";
                         customtextcolor.value = "#dee2e6";
                         selectBase.value = "dark";
+                        customlinkcolor.value = "#7ba7ce";
                     }
                 }
 
@@ -403,7 +416,7 @@
                                 window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
                                 window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
                                 window.top.document.querySelector("#customlinkcolor").jscolor.fromString("#7ba7ce");
-                                window.top.document.querySelector("#custombtncolor").jscolor.fromString("#848BB0");
+                                window.top.document.querySelector("#custombtncolor").jscolor.fromString("#236DAD");
                             </script>`;
                             document.documentElement.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000)
@@ -411,15 +424,15 @@
                             localStorage.customBg = "#12161A";
                             localStorage.customText = "#dee2e6";
                             localStorage.customLink = "#7ba7ce";
-                            localStorage.customBtn = "#848BB0";
+                            localStorage.customBtn = "#236DAD";
                             customBg = "#12161A";
                             customText = "#dee2e6";
                             customLink = "#7ba7ce";
-                            customBtn = "#848BB0";
+                            customBtn = "#236DAD";
                             custombgcolor.value = "#12161A";
                             customtextcolor.value = "#dee2e6";
                             customlinkcolor.value = "#7ba7ce";
-                            custombtncolor.value = "#848BB0";
+                            custombtncolor.value = "#236DAD";
                         } else {
                             var iframeEl = document.createElement("iframe");
                             iframeEl.width = 0;
@@ -428,24 +441,24 @@
                             iframeEl.srcdoc = `<script>
                                 window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
                                 window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
-                                window.top.document.querySelector("#customlinkcolor").jscolor.fromString("#7ba7ce");
-                                window.top.document.querySelector("#custombtncolor").jscolor.fromString("#848BB0");
+                                window.top.document.querySelector("#customlinkcolor").jscolor.fromString("#236DAD");
+                                window.top.document.querySelector("#custombtncolor").jscolor.fromString("#236DAD");
                             </script>`;
                             document.documentElement.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000)
 
                             localStorage.customBg = "#EEF0F2";
                             localStorage.customText = "#212529";
-                            localStorage.customLink = "#7ba7ce";
-                            localStorage.customBtn = "#848BB0";
+                            localStorage.customLink = "#236DAD";
+                            localStorage.customBtn = "#236DAD";
                             customBg = "#EEF0F2";
                             customText = "#212529";
-                            customLink = "#7ba7ce";
-                            customBtn = "#848BB0";
+                            customLink = "#236DAD";
+                            customBtn = "#236DAD";
                             custombgcolor.value = "#EEF0F2";
                             customtextcolor.value = "#212529";
-                            customlinkcolor.value = "#7ba7ce";
-                            custombtncolor.value = "#848BB0";
+                            customlinkcolor.value = "#236DAD";
+                            custombtncolor.value = "#236DAD";
                         }
 
                         if (customThemeOn) setCustomTheme();
@@ -472,12 +485,12 @@
                                 if (!hexRegex.test(code[0])) code[0] = "#12161A";
                                 if (!hexRegex.test(code[1])) code[1] = "#dee2e6";
                                 if (!hexRegex.test(code[2])) code[2] = "#7ba7ce";
-                                if (!hexRegex.test(code[3])) code[3] = "#848BB0";
+                                if (!hexRegex.test(code[3])) code[3] = "#236DAD";
                             } else {
                                 if (!hexRegex.test(code[0])) code[0] = "#EEF0F2";
                                 if (!hexRegex.test(code[1])) code[1] = "#212529";
                                 if (!hexRegex.test(code[2])) code[2] = "#7ba7ce";
-                                if (!hexRegex.test(code[3])) code[3] = "#848BB0";
+                                if (!hexRegex.test(code[3])) code[3] = "#1f6098";
                             }
 
                             var iframeEl = document.createElement("iframe");
@@ -582,7 +595,7 @@
             var isPage = location.pathname == "/extras/" + page;
             var storeNavBar = document.querySelector('.nav-link[href="https://store.namemc.com/category/emerald"]').parentElement;
             var customNavRange = document.createRange();
-            var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link ${isPage ? "active" : ""}' href='/extras/${page}'>${name}</a></li>`);
+            var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link${isPage ? " active" : ""}' href='/extras/${page}'>${name}</a></li>`);
             var customNavDropRange = document.createRange();
             var customNavDropHTML = customNavDropRange.createContextualFragment(`<a class='dropdown-item' id='${page}' href='/extras/${page}' title='${name}'><i class="${icon} menu-icon"></i>${name}</a>`);
             storeNavBar.before(customNavHTML);

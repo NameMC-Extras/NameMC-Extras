@@ -694,7 +694,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
         var skinEdit = skinsTitle.querySelector(".fa-edit");
 
         skinsTitle.innerHTML += `<div>
-          <a href="javascript:void(0)" id="skinArtBtn" class="text-white" title="Download Skin Art"><i class="fas fa-fw fa-arrow-alt-to-bottom"></i></a>
+          <a href="javascript:void(0)" id="skinArtBtn" class="color-inherit" title="Download Skin Art"><i class="fas fa-fw fa-arrow-alt-to-bottom"></i></a>
           <a href="javascript:void(0)" id="borderBtn" class="color-inherit" title="Show/Hide Borders">
             ${skinArt ? '<i class="far fa-fw fa-border-all">' : '<i class="far fa-fw fa-border-style">'}</i>
           </a>

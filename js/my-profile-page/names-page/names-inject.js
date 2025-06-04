@@ -38,12 +38,12 @@ waitForSelector('.card.mt-3', (historyEl) => {
                 return formData.toString();
             });
 
-        Promise.all(datas.map(formData => fetch("https://namemc.com/my-profile/names", {
+        Promise.all(datas.map(formData => fetch("/my-profile/names", {
             method: "POST",
             body: formData,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
-        }))).then(() => location.reload());
+        }))).then(() => window.location.href = window.location.pathname);
     }
 });
