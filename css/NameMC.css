@@ -299,23 +299,6 @@ select * {
     color: inherit;
 }
 
-.custom-control-inline {
-    display: -ms-inline-flexbox;
-    display: inline-flex !important;
-    margin-right: 1rem;
-}
-
-.custom-control-label {
-    position: relative;
-    margin-bottom: 0;
-    vertical-align: top;
-    margin-left: .2rem;
-}
-
-.form-check-input {
-    cursor: pointer;
-}
-
 .mb-3:has(.head-command) {
     display: var(--head-cmd);
 }

@@ -262,18 +262,18 @@ waitForSelector('main', (main) => {
                       <div class="input-group" style="margin-top:.5rem">
                         <input class="form-control" id="uploadskin" name="uploadskin" type="file" accept="image/*">
                       </div>
-                      <div class="mt-2">
-                      <div class="custom-control custom-radio custom-control-inline">
+                      <div class="mt-2 d-flex gap-3">
+                        <div class="d-flex gap-2">
                           <input type="radio" id="auto" name="modelRadio" onchange="model='auto-detect'"${!modelParam ? ' checked' : ''}>
-                          <label class="custom-control-label" for="auto">Auto</label>
+                          <label for="auto">Auto</label>
                         </div>
-                        <div class="custom-control custom-radio custom-control-inline">
+                        <div class="d-flex gap-2">
                           <input type="radio" id="classic" name="modelRadio" onchange="model='default'"${modelParam === 'classic' ? ' checked' : ''}>
-                          <label class="custom-control-label" for="classic">Classic</label>
+                          <label for="classic">Classic</label>
                         </div>
-                        <div class="custom-control custom-radio custom-control-inline">
+                        <div class="d-flex gap-2">
                           <input type="radio" id="slim" name="modelRadio" onchange="model='slim'"${modelParam === 'slim' ? ' checked' : ''}>
-                          <label class="custom-control-label" for="slim">Slim</label>
+                          <label for="slim">Slim</label>
                         </div>
                       </div>
                     </div>
