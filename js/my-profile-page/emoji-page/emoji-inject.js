@@ -51,7 +51,7 @@ waitForSelector('.nav.mt-3', (navEl) => {
 
     navEl.insertAdjacentHTML('beforebegin', `<form id="emojiSearch">
         <div class="input-group input-group-lg">
-            <select id="filterDropdown" class="bg-body-tertiary" name="filter">
+            <select id="filterDropdown" class="form-select bg-body-tertiary" name="filter">
                 <option value="all"${!isFree ? ' selected' : ''}>All</option>
                 <option value="free"${isFree ? ' selected' : ''}>Free</option>
             </select>

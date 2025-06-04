@@ -390,11 +390,12 @@ a:has([class*=fa-eye]) {
 
 #filterDropdown {
     padding: .25rem;
-    border-top-left-radius: .5rem;
-    border-bottom-left-radius: .5rem;
-    border: var(--bs-border-width) solid var(--bs-border-color);
+    padding-right: 1.25rem;
+    flex: unset;
+    width: 4rem;
     font-size: 18px;
     text-align-last: center;
+    background-position: right 0.3rem center;
 }
 
 #filterDropdown:focus {
