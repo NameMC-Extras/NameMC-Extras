@@ -254,14 +254,14 @@ body main {
     background-color: rgba(255, 255, 255, 0) !important;
 }
 
-.customTheme[data-bs-theme=light] header .form-control,
-.customTheme[data-bs-theme=light] header .form-control:focus {
+.customTheme[data-bs-theme=light] form .form-control,
+.customTheme[data-bs-theme=light] form .form-control:focus {
     color: var(--bs-body-color) !important;
     background-color: rgba(255, 255, 255, 0.8) !important;
 }
 
-.customTheme[data-bs-theme=dark] header .form-control,
-.customTheme[data-bs-theme=dark] header .form-control:focus {
+.customTheme[data-bs-theme=dark] form .form-control,
+.customTheme[data-bs-theme=dark] form .form-control:focus {
     color: var(--bs-body-color) !important;
     background-color: rgba(255, 255, 255, 0.05) !important;
 }
@@ -407,10 +407,17 @@ a:has([class*=fa-eye]) {
 }
 
 #filterDropdown {
+    color: var(--bs-body-color);
     padding: .25rem;
     border-top-left-radius: .5rem;
     border-bottom-left-radius: .5rem;
     border: var(--bs-border-width) solid var(--bs-border-color);
     font-size: 18px;
     text-align-last: center;
+}
+
+#filterDropdown:focus {
+  border-color: #91b6d6;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(35, 109, 173, 0.25);
 }
