@@ -112,20 +112,20 @@ body main {
 }
 
 .customTheme[data-bs-theme="dark"] span.rounded,
-.customTheme[data-bs-theme="dark"] :not(.btn-group):not(.pagination) > .btn:not(.btn-light):not(.btn-dark):not(.btn-warning):not(.btn-info):not(.btn-link):not([class*=outline]):not(.bg-body-secondary):not([class="btn"]),
+.customTheme[data-bs-theme="dark"] :not(.btn-group):not(.pagination)>.btn:not(.btn-light):not(.btn-dark):not(.btn-warning):not(.btn-info):not(.btn-link):not([class*=outline]):not(.bg-body-secondary):not([class="btn"]),
 .customTheme[data-bs-theme="dark"] ul.nav-pills button,
 .customTheme[data-bs-theme="dark"] ul.nav-pills>li>a,
 .customTheme[data-bs-theme="dark"] ul.nav-pills>li>.page-link,
-.customTheme .clean-control>*:not([class*=outline]) {
+.customTheme .clean-control *:not([class*=outline]) {
     color: var(--bs-body-color) !important;
 }
 
 .customTheme[data-bs-theme="light"] span.rounded,
-.customTheme[data-bs-theme="light"] :not(.btn-group):not(.pagination) > .btn:not(.btn-light):not(.btn-dark):not(.btn-warning):not(.btn-info):not(.btn-link):not([class*=outline]):not(.bg-body-secondary):not([class="btn"]),
+.customTheme[data-bs-theme="light"] :not(.btn-group):not(.pagination)>.btn:not(.btn-light):not(.btn-dark):not(.btn-warning):not(.btn-info):not(.btn-link):not([class*=outline]):not(.bg-body-secondary):not([class="btn"]),
 .customTheme[data-bs-theme="light"] ul.nav-pills button,
 .customTheme[data-bs-theme="light"] ul.nav-pills>li>a,
 .customTheme[data-bs-theme="light"] ul.nav-pills>li>.page-link {
-    color: white !important;
+    color: #dee2e6 !important;
 }
 
 
@@ -159,7 +159,7 @@ body main {
 .customTheme[data-bs-theme="light"] ul.nav-pills>li.active>.page-link,
 .customTheme[data-bs-theme="light"] ul.pagination>li.active>.page-link,
 .customTheme[data-bs-theme="light"] .clean-control>.active {
-    color: white !important;
+    color: #dee2e6 !important;
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
     border-color: rgba(var(--ne-btn-rgb), .5) !important;
     transition: background-color 200ms linear, border 200ms linear;
@@ -174,7 +174,7 @@ body main {
 
 .customTheme[data-bs-theme="light"] .btn-outline-primary.active,
 .customTheme[data-bs-theme="light"] .btn-outline-primary:active {
-    color: white !important;
+    color: #dee2e6 !important;
     background-color: rgba(var(--ne-btn-rgb), 1) !important;
     transition: background-color 200ms linear;
 }
@@ -251,7 +251,7 @@ body main {
 .customTheme .form-select,
 .customTheme .form-select:focus {
     color: var(--bs-body-color) !important;
-    background-color: transparent !important;
+    background-color: rgba(255, 255, 255, 0) !important;
 }
 
 .customTheme[data-bs-theme=light] header .form-control,
@@ -283,45 +283,9 @@ body main {
     background-color: rgb(var(--ne-btn-rgb)) !important;
 }
 
-select {
-    --selectHoverCol: #999;
-    --selectedCol: red;
-    width: 100%;
-    font-size: 1em;
-    padding: 0.3em;
-    background-color: #fff;
-}
-
-select:focus {
-    border-radius: 0px;
-    border-color: red;
-    background: #fff;
-    outline: none;
-}
-
-.select-wrap {
-    position: relative;
-}
-
-.select-wrap:focus-within select {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 10
-}
-
-select > * {
+select * {
     background: var(--bs-body-bg) !important;
     color: var(--bs-body-color) !important;
-}
-
-select > *:hover {
-    background-color: var(--selectHoverCol);
-    color: #fff;
-}
-
-select > *:checked {
-    box-shadow: 0 0 1em 100px var(--selectedCol) inset;
 }
 
 .customTheme * {
@@ -333,10 +297,10 @@ select > *:checked {
 }
 
 #uuid-select {
-    background-color: transparent !important;
+    background-color: rgba(255, 255, 255, 0) !important;
 }
 
-#uuid-select>* {
+#uuid-select * {
     background-color: var(--bs-body-bg) !important;
 }
 
@@ -421,7 +385,7 @@ a.disabled {
     cursor: default;
 }
 
-.clean-control>* {
+.clean-control * {
     font-size: 12px !important;
     border: var(--bs-border-width) solid var(--bs-border-color) !important;
 }
@@ -430,11 +394,11 @@ a.disabled {
     color: #dee2e6 !important;
 }
 
-.clean-control>*:hover {
+.clean-control *:hover {
     color: var(--bs-link-hover-color) !important;
 }
 
-.btn-control>*:hover {
+.btn-control *:hover {
     color: var(--bs-btn-hover-color) !important;
 }
 
@@ -454,4 +418,5 @@ a:has([class*=fa-eye]) {
     border-top-left-radius: .5rem;
     border-bottom-left-radius: .5rem;
     width: 4.7rem;
+    border: var(--bs-border-width) solid var(--bs-border-color);
 }

@@ -145,22 +145,22 @@
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Background</span>
-                                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Main background color for the website</div>
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Text</span>
-                                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Primary text color used throughout the site</div>
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Links</span>
-                                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right'}" >
+                                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Color for clickable links and hover states</div>
                                             </div>
                                             <div class="input-group">
                                                 <span class="input-group-text">Buttons</span>
-                                                <input type="text" class="form-control" placeholder="#236DAD" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}" >
+                                                <input type="text" class="form-control" placeholder="#236DAD" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Color for interactive buttons and controls</div>
                                             </div>
                                         </div>
