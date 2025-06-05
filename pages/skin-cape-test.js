@@ -263,15 +263,15 @@ waitForSelector('main', (main) => {
                         <input class="form-control" id="uploadskin" name="uploadskin" type="file" accept="image/*">
                       </div>
                       <div class="mt-2 d-flex gap-3">
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 align-items-center">
                           <input type="radio" id="auto" name="modelRadio" onchange="model='auto-detect'"${!modelParam ? ' checked' : ''}>
                           <label for="auto">Auto</label>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 align-items-center">
                           <input type="radio" id="classic" name="modelRadio" onchange="model='default'"${modelParam === 'classic' ? ' checked' : ''}>
                           <label for="classic">Classic</label>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 align-items-center">
                           <input type="radio" id="slim" name="modelRadio" onchange="model='slim'"${modelParam === 'slim' ? ' checked' : ''}>
                           <label for="slim">Slim</label>
                         </div>
@@ -399,6 +399,7 @@ waitForSelector('main', (main) => {
 
         apply.onclick = async () => {
             const isNameMCID = /^[a-f0-9]{16}$/i;
+            alert(currentCape)
             if (elytraOn && !noElytra.includes(currentCape.split("/").at(-1))) {
                 try {
                     await skinViewer.loadCape(currentCape, {
