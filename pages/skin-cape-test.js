@@ -399,7 +399,6 @@ waitForSelector('main', (main) => {
 
         apply.onclick = async () => {
             const isNameMCID = /^[a-f0-9]{16}$/i;
-            alert(currentCape)
             if (elytraOn && !noElytra.includes(currentCape.split("/").at(-1))) {
                 try {
                     await skinViewer.loadCape(currentCape, {
@@ -676,13 +675,13 @@ waitForSelector('main', (main) => {
                     </div>
                 `;
 
-                    currentCape = "https://api.gapple.pw/cors/sessionserver/" + document.querySelector("#officialcapes option:checked").value;
+                    currentCape = "https://api.gapple.pw/cors/textures/" + document.querySelector("#officialcapes option:checked").value;
 
                     capemenu.style.display = 'unset';
 
                     officialcapes.onchange = () => {
                         if (officialcapes.value && officialcapes.value.length > 0) {
-                            currentCape = "https://api.gapple.pw/cors/sessionserver/" + document.querySelector("#officialcapes option:checked").value;
+                            currentCape = "https://api.gapple.pw/cors/textures/" + document.querySelector("#officialcapes option:checked").value;
                         }
                     }
                 }
