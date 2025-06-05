@@ -31,6 +31,8 @@
     </script>`;
     document.documentElement.append(iframeEl);
 
+    window.top.addEventListener('load', () => document.body.classList.add("preload"));
+
     window.top.addEventListener('storage', () => {
         let allLocalStorage = { ...localStorage };
         chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
