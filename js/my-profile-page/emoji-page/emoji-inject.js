@@ -11,39 +11,46 @@ const waitForSelector = function (selector, callback) {
     }
 };
 
-const disabled = [
-    '1f451',
-    '1f48d',
-    '1f48e',
-    '1f4b0',
-    '1f4b8',
-    '1f4b3',
-    '1f3b5',
-    '1f3b6',
-    '1f6ac',
-    '1f351',
-    '1f346',
-    '1f595',
-    '1f4b2',
-    '1f51e',
-    '1f4af',
-    '1f911',
-    '1f30d',
-    '1f30e',
-    '1f30f'
-];
+const waitForStorage = function (key, callback) {
+    if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
+        setTimeout(() => {
+            callback();
+        });
+    } else {
+        setTimeout(() => {
+            waitForStorage(key, callback);
+        });
+    }
+};
+
+const capitalizeWords = (str) => {
+    return str
+        .split(/(\s|-)/)
+        .slice(1)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+}
+
+const getEmojiVersion = (unicodeName) => {
+    const match = unicodeName.match(/E(\d+\.\d+)/);
+    return match ? parseFloat(match[1]) : null;
+}
+
+const parseEmoji = (emoji) => {
+    if (emoji.startsWith('00')) emoji = emoji.replace('00', '')
+    return emoji.toLowerCase().split(' ').join('-');
+}
 
 const blacklist = [
     '00ae'
 ];
 
-const free = [
-    '1f437'
-];
-
 var isFree = false;
 
-waitForSelector('.nav.mt-3', (navEl) => {
+waitForStorage('supabase_data', () => waitForSelector('.nav.mt-3', async (navEl) => {
+    const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
+    const disabled = supabase_data['emojis_disabled'];
+    const free = supabase_data['emojis_free'];
     const noEmerald = !!document.querySelector('.alert');
     const urlParams = new URLSearchParams(window.location.search);
     const query = urlParams.get('search');
@@ -75,25 +82,9 @@ waitForSelector('.nav.mt-3', (navEl) => {
         }
     });
 
-    const capitalizeWords = (str) => {
-        return str
-            .split(/(\s|-)/)
-            .slice(1)
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join('');
-    }
+    if (typeof query === 'string') {
+        document.querySelector('#emoji-search').value = query;
 
-    const getEmojiVersion = (unicodeName) => {
-        const match = unicodeName.match(/E(\d+\.\d+)/);
-        return match ? parseFloat(match[1]) : null;
-    }
-
-    const parseEmoji = (emoji) => {
-        if (emoji.startsWith('00')) emoji = emoji.replace('00', '')
-        return emoji.toLowerCase().split(' ').join('-');
-    }
-
-    async function searchEmoji(query) {
         if (subCats) {
             subCats.remove();
             emojisForm.insertAdjacentHTML('beforebegin', '<hr class="mt-0">')
@@ -140,9 +131,4 @@ waitForSelector('.nav.mt-3', (navEl) => {
             }
         }
     }
-
-    if (typeof query === 'string') {
-        document.querySelector('#emoji-search').value = query;
-        searchEmoji(query)
-    }
-});
+}));
