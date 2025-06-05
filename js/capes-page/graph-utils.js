@@ -64,7 +64,7 @@ class CapeUsageGraph {
     this.options = Object.assign({
       timeframe: 'week', // day, week, month, year, all
       lineColor: (localStorage['customTheme'] === "true" && localStorage['customBtn']) || '#236dad',
-      gridColor: '#e9ecef',
+      gridColor: '#e9ecef80',
       textColor: (localStorage['customTheme'] === "true" && localStorage['customText']) || getComputedStyle(document.documentElement).getPropertyValue("--bs-body-color"),
       padding: 40,
       animationDuration: 500,
@@ -821,34 +821,90 @@ class CapeUsageGraph {
       }
     }
     
-    // Find closest point including those just outside viewport
+    // Find closest point including those just outside viewport and interpolated points
     let closestPoint = null;
     let closestDistance = Infinity;
     let closestX = 0;
     let closestY = 0;
+    let isInterpolated = false;
     
+    const checkLineSegment = (p1, p2) => {
+      if (!p1 || !p2) return;
+      
+      const x1 = this.timeToX(p1.timestamp, displayWidth);
+      const y1 = this.userCountToY(p1.users, displayHeight);
+      const x2 = this.timeToX(p2.timestamp, displayWidth);
+      const y2 = this.userCountToY(p2.users, displayHeight);
+      
+      // Calculate distance from mouse to line segment
+      const distance = this.distanceToLineSegment(mouseX, mouseY, x1, y1, x2, y2);
+      
+      if (distance < closestDistance && distance <= this.options.hoverRadius) {
+        closestDistance = distance;
+        
+        // Calculate the interpolated point on the line
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const t = ((mouseX - x1) * dx + (mouseY - y1) * dy) / (dx * dx + dy * dy);
+        const interpolatedX = x1 + t * dx;
+        const interpolatedY = y1 + t * dy;
+        
+        // Calculate interpolated timestamp and users
+        const t2 = (mouseX - x1) / (x2 - x1);
+        const timestamp = new Date(p1.timestamp.getTime() + t2 * (p2.timestamp.getTime() - p1.timestamp.getTime()));
+        const users = Math.round(p1.users + t2 * (p2.users - p1.users));
+        
+        closestPoint = { timestamp, users };
+        closestX = interpolatedX;
+        closestY = interpolatedY;
+        isInterpolated = true;
+      }
+    };
+    
+    // Check actual data points first
     const checkPoint = (point) => {
       if (!point) return;
       const x = this.timeToX(point.timestamp, displayWidth);
       const y = this.userCountToY(point.users, displayHeight);
       const distance = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
       
-      if (distance < closestDistance) {
+      if (distance < closestDistance && distance <= this.options.hoverRadius) {
         closestDistance = distance;
         closestPoint = point;
         closestX = x;
         closestY = y;
+        isInterpolated = false;
       }
     };
     
-    // Check all relevant points
+    // Check all data points first
     if (lastPointBeforeViewport) checkPoint(lastPointBeforeViewport);
     visiblePoints.forEach(checkPoint);
     if (firstPointAfterViewport) checkPoint(firstPointAfterViewport);
     
-    // Reset hover state if not close to any point
-    const hoverThreshold = this.options.simplified ? 15 : this.options.hoverRadius;
-    if (closestDistance > hoverThreshold) {
+    // Then check line segments if no point was close enough
+    if (!closestPoint || closestDistance > this.options.hoverRadius / 2) {
+      // Check line segments between points
+      if (lastPointBeforeViewport && visiblePoints[0]) {
+        checkLineSegment(lastPointBeforeViewport, visiblePoints[0]);
+      }
+      
+      for (let i = 0; i < visiblePoints.length - 1; i++) {
+        checkLineSegment(visiblePoints[i], visiblePoints[i + 1]);
+      }
+      
+      if (visiblePoints.length > 0 && firstPointAfterViewport) {
+        checkLineSegment(visiblePoints[visiblePoints.length - 1], firstPointAfterViewport);
+      }
+      
+      // Special case: if no visible points but we have points on both sides
+      if (visiblePoints.length === 0 && lastPointBeforeViewport && firstPointAfterViewport) {
+        checkLineSegment(lastPointBeforeViewport, firstPointAfterViewport);
+      }
+    }
+    
+    // Reset hover state if not close to any point or line
+    if (!closestPoint || closestDistance > this.options.hoverRadius) {
       this.hoverPoint = null;
       if (this.options.tooltipContainer) {
         this.options.tooltipContainer.style.display = 'none';
@@ -861,7 +917,7 @@ class CapeUsageGraph {
       return;
     }
     
-    // Update hover state if close to a point
+    // Update hover state
     this.hoverPoint = closestPoint;
     this.canvas.style.cursor = 'pointer';
     
