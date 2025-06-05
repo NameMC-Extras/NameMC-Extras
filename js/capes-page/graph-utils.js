@@ -94,14 +94,8 @@ class CapeUsageGraph {
     this.hoverPoint = null;
     this.lastHoverPosition = { x: 0, y: 0 };
     
-    // For dynamic data loading
+    // For cape identification
     this.capeId = options.capeId || 'unknown';
-    this.lastFetchedViewport = { start: 0, end: 0 };
-    this.fetchPadding = 0.3; // Fetch 30% more data on each side
-    this.isFetching = false;
-    this.pendingFetch = false;
-    this.fetchDebounceDelay = 500; // ms to wait before fetching
-    this.debouncedFetchData = debounce(this._fetchDataForViewport.bind(this), this.fetchDebounceDelay);
     
     // Make canvas responsive
     this.resizeCanvas();
@@ -309,10 +303,8 @@ class CapeUsageGraph {
     
     this.viewportEnd = Math.floor(now.getTime());
     
-    // Reset lastFetchedViewport when timeframe changes
-    this.lastFetchedViewport = { start: 0, end: 0 };
-    
-    this.validateViewport(); // Apply additional constraints
+    // Validate viewport
+    this.validateViewport();
     this.draw();
   }
   
@@ -336,56 +328,15 @@ class CapeUsageGraph {
       return;
     }
     
-    // Filter data points in current viewport
-    const visibleData = this.data.filter(d => {
-      const timestamp = d.timestamp.getTime();
-      return timestamp >= this.viewportStart && timestamp <= this.viewportEnd;
-    });
-    
-    // If no visible data in the current timeframe, still draw empty grid and axes
-    if (visibleData.length === 0) {
-      this.drawGrid(displayWidth, displayHeight);
-      this.drawAxes(displayWidth, displayHeight);
-      
-      // Try to fetch data for this viewport if we haven't already
-      if (!this.isFetching) {
-        this.fetchDataForViewport();
-      }
-      return;
-    }
-    
     // Draw grid
     this.drawGrid(displayWidth, displayHeight);
     
     // Draw axes
     this.drawAxes(displayWidth, displayHeight);
     
-    // Draw data
-    ctx.beginPath();
-    ctx.strokeStyle = this.options.lineColor;
-    ctx.lineWidth = 2;
-    
-    // For simplified view, use more data points for smoother curve
-    const dataToPlot = this.options.simplified && visibleData.length > 200 
-      ? this.simplifyData(visibleData, 100)  // Use 100 points instead of 50
-      : visibleData;
-      
-    dataToPlot.forEach((point, i) => {
-      const x = this.timeToX(point.timestamp, displayWidth);
-      const y = this.userCountToY(point.users, displayHeight);
-      
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
-    
-    ctx.stroke();
-    
     // Draw points and stats
-    this.drawPoints(dataToPlot, displayWidth, displayHeight);
-    this.drawStats(visibleData, displayWidth, displayHeight);
+    this.drawPoints(this.data, displayWidth, displayHeight);
+    this.drawStats(this.data, displayWidth, displayHeight);
   }
   
   drawGrid(width, height) {
@@ -763,6 +714,8 @@ class CapeUsageGraph {
         // If the modal is not visible, ensure everything is hidden
         if (this.options.tooltipContainer) this.options.tooltipContainer.style.display = 'none';
         if (this.options.hoverLineElement) this.options.hoverLineElement.style.display = 'none';
+        this.hoverPoint = null;
+        this.draw();
         return;
       }
     }
@@ -772,11 +725,33 @@ class CapeUsageGraph {
     const mouseY = e.clientY - rect.top;
     const displayWidth = this.canvas.width / (window.devicePixelRatio || 1);
     const displayHeight = this.canvas.height / (window.devicePixelRatio || 1);
+    const p = this.options.padding;
+    
+    // Check if mouse is within the graph area
+    const isWithinGraphBounds = 
+      mouseX >= p && 
+      mouseX <= displayWidth - p && 
+      mouseY >= p && 
+      mouseY <= displayHeight - p;
+    
+    if (!isWithinGraphBounds) {
+      // Reset hover state when mouse is outside graph bounds
+      this.hoverPoint = null;
+      if (this.options.tooltipContainer) {
+        this.options.tooltipContainer.style.display = 'none';
+      }
+      if (this.options.hoverLineElement) {
+        this.options.hoverLineElement.style.display = 'none';
+      }
+      this.canvas.style.cursor = this.options.simplified ? 'pointer' : 'default';
+      this.draw();
+      return;
+    }
     
     // Check if hovering min/max indicators in simplified view
     if (this.options.simplified && this.data.length > 0) {
       // Check if mouse is near max point
-      if (this.maxPointInfo || this.minPointInfo) {
+      if (this.maxPointInfo) {
         const distance = Math.sqrt(
           Math.pow(mouseX - this.maxPointInfo.x, 2) + 
           Math.pow(mouseY - this.maxPointInfo.y, 2)
@@ -824,153 +799,99 @@ class CapeUsageGraph {
           return;
         }
       }
+    }
+    
+    // Find visible points and points just outside viewport
+    const timeAtMouse = this.xToTime(mouseX, displayWidth);
+    let lastPointBeforeViewport = null;
+    let firstPointAfterViewport = null;
+    const visiblePoints = [];
+    
+    for (let i = 0; i < this.data.length; i++) {
+      const point = this.data[i];
+      const timestamp = point.timestamp.getTime();
       
-      // Hide tooltip if not hovering any special point
-      if (this.options.tooltipContainer) {
-        this.options.tooltipContainer.style.display = 'none';
+      if (timestamp < this.viewportStart) {
+        lastPointBeforeViewport = point;
+      } else if (timestamp > this.viewportEnd) {
+        firstPointAfterViewport = point;
+        break;
+      } else {
+        visiblePoints.push(point);
       }
     }
     
-    // Continue with the existing hover point detection
-    const timeAtMouse = this.xToTime(mouseX, displayWidth);
-    const mouseTimestamp = new Date(timeAtMouse);
-    
-    // Original hover code - find data point closest to mouse
-    const visibleData = this.data.filter(d => {
-      const timestamp = d.timestamp.getTime();
-      return timestamp >= this.viewportStart && timestamp <= this.viewportEnd;
-    });
-    
-    // Reset cursor if not over a special point
-    if (this.canvas.style.cursor === 'pointer' && !this.isDragging) {
-      this.canvas.style.cursor = 'default';
-    }
-    
-    if (visibleData.length === 0) {
-      this.hoverPoint = null;
-      this.draw();
-      return;
-    }
-    
-    // Find closest point
+    // Find closest point including those just outside viewport
     let closestPoint = null;
     let closestDistance = Infinity;
     let closestX = 0;
     let closestY = 0;
     
-    for (const point of visibleData) {
-      const pointX = this.timeToX(point.timestamp, displayWidth);
-      const pointY = this.userCountToY(point.users, displayHeight);
-      
-      const distance = Math.sqrt(Math.pow(mouseX - pointX, 2) + Math.pow(mouseY - pointY, 2));
+    const checkPoint = (point) => {
+      if (!point) return;
+      const x = this.timeToX(point.timestamp, displayWidth);
+      const y = this.userCountToY(point.users, displayHeight);
+      const distance = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
       
       if (distance < closestDistance) {
         closestDistance = distance;
         closestPoint = point;
-        closestX = pointX;
-        closestY = pointY;
+        closestX = x;
+        closestY = y;
       }
-    }
+    };
     
-    // Different processing depending on whether we are in simplified or detailed view
-    if (this.options.simplified) {
-      // For the simplified view
-      if (closestDistance < 15) {
-        this.hoverPoint = closestPoint;
-        this.canvas.style.cursor = 'pointer';
-        
-        // Display the simplified tooltip
-        const formattedDate = this.formatTooltipDate(closestPoint.timestamp);
-        const tooltipContent = `
-          <strong>${formattedDate}</strong><br>
-          ${formatNumber(closestPoint.users)} users
-        `;
-        
-        this.positionTooltip(
-          this.options.tooltipContainer,
-          closestX,
-          closestY,
-          tooltipContent
-        );
-      } else {
-        this.hoverPoint = null;
-        // Hide the tooltip if not close enough to a point
-        if (this.options.tooltipContainer) {
-          this.options.tooltipContainer.style.display = 'none';
-        }
-        // Default cursor for graph is pointer to indicate it can be clicked
-        this.canvas.style.cursor = 'pointer';
-      }
-    } else {
-      // For the detailed view (modal)
-      // Verify if the cursor is within the graph bounds (between the margins)
-      const padding = this.options.padding;
-      const isWithinGraphBounds = 
-        mouseX >= padding && 
-        mouseX <= displayWidth - padding && 
-        mouseY >= padding && 
-        mouseY <= displayHeight - padding;
-      
-      // Also check if the modal containing this graph is visible
-      let isModalVisible = true;
-      const modal = document.getElementById('graph-modal');
-      if (modal) {
-        isModalVisible = modal.style.display === 'block';
-      }
-      
-      if (isWithinGraphBounds && closestPoint && isModalVisible) {
-        this.hoverPoint = closestPoint;
-        this.canvas.style.cursor = 'crosshair';
-        
-        // Display the detailed tooltip
-        const formattedDate = this.formatDetailedTooltipDate(closestPoint.timestamp);
-        const tooltipContent = `
-          <div style="font-weight: bold;">${formattedDate}</div>
-          <div>${formatNumber(closestPoint.users)} users</div>
-        `;
-
-        this.positionTooltip(
-          this.options.tooltipContainer,
-          closestX,
-          closestY,
-          tooltipContent
-        );
-        
-        // Show hover line at the position of the closest point
-        if (this.options.hoverLineElement) {
-          const hoverLine = this.options.hoverLineElement;
-          hoverLine.style.display = 'block';
-          hoverLine.style.left = `${closestX}px`;
-          hoverLine.style.top = `${padding}px`;
-          hoverLine.style.height = `${displayHeight - 2 * padding}px`;
-          hoverLine.style.zIndex = '998';
-          
-          // Hide the value element that follows the curve
-          if (this.options.hoverValueElement) {
-            this.options.hoverValueElement.style.display = 'none';
-          }
-        }
-      } else {
-        // If outside graph bounds, hide tooltip and hover line
-        if (this.options.tooltipContainer) {
-          this.options.tooltipContainer.style.display = 'none';
-        }
-        if (this.options.hoverLineElement) {
-          this.options.hoverLineElement.style.display = 'none';
-        }
-        this.hoverPoint = null;
-      }
-    }
+    // Check all relevant points
+    if (lastPointBeforeViewport) checkPoint(lastPointBeforeViewport);
+    visiblePoints.forEach(checkPoint);
+    if (firstPointAfterViewport) checkPoint(firstPointAfterViewport);
     
-    // Clean up when mouse leaves
-    this.canvas.addEventListener('mouseleave', () => {
+    // Reset hover state if not close to any point
+    const hoverThreshold = this.options.simplified ? 15 : this.options.hoverRadius;
+    if (closestDistance > hoverThreshold) {
+      this.hoverPoint = null;
       if (this.options.tooltipContainer) {
         this.options.tooltipContainer.style.display = 'none';
       }
       if (this.options.hoverLineElement) {
         this.options.hoverLineElement.style.display = 'none';
       }
-    });
+      this.canvas.style.cursor = this.options.simplified ? 'pointer' : 'default';
+      this.draw();
+      return;
+    }
+    
+    // Update hover state if close to a point
+    this.hoverPoint = closestPoint;
+    this.canvas.style.cursor = 'pointer';
+    
+    // Show tooltip
+    if (this.options.tooltipContainer) {
+      const formattedDate = this.options.simplified ? 
+        this.formatTooltipDate(closestPoint.timestamp) : 
+        this.formatDetailedTooltipDate(closestPoint.timestamp);
+      
+      const tooltipContent = `
+        <strong>${formattedDate}</strong><br>
+        ${formatNumber(closestPoint.users)} users
+      `;
+      
+      this.positionTooltip(
+        this.options.tooltipContainer,
+        closestX,
+        closestY,
+        tooltipContent
+      );
+    }
+    
+    // Show hover line in detailed view
+    if (!this.options.simplified && this.options.hoverLineElement) {
+      const hoverLine = this.options.hoverLineElement;
+      hoverLine.style.display = 'block';
+      hoverLine.style.left = `${closestX}px`;
+      hoverLine.style.top = `${p}px`;
+      hoverLine.style.height = `${displayHeight - 2 * p}px`;
+    }
     
     this.draw();
   }
@@ -1052,15 +973,83 @@ class CapeUsageGraph {
     }
   }
   
-  // Helper method to simplify data points for better performance in simplified view
+  // Helper method to simplify data points while preserving important features and shape
   simplifyData(data, targetPoints) {
     if (data.length <= targetPoints) return data;
+    if (data.length <= 2) return data;
     
-    // For simplified view, use more data points
-    const targetPointCount = this.options.simplified ? 100 : targetPoints;
+    // Calculate importance of each point
+    const importance = new Array(data.length).fill(0);
+    for (let i = 1; i < data.length - 1; i++) {
+      const prev = data[i - 1];
+      const curr = data[i];
+      const next = data[i + 1];
+      
+      // Calculate vertical distance from point to line formed by neighbors
+      const dx = next.timestamp.getTime() - prev.timestamp.getTime();
+      const dy = next.users - prev.users;
+      const slope = dy / dx;
+      
+      const expectedY = prev.users + slope * (curr.timestamp.getTime() - prev.timestamp.getTime());
+      importance[i] = Math.abs(curr.users - expectedY);
+    }
     
-    const skipFactor = Math.floor(data.length / targetPointCount);
-    return data.filter((_, index) => index % skipFactor === 0);
+    // Always keep first and last points
+    importance[0] = importance[data.length - 1] = Infinity;
+    
+    // Select points based on importance
+    const result = [];
+    const used = new Set();
+    
+    // Helper to find next most important point in a range
+    const findNextPoint = (start, end) => {
+      let maxImportance = -1;
+      let maxIndex = -1;
+      for (let i = start; i <= end; i++) {
+        if (!used.has(i) && importance[i] > maxImportance) {
+          maxImportance = importance[i];
+          maxIndex = i;
+        }
+      }
+      return maxIndex;
+    };
+    
+    // Add first and last points
+    result.push(data[0]);
+    used.add(0);
+    result.push(data[data.length - 1]);
+    used.add(data.length - 1);
+    
+    // Add remaining points based on importance
+    while (result.length < targetPoints) {
+      // Find longest segment
+      let maxGap = 0;
+      let gapStart = 0;
+      
+      for (let i = 0; i < result.length - 1; i++) {
+        const curr = result[i];
+        const next = result[i + 1];
+        const gap = next.timestamp.getTime() - curr.timestamp.getTime();
+        if (gap > maxGap) {
+          maxGap = gap;
+          gapStart = curr;
+        }
+      }
+      
+      // Find start and end indices in original data
+      const startIdx = data.findIndex(p => p.timestamp.getTime() === gapStart.timestamp.getTime());
+      const endIdx = data.findIndex(p => p.timestamp.getTime() === result[result.findIndex(r => r.timestamp.getTime() === gapStart.timestamp.getTime()) + 1].timestamp.getTime());
+      
+      // Find most important point in this gap
+      const nextIdx = findNextPoint(startIdx, endIdx);
+      if (nextIdx === -1) break;
+      
+      result.push(data[nextIdx]);
+      used.add(nextIdx);
+    }
+    
+    // Sort by timestamp
+    return result.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
   
   
@@ -1241,25 +1230,30 @@ class CapeUsageGraph {
     const maxAllowedTime = Math.floor(now + 7 * 24 * 60 * 60 * 1000); // Only 1 week into future
     
     // Limit start time
-    this.viewportStart = Math.floor(Math.max(this.viewportStart, minAllowedTime));
+    this.viewportStart = Math.floor(Math.max(
+      this.viewportStart,
+      minAllowedTime,
+      this.data.length > 0 ? this.data[0].timestamp.getTime() : minAllowedTime
+    ));
     
     // Limit end time
-    this.viewportEnd = Math.floor(Math.min(this.viewportEnd, maxAllowedTime));
+    this.viewportEnd = Math.floor(Math.min(
+      this.viewportEnd,
+      maxAllowedTime,
+      this.data.length > 0 ? this.data[this.data.length - 1].timestamp.getTime() : maxAllowedTime
+    ));
     
-    // Ensure the viewport isn't too large (max 10 years)
-    const maxTimeRange = Math.floor(10 * 365 * 24 * 60 * 60 * 1000);
+    // Ensure the viewport isn't too large (max 20 years)
+    const maxTimeRange = Math.floor(20 * 365 * 24 * 60 * 60 * 1000);
     if (this.viewportEnd - this.viewportStart > maxTimeRange) {
       this.viewportStart = Math.floor(this.viewportEnd - maxTimeRange);
     }
     
-    // Ensure the viewport isn't too small (min 1 hour)
-    const minTimeRange = Math.floor(60 * 60 * 1000);
+    // Ensure the viewport isn't too small (min 30 minutes)
+    const minTimeRange = Math.floor(30 * 60 * 1000);
     if (this.viewportEnd - this.viewportStart < minTimeRange) {
       this.viewportEnd = Math.floor(this.viewportStart + minTimeRange);
     }
-    
-    // Fetch data for new viewport if needed
-    this.fetchDataForViewport();
   }
 
   // Debug function to help troubleshoot graph issues
@@ -1325,54 +1319,141 @@ class CapeUsageGraph {
 
   drawPoints(dataToPlot, displayWidth, displayHeight) {
     const ctx = this.ctx;
+    const p = this.options.padding;
     
-    // Draw points - only if fewer than 80 points or if hovering
-    if (!this.options.simplified || dataToPlot.length < 80) {
-      dataToPlot.forEach(point => {
-        const x = this.timeToX(point.timestamp, displayWidth);
-        const y = this.userCountToY(point.users, displayHeight);
-        
-        // Highlight point if it's being hovered
-        if (this.hoverPoint && this.hoverPoint.timestamp.getTime() === point.timestamp.getTime()) {
-          // Draw highlight circle in 2 steps for better visibility
-          // First a larger background circle
-          ctx.beginPath();
-          ctx.arc(x, y, this.options.pointRadius + 5, 0, Math.PI * 2);
-          ctx.fillStyle = '#ffffff'; // White background circle
-          ctx.fill();
-          
-          // Then a medium highlight circle
-          ctx.beginPath();
-          ctx.arc(x, y, this.options.pointRadius + 3, 0, Math.PI * 2);
-          ctx.fillStyle = `${this.options.lineColor}40`; // 40 = 25% opacity
-          ctx.fill();
-        }
-        
-        // Draw the actual point
-        ctx.beginPath();
-        ctx.arc(x, y, this.options.simplified ? this.options.pointRadius - 1 : this.options.pointRadius, 0, Math.PI * 2);
-        ctx.fillStyle = this.options.lineColor;
-        ctx.fill();
-      });
+    // Set up clipping region for the graph area first
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(p, p, displayWidth - 2 * p, displayHeight - 2 * p);
+    ctx.clip();
+
+    // Draw the line connecting all points
+    ctx.beginPath();
+    ctx.strokeStyle = this.options.lineColor;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    
+    // Find points that are visible or needed for interpolation
+    let lastPointBeforeViewport = null;
+    let firstPointAfterViewport = null;
+    const visiblePoints = [];
+    
+    for (let i = 0; i < dataToPlot.length; i++) {
+      const point = dataToPlot[i];
+      const timestamp = point.timestamp.getTime();
+      
+      if (timestamp < this.viewportStart) {
+        lastPointBeforeViewport = point;
+      } else if (timestamp > this.viewportEnd) {
+        firstPointAfterViewport = point;
+        break;
+      } else {
+        visiblePoints.push(point);
+      }
     }
     
-    // Draw area fill under the line
-    ctx.beginPath();
-    dataToPlot.forEach((point, i) => {
+    // Always draw the line if we have points on either side of the viewport
+    if (lastPointBeforeViewport) {
+      const x = this.timeToX(lastPointBeforeViewport.timestamp, displayWidth);
+      const y = this.userCountToY(lastPointBeforeViewport.users, displayHeight);
+      ctx.moveTo(x, y);
+    }
+    
+    // Draw all visible points
+    visiblePoints.forEach((point, i) => {
       const x = this.timeToX(point.timestamp, displayWidth);
       const y = this.userCountToY(point.users, displayHeight);
-      if (i === 0) {
+      
+      if (i === 0 && !lastPointBeforeViewport) {
         ctx.moveTo(x, y);
       } else {
         ctx.lineTo(x, y);
       }
     });
     
-    const p = this.options.padding;
-    ctx.lineTo(this.timeToX(dataToPlot[dataToPlot.length-1].timestamp, displayWidth), displayHeight - p);
-    ctx.lineTo(this.timeToX(dataToPlot[0].timestamp, displayWidth), displayHeight - p);
-    ctx.closePath();
-    ctx.fillStyle = `${this.options.lineColor}20`; // 20 = 12.5% opacity
+    // Always connect to the first point after viewport if it exists
+    if (firstPointAfterViewport) {
+      const x = this.timeToX(firstPointAfterViewport.timestamp, displayWidth);
+      const y = this.userCountToY(firstPointAfterViewport.users, displayHeight);
+      ctx.lineTo(x, y);
+    }
+    
+    // If we have no visible points but points on both sides, draw the interpolation line
+    if (visiblePoints.length === 0 && lastPointBeforeViewport && firstPointAfterViewport) {
+      const x1 = this.timeToX(lastPointBeforeViewport.timestamp, displayWidth);
+      const y1 = this.userCountToY(lastPointBeforeViewport.users, displayHeight);
+      const x2 = this.timeToX(firstPointAfterViewport.timestamp, displayWidth);
+      const y2 = this.userCountToY(firstPointAfterViewport.users, displayHeight);
+      
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+    }
+    
+    // Stroke the line
+    ctx.stroke();
+    
+    // Draw area fill under the line
+    if ((visiblePoints.length > 0 || (lastPointBeforeViewport && firstPointAfterViewport))) {
+      const lastX = firstPointAfterViewport ? 
+        this.timeToX(firstPointAfterViewport.timestamp, displayWidth) : 
+        this.timeToX(visiblePoints[visiblePoints.length-1].timestamp, displayWidth);
+      
+      const firstX = lastPointBeforeViewport ? 
+        this.timeToX(lastPointBeforeViewport.timestamp, displayWidth) : 
+        this.timeToX(visiblePoints[0].timestamp, displayWidth);
+      
+      ctx.lineTo(lastX, displayHeight - p);
+      ctx.lineTo(firstX, displayHeight - p);
+      ctx.closePath();
+      ctx.fillStyle = `${this.options.lineColor}20`; // 20 = 12.5% opacity
+      ctx.fill();
+    }
+    
+    // In simplified view, only show points if there are fewer than 80
+    if (!this.options.simplified || visiblePoints.length < 80) {
+      // Draw the points, including the ones just outside viewport for continuity
+      const drawPointIfVisible = (point) => {
+        if (!point) return;
+        const x = this.timeToX(point.timestamp, displayWidth);
+        const y = this.userCountToY(point.users, displayHeight);
+        
+        // Only draw if the point would be visible within the clipping region
+        if (x >= p && x <= displayWidth - p && y >= p && y <= displayHeight - p) {
+          this.drawPoint(ctx, x, y, point);
+        }
+      };
+      
+      if (lastPointBeforeViewport) drawPointIfVisible(lastPointBeforeViewport);
+      visiblePoints.forEach(point => drawPointIfVisible(point));
+      if (firstPointAfterViewport) drawPointIfVisible(firstPointAfterViewport);
+    }
+    
+    // Restore the canvas state (removes clipping)
+    ctx.restore();
+  }
+
+  // Helper method to draw a single point
+  drawPoint(ctx, x, y, point) {
+    // Highlight point if it's being hovered
+    if (this.hoverPoint && this.hoverPoint.timestamp.getTime() === point.timestamp.getTime()) {
+      // Draw highlight circle in 2 steps for better visibility
+      // First a larger background circle
+      ctx.beginPath();
+      ctx.arc(x, y, this.options.pointRadius + 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff'; // White background circle
+      ctx.fill();
+      
+      // Then a medium highlight circle
+      ctx.beginPath();
+      ctx.arc(x, y, this.options.pointRadius + 3, 0, Math.PI * 2);
+      ctx.fillStyle = `${this.options.lineColor}40`; // 40 = 25% opacity
+      ctx.fill();
+    }
+    
+    // Draw the actual point
+    ctx.beginPath();
+    ctx.arc(x, y, this.options.simplified ? this.options.pointRadius - 1 : this.options.pointRadius, 0, Math.PI * 2);
+    ctx.fillStyle = this.options.lineColor;
     ctx.fill();
   }
 }
@@ -1380,225 +1461,76 @@ class CapeUsageGraph {
 // Expose the class globally
 window.CapeUsageGraph = CapeUsageGraph;
 
-// Cape Data Cache to store cape data in cache
+// Cape Data Cache to store cape data in localStorage
 class CapeDataCache {
   constructor() {
-    this.cacheData = {}; // Structure: {capeId: {timeRanges: [[start, end, timestamp], ...], data: [{timestamp, users}, ...]}}
-    this.pendingRequests = {}; // To avoid duplicate requests during loading
-    this.cacheDuration = 24 * 60 * 60 * 1000; // Cache validity duration: 24h in milliseconds
-    this.failedRequests = {}; // Track failed requests to avoid retrying too soon
-    this.failedRequestBackoff = 5 * 60 * 1000; // Wait 5 minutes before retrying failed requests
+    this.CACHE_PREFIX = 'cape_data_';
+    this.CACHE_EXPIRATION = 60 * 60 * 1000; // 1 hour in milliseconds
   }
 
-  // Return cached data for a specific time range
-  getDataForTimeRange(capeId, startTime, endTime) {
-    if (!this.cacheData[capeId]) {
+  // Get cached data for a cape
+  getCachedData(capeId) {
+    try {
+      const cacheKey = this.CACHE_PREFIX + capeId;
+      const cachedData = localStorage.getItem(cacheKey);
+      
+      if (!cachedData) return null;
+      
+      const { data, timestamp } = JSON.parse(cachedData);
+      
+      // Check if cache has expired
+      if (Date.now() - timestamp > this.CACHE_EXPIRATION) {
+        localStorage.removeItem(cacheKey);
+        return null;
+      }
+      
+      // Convert timestamps back to Date objects
+      return data.map(item => ({
+        ...item,
+        timestamp: new Date(item.timestamp)
+      }));
+    } catch (error) {
+      console.error('Error reading from cache:', error);
       return null;
     }
-    
-    // Filter data already available in the requested range
-    // Convert timestamps to numbers for proper comparison
-    return this.cacheData[capeId].data.filter(
-      item => {
-        const itemTimestamp = item.timestamp instanceof Date ? item.timestamp.getTime() : item.timestamp;
-        return itemTimestamp >= startTime && itemTimestamp <= endTime;
-      }
-    );
   }
 
-  // Check if the time range is completely covered by the cache
-  isTimeRangeCached(capeId, startTime, endTime) {
-    if (!this.cacheData[capeId] || !this.cacheData[capeId].timeRanges.length) {
-      return false;
-    }
-    
-    const now = Date.now();
-    const validRanges = [];
-    const invalidRanges = [];
-    
-    // Check if the requested range is completely covered by the cached ranges and still valid
-    for (const range of this.cacheData[capeId].timeRanges) {
-      // Check if the range has a timestamp (format: [start, end, timestamp])
-      if (range.length >= 3) {
-        if (now - range[2] < this.cacheDuration) {
-          // The cache is still valid
-          validRanges.push(range);
-          if (range[0] <= startTime && range[1] >= endTime) {
-            return true;
-          }
-        } else {
-          // The cache has expired
-          invalidRanges.push(range);
-        }
-      } else {
-        // Old format without timestamp (format: [start, end])
-        // Consider as expired by default
-        invalidRanges.push(range);
-      }
-    }
-    
-    // Clean invalid ranges
-    if (invalidRanges.length > 0) {
-      this.cacheData[capeId].timeRanges = validRanges;
-      
-      // If all ranges are invalid, we should also clean the data
-      if (validRanges.length === 0) {
-        this.cacheData[capeId].data = [];
-      }
-    }
-    
-    return false;
-  }
-
-  // Check if a request has recently failed to avoid repeated failures
-  hasRecentlyFailed(capeId, startTime, endTime) {
-    if (!this.failedRequests[capeId]) {
-      return false;
-    }
-    
-    for (const failure of this.failedRequests[capeId]) {
-      // Check if this request overlaps with a failed one
-      const [failedStart, failedEnd, timestamp] = failure;
-      const overlaps = !(failedEnd < startTime || failedStart > endTime);
-      const isRecent = (Date.now() - timestamp) < this.failedRequestBackoff;
-      
-      if (overlaps && isRecent) {
-        return true;
-      }
-    }
-    
-    // Clean up old failed requests
-    this.cleanupFailedRequests(capeId);
-    return false;
-  }
-  
-  // Add a failed request to the tracking list
-  addFailedRequest(capeId, startTime, endTime) {
-    if (!this.failedRequests[capeId]) {
-      this.failedRequests[capeId] = [];
-    }
-    
-    this.failedRequests[capeId].push([startTime, endTime, Date.now()]);
-  }
-  
-  // Clean up old failed requests
-  cleanupFailedRequests(capeId) {
-    if (!this.failedRequests[capeId]) return;
-    
-    const now = Date.now();
-    this.failedRequests[capeId] = this.failedRequests[capeId].filter(
-      failure => now - failure[2] <= this.failedRequestBackoff
-    );
-    
-    // Remove empty arrays
-    if (this.failedRequests[capeId].length === 0) {
-      delete this.failedRequests[capeId];
-    }
-  }
-
-  // Add data to the cache
-  addData(capeId, data, startTime, endTime) {
-    if (!this.cacheData[capeId]) {
-      this.cacheData[capeId] = {
-        timeRanges: [],
-        data: []
+  // Store data in cache
+  setCachedData(capeId, data) {
+    try {
+      const cacheKey = this.CACHE_PREFIX + capeId;
+      const cacheData = {
+        data: data,
+        timestamp: Date.now()
       };
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Error writing to cache:', error);
     }
-    
-    // Add the new time range with a timestamp
-    const timestamp = Date.now();
-    this.cacheData[capeId].timeRanges.push([startTime, endTime, timestamp]);
-    
-    // Merge the new data with existing data, without duplicates
-    const existingTimestamps = new Set(this.cacheData[capeId].data.map(d => d.timestamp.getTime()));
-    
-    data.forEach(item => {
-      if (!existingTimestamps.has(item.timestamp.getTime())) {
-        this.cacheData[capeId].data.push(item);
-      }
-    });
-    
-    // Sort data by timestamp
-    this.cacheData[capeId].data.sort((a, b) => a.timestamp - b.timestamp);
-    
-    // Merge overlapping time ranges
-    this.mergeTimeRanges(capeId);
   }
 
-  // Merge overlapping time ranges to optimize search
-  mergeTimeRanges(capeId) {
-    if (!this.cacheData[capeId] || this.cacheData[capeId].timeRanges.length <= 1) {
-      return;
-    }
-    
-    // Sort time ranges
-    const ranges = [...this.cacheData[capeId].timeRanges].sort((a, b) => a[0] - b[0]);
-    const mergedRanges = [ranges[0]];
-    
-    for (let i = 1; i < ranges.length; i++) {
-      const current = ranges[i];
-      const previous = mergedRanges[mergedRanges.length - 1];
-      
-      if (current[0] <= previous[1]) {
-        // The ranges overlap, merge
-        previous[1] = Math.max(previous[1], current[1]);
-        // Keep the latest timestamp
-        if (current.length >= 3 && previous.length >= 3) {
-          previous[2] = Math.max(previous[2], current[2]);
-        } else if (current.length >= 3) {
-          previous[2] = current[2];
+  // Clear expired cache entries
+  clearExpiredCache() {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith(this.CACHE_PREFIX)) {
+          const cachedData = JSON.parse(localStorage.getItem(key));
+          if (Date.now() - cachedData.timestamp > this.CACHE_EXPIRATION) {
+            localStorage.removeItem(key);
+          }
         }
-      } else {
-        // No overlap, add as new range
-        mergedRanges.push(current);
       }
+    } catch (error) {
+      console.error('Error clearing expired cache:', error);
     }
-    
-    this.cacheData[capeId].timeRanges = mergedRanges;
-  }
-
-  // Check if a request is pending for the requested range
-  isPendingRequest(capeId, startTime, endTime) {
-    if (!this.pendingRequests[capeId]) {
-      return false;
-    }
-    
-    return this.pendingRequests[capeId].some(
-      request => request.startTime <= startTime && request.endTime >= endTime
-    );
-  }
-
-  // Add a pending request
-  addPendingRequest(capeId, startTime, endTime, promise) {
-    if (!this.pendingRequests[capeId]) {
-      this.pendingRequests[capeId] = [];
-    }
-    
-    this.pendingRequests[capeId].push({
-      startTime,
-      endTime,
-      promise
-    });
-    
-    return promise;
-  }
-
-  // Remove a pending request once it's finished
-  removePendingRequest(capeId, promise) {
-    if (!this.pendingRequests[capeId]) {
-      return;
-    }
-    
-    this.pendingRequests[capeId] = this.pendingRequests[capeId].filter(
-      request => request.promise !== promise
-    );
   }
 }
 
 // Create a global instance of the cache
 window.capeDataCache = new CapeDataCache();
 window.lastErrorMessageTimestamp = 0;
-window.errorMessageDebounceTime = 1000; // minimum 1 seconde entre les messages
+window.errorMessageDebounceTime = 1000; // minimum 1 second between messages
 
 // Helper function to show error messages in graph containers
 function showErrorMessage(message) {
@@ -1654,6 +1586,7 @@ function createUsageGraphCard(capeId) {
             <button type="button" class="btn bg-body-tertiary graph-timeframe active" data-timeframe="week">Week</button>
             <button type="button" class="btn bg-body-tertiary graph-timeframe" data-timeframe="month">Month</button>
             <button type="button" class="btn bg-body-tertiary graph-timeframe" data-timeframe="year">Year</button>
+            <button type="button" class="btn bg-body-tertiary graph-timeframe" data-timeframe="all">All time</button>
             <button type="button" class="btn bg-body-tertiary" id="expand-graph">
               <i class="fas fa-expand"></i>
             </button>
@@ -1703,6 +1636,7 @@ function createUsageGraphCard(capeId) {
                   <button type="button" class="btn bg-body-tertiary modal-timeframe active" data-timeframe="week">Week</button>
                   <button type="button" class="btn bg-body-tertiary modal-timeframe" data-timeframe="month">Month</button>
                   <button type="button" class="btn bg-body-tertiary modal-timeframe" data-timeframe="year">Year</button>
+                  <button type="button" class="btn bg-body-tertiary modal-timeframe" data-timeframe="all">All time</button>
                 </div>
                 <div class="btn-group btn-group-sm clean-control btn-control" role="group">
                   <button type="button" class="btn btn-outline-secondary btn-sm" id="modal-reset-zoom">
@@ -1723,6 +1657,8 @@ function createUsageGraphCard(capeId) {
                 <li>Click on time period buttons to change the time range</li>
               </ul>
               <p class="mb-0">This graph shows the evolution of the number of users using this cape over time. The data is updated regularly.</p>
+              </br>
+              <p class="mb-0">As you may notice, some of the older data points on the graph are still inaccurate or incomplete. If you have access to the correct values or know where to find them, please contact fyz (fy5) on Discord.</p>
             </div>
             <div class="mb-3">
               <div class="card">
@@ -2015,133 +1951,59 @@ function initializeGraph(capeId) {
 
 // retrieve cape data with caching
 async function getCapeUsageData(capeId, timeframe = 'week') {
-  // Calculate the time range based on the timeframe
-  const now = new Date();
-  let startTime, endTime = Math.floor(now.getTime());
-  
-  switch (timeframe) {
-    case 'day':
-      startTime = Math.floor(new Date(now - 24 * 60 * 60 * 1000).getTime());
-      break;
-    case 'week':
-      startTime = Math.floor(new Date(now - 7 * 24 * 60 * 60 * 1000).getTime());
-      break;
-    case 'month':
-      startTime = Math.floor(new Date(now - 30 * 24 * 60 * 60 * 1000).getTime());
-      break;
-    case 'year':
-      startTime = Math.floor(new Date(now - 365 * 24 * 60 * 60 * 1000).getTime());
-      break;
-    default:
-      startTime = Math.floor(new Date(now - 30 * 24 * 60 * 60 * 1000).getTime());
+  // Check if data is in cache
+  const cachedData = window.capeDataCache.getCachedData(capeId);
+  if (cachedData) {
+    // Convert timestamps back to Date objects if needed
+    const data = cachedData.map(item => ({
+      ...item,
+      timestamp: item.timestamp instanceof Date ? item.timestamp : new Date(item.timestamp)
+    }));
+    return data;
   }
-  
-  const padding = Math.floor((endTime - startTime) * 0.1);
-  const extendedStart = Math.floor(Math.max(startTime - padding, new Date('2010-01-01').getTime()));
-  const extendedEnd = Math.floor(Math.min(endTime + padding, now.getTime() + 24 * 60 * 60 * 1000));
-  
-  // Check if this request recently failed
-  if (window.capeDataCache && window.capeDataCache.hasRecentlyFailed(capeId, extendedStart, extendedEnd)) {
-    // Show error message
-    showErrorMessage('Could not load data. Please try again later.');
+
+  try {
+    // Show loading indicator
+    document.querySelectorAll('.graph-loading-indicator').forEach(el => {
+      el.style.display = 'flex';
+    });
+
+    // Fetch all historical data
+    const apiUrl = `https://cors.faav.top/fyz/${capeId}/usage?start=${Math.floor(new Date('2010-01-01').getTime())}&end=${Math.floor(new Date().getTime())}`;
+    const response = await fetch(apiUrl);
     
-    // Return empty array instead of mock data
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Process and validate the data
+    const validData = processApiData(data, capeId);
+
+    // Cache the full dataset
+    window.capeDataCache.setCachedData(capeId, validData);
+
+    // Hide loading indicator
+    document.querySelectorAll('.graph-loading-indicator').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    return validData;
+
+  } catch (error) {
+    console.error('Error retrieving cape data:', error);
+    
+    // Hide loading indicator
+    document.querySelectorAll('.graph-loading-indicator').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    // Show error message
+    showErrorMessage('Failed to load data. Please try again later.');
+    
     return [];
   }
-  
-  
-  // Check if the data is already cached
-  if (window.capeDataCache && window.capeDataCache.isTimeRangeCached(capeId, startTime, endTime)) {
-    return window.capeDataCache.getDataForTimeRange(capeId, startTime, endTime);
-  }
-  
-  // Check if a similar request is already in progress
-  if (window.capeDataCache && window.capeDataCache.isPendingRequest(capeId, extendedStart, extendedEnd)) {
-    // Wait for the request to finish then filter the data
-    const pendingRequest = window.capeDataCache.pendingRequests[capeId].find(
-      req => req.startTime <= extendedStart && req.endTime >= extendedEnd
-    );
-    
-    await pendingRequest.promise;
-    return window.capeDataCache.getDataForTimeRange(capeId, startTime, endTime);
-  }
-  
-  // Prepare the API request
-  
-  // Create and track the loading promise
-  const fetchPromise = (async () => {
-    try {
-      // URL of the API with parameters for the time range
-      const apiUrl = `https://cors.faav.top/fyz/${capeId}/usage?start=${extendedStart}&end=${extendedEnd}`;
-      
-      // Display a loading indicator on the graph
-      document.querySelectorAll('.graph-loading-indicator').forEach(el => {
-        el.style.display = 'flex';
-      });
-      
-      // Fetch data from the API
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Process and validate the data using shared function
-      const validData = processApiData(data, capeId);
-      
-      // Hide the loading indicator
-      document.querySelectorAll('.graph-loading-indicator').forEach(el => {
-        el.style.display = 'none';
-      });
-      
-      // Add to cache if available
-      if (window.capeDataCache) {
-        window.capeDataCache.addData(capeId, validData, extendedStart, extendedEnd);
-      }
-      
-      return validData;
-    } catch (error) {
-      console.error('Error retrieving cape data:', error);
-      
-      // Record this as a failed request
-      if (window.capeDataCache) {
-        window.capeDataCache.addFailedRequest(capeId, extendedStart, extendedEnd);
-      }
-      
-      // Hide the loading indicator
-      document.querySelectorAll('.graph-loading-indicator').forEach(el => {
-        el.style.display = 'none';
-      });
-      
-      // Show error message
-      showErrorMessage('Failed to load data. Please try again later.');
-      
-      // Return empty array instead of mock data
-      return [];
-    }
-  })();
-  
-  // Register the request in cache
-  if (window.capeDataCache) {
-    window.capeDataCache.addPendingRequest(capeId, extendedStart, extendedEnd, fetchPromise);
-  }
-  
-  // Wait for the request to finish
-  const result = await fetchPromise;
-  
-  // Remove the request from the list of pending requests
-  if (window.capeDataCache) {
-    window.capeDataCache.removePendingRequest(capeId, fetchPromise);
-  }
-  
-  // Filter the data for the requested time range
-  return result.filter(
-    item => {
-      const itemTimestamp = item.timestamp instanceof Date ? item.timestamp.getTime() : item.timestamp;
-      return itemTimestamp >= startTime && itemTimestamp <= endTime;
-    }
-  );
 }
 
 // Expose functions globally
