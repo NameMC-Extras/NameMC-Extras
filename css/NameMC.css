@@ -9,7 +9,6 @@ html {
 
 div:has(> [id^="nn_"]):not(main):not(body):not(html),
 .ad-container,
-#nmcIf,
 .mt-0:has(+ .ad-container),
 [id*=nn_]:not(main):not(body):not(html),
 [class*=nn_]:not(main):not(body):not(html),

@@ -402,7 +402,7 @@ async function loadPage() {
       var iframeEl = document.createElement("iframe");
       iframeEl.width = 0;
       iframeEl.height = 0;
-      iframeEl.id = "nmcIf";
+      iframeEl.style.display ='none';
       iframeEl.srcdoc = `<script>
             window.top.$("[data-note]").tooltip()
         </script>`;
