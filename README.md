@@ -11,15 +11,14 @@ Install the Firefox version from the [Firefox Addons Store](https://addons.mozil
 ## ✨ Features
 
 ### Creation Dates
-View the exact creation dates for Minecraft accounts.
+View the exact creation dates for Minecraft accounts. (This can be inaccurate as it is based on Ashcon's API)
 
 <img src="https://i.imgur.com/B5BduTZ.gif" width="400"/>
 
-### Deadmau5 Ear Display
-See which players have the Deadmau5 ears.
+### deadmau5 Ears Display
+View deadmau5's ears on his NameMC profile.
 
 <img src="https://github.com/user-attachments/assets/2f0389bb-ab38-4cb4-b6ae-1230339db507" width="250"/>
-
 
 ### Elytra Preview
 Quick access button to preview skins with Elytra.
@@ -32,47 +31,54 @@ Option to hide dashed-out names from name history for a cleaner view.
 <img src="https://i.imgur.com/FhpDraw.gif" width="450"/>
 
 ### Enhanced Skin Art
-- Hide borders for better skin art viewing
-- One-click skin art download  
+- Hide borders for better skin art viewing.
+- One-click skin art download.
 <img src="https://i.imgur.com/lgHzUkx.gif" width="400"/>
 
 ### Emoji Search Bar
-- Easily search for emojis in profile
+Easily search for emojis in profile.
+
 <img src="https://github.com/user-attachments/assets/e9d7077e-a511-4497-a5ac-2b1bfc9f3025" width="400"/>
 
 ### Toggle All Names
-- Easily toggle all the names in your history
+Easily toggle all the names in your history.
+
 <img src="https://github.com/user-attachments/assets/c2915a76-cba0-43af-a8b5-d1c3c1632e4c" width="400"/>
 
-
 ### Toggle All Capes
-- Toggle the visibility of all of your capes in one click
+Toggle the visibility of all of your capes in one click.
+
 <img src="https://github.com/user-attachments/assets/3491ea9c-e35d-4731-ab6e-9698a3e6ac1a" width="400"/>
 
 ### Customizable Skin Display
-Toggle individual skin layers for better viewing.  
+Toggle individual skin layers for better viewing.
+
 <img src="https://github.com/user-attachments/assets/6bbc5642-5b03-40bb-821d-bfcd0823b8e3" width="250"/>
 
 ### Advanced Skin & Cape Testing
-Try different combinations of skins and capes in real-time.  
+Try different combinations of skins and capes in real-time.
+
 <img src="https://i.imgur.com/1Crcs4V.gif" width="500"/>
 
 ### OptiFine Cape Support
-View and preview custom OptiFine capes.  
+View and preview custom OptiFine capes.
+
 <img src="https://github.com/user-attachments/assets/ce58eefd-01d5-47a5-821e-e4e19f92fe2e" width="400"/>
 
 ### Profile Collection
-Generate an image showcasing all your profiles in one place.  
+Generate an image showcasing all your profiles in one place.
+
 <img src="https://i.imgur.com/AgLWD32.gif" width="400"/>
 
 ### Bedrock Capes
-Add bedrock support to NameMC and see the bedrock capes usage and profiles.  
+Add bedrock support to NameMC and see the bedrock capes usage and profiles.
+
 <img src="https://i.imgur.com/zqFyTup.gif" width="400"/>
 
 ### Cape Usage History
-Track and view the history of cape usage on accounts.  
-<img src="https://i.imgur.com/zImF792.gif" width="400"/>
+Track and view the history of cape usage on accounts.
 
+<img src="https://i.imgur.com/zImF792.gif" width="400"/>
 
 ## 🤝 Contributing
 

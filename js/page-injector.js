@@ -32,9 +32,9 @@
     var customLink = localStorage.getItem("customLink") || (theme == "dark" ? "#7ba7ce" : "#236dad");
     var customBtn = localStorage.getItem("customBtn") || "#236dad";
     var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
-    var hideHeadCmd = localStorage.getItem("hideHeadCmd") === "false";
-    var hideDegreesOfSep = localStorage.getItem("hideDegreesOfSep") === "false";
-    var hideBadges = localStorage.getItem("hideBadges") === "false";
+    var showHeadCmd = localStorage.getItem("showHeadCmd") === "false";
+    var showDegreesOfSep = localStorage.getItem("showDegreesOfSep") === "false";
+    var showBadges = localStorage.getItem("showBadges") === "false";
     var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
     var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
     var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "false";
@@ -77,10 +77,10 @@
     }
 
     if (customThemeOn) setCustomTheme();
-    if (hideHeadCmd) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd ? 'none' : 'flex');
+    if (showHeadCmd) document.documentElement.style.setProperty("--head-cmd", showHeadCmd ? 'none' : 'flex');
     if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'flex');
     if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'flex');
-    if (hideDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep ? 'none' : 'flex');
+    if (showDegreesOfSep) document.documentElement.style.setProperty("--degrees-of-sep", showDegreesOfSep ? 'none' : 'flex');
     if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'flex');
 
     const createSettingsButton = () => {
@@ -193,7 +193,7 @@
                                             <label class="form-label"><strong>Profile Information:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
                                                 <button type="button" class="btn btn-outline-primary${!hideCreatedAt ? ' active' : ''}" id="hideCreatedAt" data-bs-toggle="tooltip" title="Show account creation date">Created At</button>
-                                                <button type="button" class="btn btn-outline-primary${!hideBadges ? ' active' : ''}" id="hideBadges" data-bs-toggle="tooltip" title="Display profile badges">Badges</button>
+                                                <button type="button" class="btn btn-outline-primary${!showBadges ? ' active' : ''}" id="showBadges" data-bs-toggle="tooltip" title="Display profile badges">Badges</button>
                                                 <button type="button" class="btn btn-outline-primary${!hideFollowing ? ' active' : ''}" id="hideFollowing" data-bs-toggle="tooltip" title="Show following/follower information">Follows</button>
                                             </div>
                                         </div>
@@ -210,8 +210,8 @@
                                             <label class="form-label"><strong>Additional Features:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
                                                 <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers" data-bs-toggle="tooltip" title="Show favorite servers on profile">Favorite Servers</button>
-                                                <button type="button" class="btn btn-outline-primary${!hideHeadCmd ? ' active' : ''}" id="hideHeadCmd" data-bs-toggle="tooltip" title="Display head command">Head Command</button>
-                                                <button type="button" class="btn btn-outline-primary${!hideDegreesOfSep ? ' active' : ''}" id="hideDegreesOfSep" data-bs-toggle="tooltip" title="Show degree of separation">Degree of Separation</button>
+                                                <button type="button" class="btn btn-outline-primary${!showHeadCmd ? ' active' : ''}" id="showHeadCmd" data-bs-toggle="tooltip" title="Display head command">Head Command</button>
+                                                <button type="button" class="btn btn-outline-primary${!showDegreesOfSep ? ' active' : ''}" id="showDegreesOfSep" data-bs-toggle="tooltip" title="Show degree of separation">Degree of Separation</button>
                                             </div>
                                         </div>
                                     </div>
@@ -681,7 +681,7 @@
         ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']
     ];
 
-    if (!hideBadges) pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
+    if (!showBadges) pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
 
     // INJECT PAGES
     injectPages(pages);
