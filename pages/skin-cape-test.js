@@ -182,7 +182,7 @@ const getSkinFromId = async (uuid) => {
         const sessionJSON = await sessionAPI.json();
         var sessionData = JSON.parse(atob(sessionJSON.properties[0].value));
         var skinTextureURL = sessionData.textures.SKIN.url;
-        return skinTextureURL?.replace('http://textures.minecraft.net/texture/', 'https://api.gapple.pw/cors/textures/');
+        return skinTextureURL?.replace('http:', 'https:');
     }
 }
 
@@ -675,13 +675,13 @@ waitForSelector('main', (main) => {
                     </div>
                 `;
 
-                    currentCape = "https://api.gapple.pw/cors/textures/" + document.querySelector("#officialcapes option:checked").value;
+                    currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
 
                     capemenu.style.display = 'unset';
 
                     officialcapes.onchange = () => {
                         if (officialcapes.value && officialcapes.value.length > 0) {
-                            currentCape = "https://api.gapple.pw/cors/textures/" + document.querySelector("#officialcapes option:checked").value;
+                            currentCape = "https://textures.minecraft.net/texture/" + document.querySelector("#officialcapes option:checked").value;
                         }
                     }
                 }
