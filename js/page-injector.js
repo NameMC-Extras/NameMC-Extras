@@ -12,11 +12,28 @@
         }
     };
 
-    window.top.addEventListener('beforeunload', () => {
-        let allLocalStorage = { ...localStorage };
-        chrome.storage.local.set({ savedLocalStorage: allLocalStorage }, function () {
-            console.log("Local storage saved to Chrome storage.");
+    var iframeEl = document.createElement("iframe");
+    iframeEl.width = 0;
+    iframeEl.height = 0;
+    iframeEl.id = "nmcIf";
+    iframeEl.srcdoc = `<script>
+    window.addEventListener("storage", (event) => {
+        const storageEvent = new StorageEvent("storage", {
+            key: event.key,
+            newValue: event.newValue,
+            oldValue: event.oldValue,
+            storageArea: localStorage,
+            url: window.location.href
         });
+
+        window.top.dispatchEvent(storageEvent);
+    });
+    </script>`;
+    document.documentElement.append(iframeEl);
+
+    window.top.addEventListener('storage', () => {
+        let allLocalStorage = { ...localStorage };
+        chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
     });
 
     await new Promise((resolve) => {
@@ -696,13 +713,6 @@
         ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image'],
         ['generate-skinart', 'Generate Skin Art', 'javascript:void(0)', 18, 'far fa-palette']
     ]);
-
-    var _inject = document.createElement('script');
-    _inject.src = chrome.runtime.getURL('js/fastclick.js');
-    _inject.onload = function () {
-        this.remove();
-    };
-    (document.head || document.documentElement).appendChild(_inject);
 
     waitForSelector("body", () => {
         // REPLACE COPY BUTTON
