@@ -38,7 +38,7 @@ Option to hide dashed-out names from name history for a cleaner view.
 ### Emoji Search Bar
 Easily search for emojis in profile.
 
-<img src="https://github.com/user-attachments/assets/e9d7077e-a511-4497-a5ac-2b1bfc9f3025" width="400"/>
+![chrome-capture-2025-6-4 (2)](https://github.com/user-attachments/assets/b5dab249-12aa-412e-973d-a1c740597e49)
 
 ### Toggle All Names
 Easily toggle all the names in your history.
