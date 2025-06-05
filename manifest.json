@@ -132,6 +132,9 @@
       ]
     }
   ],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://raw.githubusercontent.com/*",
     "https://bedrock.lol/*"

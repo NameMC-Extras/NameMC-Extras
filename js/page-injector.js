@@ -12,18 +12,23 @@
         }
     };
 
+    window.top.addEventListener('beforeunload', () => {
+        let allLocalStorage = { ...localStorage };
+        chrome.storage.local.set({ savedLocalStorage: allLocalStorage }, function () {
+            console.log("Local storage saved to Chrome storage.");
+        });
+    });
 
-    const waitForFunc = function (func, callback) {
-        if (window[func] ?? window.wrappedJSObject?.[func]) {
-            setTimeout(() => {
-                callback(window[func] ?? window.wrappedJSObject?.[func]);
-            });
-        } else {
-            setTimeout(() => {
-                waitForFunc(func, callback);
-            });
-        }
-    };
+    await new Promise((resolve) => {
+        chrome.storage.local.get(["savedLocalStorage"], function (result) {
+            if (result.savedLocalStorage) {
+                Object.entries(result.savedLocalStorage).forEach(([key, value]) => {
+                    localStorage.setItem(key, value);
+                });
+            }
+            resolve(result.savedLocalStorage || {});
+        });
+    });
 
     var theme = localStorage.getItem("theme");
     var customThemeOn = localStorage.getItem("customTheme") === "true";
