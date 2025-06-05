@@ -695,7 +695,14 @@
     injectMenus([
         ['generate-image', 'Generate Image', 'javascript:void(0)', 17, 'far fa-image'],
         ['generate-skinart', 'Generate Skin Art', 'javascript:void(0)', 18, 'far fa-palette']
-    ])
+    ]);
+
+    var _inject = document.createElement('script');
+    _inject.src = chrome.runtime.getURL('js/fastclick.js');
+    _inject.onload = function () {
+        this.remove();
+    };
+    (document.head || document.documentElement).appendChild(_inject);
 
     waitForSelector("body", () => {
         // REPLACE COPY BUTTON
