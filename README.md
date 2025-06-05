@@ -15,7 +15,7 @@ View the exact creation dates for Minecraft accounts. (This can be inaccurate as
 
 <img src="https://i.imgur.com/B5BduTZ.gif" width="400"/>
 
-### deadmau5 Ears Display
+### Display Ears
 View deadmau5's ears on his NameMC profile.
 
 <img src="https://github.com/user-attachments/assets/2f0389bb-ab38-4cb4-b6ae-1230339db507" width="250"/>
