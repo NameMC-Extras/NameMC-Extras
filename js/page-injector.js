@@ -36,15 +36,13 @@
         chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
     });
 
-    await new Promise((resolve) => {
-        chrome.storage.local.get(["savedLocalStorage"], function (result) {
-            if (result.savedLocalStorage) {
-                Object.entries(result.savedLocalStorage).forEach(([key, value]) => {
-                    localStorage.setItem(key, value);
-                });
+    await chrome.storage.local.get("savedLocalStorage").then((result) => {
+        if (result.savedLocalStorage) {
+            for (const key in result.savedLocalStorage) {
+                localStorage.setItem(key, result.savedLocalStorage[key]);
             }
-            resolve(result.savedLocalStorage || {});
-        });
+        }
+        return result.savedLocalStorage || {};
     });
 
     var theme = localStorage.getItem("theme");
