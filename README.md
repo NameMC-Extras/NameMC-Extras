@@ -11,15 +11,14 @@ Install the Firefox version from the [Firefox Addons Store](https://addons.mozil
 ## ✨ Features
 
 ### Creation Dates
-View the exact creation dates for Minecraft accounts.
+View the exact creation dates for Minecraft accounts. (This can be inaccurate as it is based on Ashcon's API)
 
 <img src="https://i.imgur.com/B5BduTZ.gif" width="400"/>
 
-### Deadmau5 Ear Display
-See which players have the Deadmau5 ears.
+### deadmau5 Ears Display
+View deadmau5's ears on his NameMC profile.
 
 <img src="https://github.com/user-attachments/assets/2f0389bb-ab38-4cb4-b6ae-1230339db507" width="250"/>
-
 
 ### Elytra Preview
 Quick access button to preview skins with Elytra.
@@ -37,16 +36,16 @@ Option to hide dashed-out names from name history for a cleaner view.
 <img src="https://i.imgur.com/lgHzUkx.gif" width="400"/>
 
 ### Emoji Search Bar
-- Easily search for emojis in profile
+Easily search for emojis in profile
 <img src="https://github.com/user-attachments/assets/e9d7077e-a511-4497-a5ac-2b1bfc9f3025" width="400"/>
 
 ### Toggle All Names
-- Easily toggle all the names in your history
+Easily toggle all the names in your history
 <img src="https://github.com/user-attachments/assets/c2915a76-cba0-43af-a8b5-d1c3c1632e4c" width="400"/>
 
 
 ### Toggle All Capes
-- Toggle the visibility of all of your capes in one click
+Toggle the visibility of all of your capes in one click
 <img src="https://github.com/user-attachments/assets/3491ea9c-e35d-4731-ab6e-9698a3e6ac1a" width="400"/>
 
 ### Customizable Skin Display
