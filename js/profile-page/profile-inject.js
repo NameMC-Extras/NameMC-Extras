@@ -37,7 +37,7 @@ var isHidden = localStorage.getItem("isHidden") !== "false";
 var skinArt = localStorage.getItem("skinArt") == "true";
 var layer = true;
 var enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
-var showBadges = localStorage.getItem("showBadges") === "false";
+var hideBadges2 = localStorage.getItem("hideBadges2") === "false";
 var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "false";
 var hideElytra = localStorage.getItem("hideElytra") === "false";
 var hideLayers = localStorage.getItem("hideLayers") === "false";
@@ -568,7 +568,7 @@ if (location.pathname.split("-").length >= 5 || endsWithNumber(location.pathname
     }
 
     // add badges
-    if (!showBadges) {
+    if (!hideBadges2) {
       waitForSupabase((supabase_data) => {
         // add emoji override (if applicable)
         let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid === uuid)[0];
