@@ -1,4 +1,12 @@
 (async () => {
+    if (!document.contentType.startsWith('text/html')) return;
+
+    let currentUrl = window.location.href;
+
+    let cleanUrl = currentUrl.replace(/\/+$/, '');
+
+    if (currentUrl !== cleanUrl) window.location.replace(cleanUrl);
+
     const waitForSelector = function (selector, callback) {
         let query = document.querySelector(selector)
         if (query) {
@@ -15,7 +23,7 @@
     var iframeEl = document.createElement("iframe");
     iframeEl.width = 0;
     iframeEl.height = 0;
-    iframeEl.style.display ='none';
+    iframeEl.style.display = 'none';
     iframeEl.srcdoc = `<script>
     window.addEventListener("storage", (event) => {
         const storageEvent = new StorageEvent("storage", {
@@ -319,7 +327,7 @@
                         var iframeEl = document.createElement("iframe");
                         iframeEl.width = 0;
                         iframeEl.height = 0;
-                        iframeEl.style.display ='none';
+                        iframeEl.style.display = 'none';
                         iframeEl.srcdoc = `<script>
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
@@ -359,7 +367,7 @@
                         var iframeEl = document.createElement("iframe");
                         iframeEl.width = 0;
                         iframeEl.height = 0;
-                        iframeEl.style.display ='none';
+                        iframeEl.style.display = 'none';
                         iframeEl.srcdoc = `<script>
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
@@ -431,7 +439,7 @@
                             var iframeEl = document.createElement("iframe");
                             iframeEl.width = 0;
                             iframeEl.height = 0;
-                            iframeEl.style.display ='none';
+                            iframeEl.style.display = 'none';
                             iframeEl.srcdoc = `<script>
                                 window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
                                 window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
@@ -457,7 +465,7 @@
                             var iframeEl = document.createElement("iframe");
                             iframeEl.width = 0;
                             iframeEl.height = 0;
-                            iframeEl.style.display ='none';
+                            iframeEl.style.display = 'none';
                             iframeEl.srcdoc = `<script>
                                 window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
                                 window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
@@ -516,7 +524,7 @@
                             var iframeEl = document.createElement("iframe");
                             iframeEl.width = 0;
                             iframeEl.height = 0;
-                            iframeEl.style.display ='none';
+                            iframeEl.style.display = 'none';
                             iframeEl.srcdoc = `<script>
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("${code[0].replace(/"/g, '')}");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("${code[1].replace(/"/g, '')}");
@@ -572,7 +580,7 @@
                         var iframeEl = document.createElement("iframe");
                         iframeEl.width = 0;
                         iframeEl.height = 0;
-                        iframeEl.style.display ='none';
+                        iframeEl.style.display = 'none';
                         iframeEl.srcdoc = `<script>
                             window.top.jscolor.init();
                         </script>`;

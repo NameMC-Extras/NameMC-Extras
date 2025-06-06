@@ -8,7 +8,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "3.7.3",
+  "version": "3.7.4",
   "content_scripts": [
     {
       "js": [
@@ -32,6 +32,10 @@
       "matches": [
         "*://*.namemc.com/extras/*"
       ],
+      "exclude_matches": [
+        "*://*.namemc.com/extras/skin-cape-test*/*",
+        "*://*.namemc.com/extras/badges*/*"
+      ],
       "run_at": "document_start"
     },
     {
@@ -41,6 +45,9 @@
       "matches": [
         "*://*.namemc.com/extras/badge/*"
       ],
+      "exclude_matches": [
+        "*://*.namemc.com/extras/badge/*/*"
+      ],
       "run_at": "document_start"
     },
     {
@@ -49,6 +56,9 @@
       ],
       "matches": [
         "*://*.namemc.com/capes*"
+      ],
+      "exclude_matches": [
+        "*://*.namemc.com/capes*/*"
       ],
       "run_at": "document_start"
     },
@@ -74,6 +84,9 @@
       "matches": [
         "*://*.namemc.com/cape/*/*"
       ],
+      "exclude_matches": [
+        "*://*.namemc.com/cape/*/*/*"
+      ],
       "run_at": "document_start"
     },
     {
@@ -82,6 +95,9 @@
       ],
       "matches": [
         "*://*.namemc.com/skin/*"
+      ],
+      "exclude_matches": [
+        "*://*.namemc.com/skin/*/*"
       ],
       "run_at": "document_start"
     },
@@ -92,6 +108,9 @@
       "matches": [
         "*://*.namemc.com/profile/*"
       ],
+      "exclude_matches": [
+        "*://*.namemc.com/profile/*/*"
+      ],
       "run_at": "document_start"
     },
     {
@@ -100,6 +119,9 @@
       ],
       "matches": [
         "*://*.namemc.com/my-profile/names*"
+      ],
+      "exclude_matches": [
+        "*://*.namemc.com/my-profile/names*/*"
       ],
       "run_at": "document_start"
     },
@@ -110,6 +132,9 @@
       "matches": [
         "*://*.namemc.com/my-profile/capes*"
       ],
+      "exclude_matches": [
+        "*://*.namemc.com/my-profile/capes*/*"
+      ],
       "run_at": "document_start"
     },
     {
@@ -118,6 +143,9 @@
       ],
       "matches": [
         "*://*.namemc.com/my-profile/emoji*"
+      ],
+      "exclude_matches": [
+        "*://*.namemc.com/my-profile/emoji*/*"
       ],
       "run_at": "document_start"
     }
