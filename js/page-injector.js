@@ -1,11 +1,11 @@
 (async () => {
     if (!document.contentType.startsWith('text/html')) return;
 
-    let currentUrl = window.location.href;
+    let currentUrl = location.href;
 
     let cleanUrl = currentUrl.replace(/\/+$/, '');
 
-    if (currentUrl !== cleanUrl) window.location.replace(cleanUrl);
+    if (currentUrl !== cleanUrl && currentUrl !== location.origin + '/') location.href = cleanUrl;
 
     const waitForSelector = function (selector, callback) {
         let query = document.querySelector(selector)
