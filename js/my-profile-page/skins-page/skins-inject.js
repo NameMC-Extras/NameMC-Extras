@@ -11,6 +11,17 @@ const waitForSelector = function (selector, callback) {
     }
 };
 
+const extractSkins = (doc, skipFirst = false) => {
+    const card = doc.querySelector('.card.mb-3');
+    if (!card) return [];
+    const toggles = [...card.querySelectorAll('[class*=fa-toggle-]')];
+    if (skipFirst) toggles.shift();
+    return toggles.map(a => ({
+        value: a.classList.contains('fa-toggle-on'),
+        skin: a.parentElement.value
+    }));
+};
+
 waitForSelector('.card.mb-3', async (skinsEl) => {
     const skins = [];
 
@@ -23,18 +34,20 @@ waitForSelector('.card.mb-3', async (skinsEl) => {
     const lastPageEl = doc.querySelector('.fa-angle-double-right');
     if (lastPageEl) lastPage = parseInt(lastPageEl.parentElement.href.split('page=').at(-1));
 
-    const extractSkins = (doc, skipFirst = false) => {
-        const card = doc.querySelector('.card.mb-3');
-        if (!card) return [];
-        const toggles = [...card.querySelectorAll('[class*=fa-toggle-]')];
-        if (skipFirst) toggles.shift();
-        return toggles.map(a => ({
-            value: a.classList.contains('fa-toggle-on'),
-            skin: a.parentElement.value
-        }));
-    };
-
     skins.push(...extractSkins(doc, true));
+
+    if (!skins.length) return;
+
+    const currentUrl = new URL(location.href);
+    const isVisibleOnly = currentUrl.searchParams.get('show_hidden') !== 'true';
+
+    const visibleDoc = isVisibleOnly
+        ? document
+        : await fetch('/my-profile/skins?show_hidden=false').then(res => res.text()).then(html => parser.parseFromString(html, 'text/html'));
+
+    let visibleSkins = extractSkins(visibleDoc, true);
+
+    skinsEl.querySelector('.col-auto').insertAdjacentHTML('afterbegin', `<a class="px-1" id="hideAll"><i class="far fa-toggle-${visibleSkins.length ? 'on' : 'off'}"></i></a>`);
 
     const fetches = [];
     for (let i = 2; i <= lastPage; i++) {
@@ -55,11 +68,10 @@ waitForSelector('.card.mb-3', async (skinsEl) => {
     results.forEach(pageSkins => skins.push(...pageSkins));
 
     const hasTrue = skins.some(a => a.value === true);
-    if (!skins.length) return;
-    skinsEl.querySelector('.col-auto').insertAdjacentHTML('afterbegin', `<a class="px-1" id="hideAll"><i class="far fa-toggle-${hasTrue ? 'on' : 'off'}"></i></a>`);
 
     document.querySelector('#hideAll').onclick = () => {
         document.querySelector('#hideAll').classList.add('disabled');
+        document.documentElement.style.cursor = 'wait';
         const datas = skins
             .filter(({ value }) => value === hasTrue)
             .map(({ skin }) => {
@@ -74,9 +86,9 @@ waitForSelector('.card.mb-3', async (skinsEl) => {
             body: formData,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Cache-Control': 'no-cache' 
+                'Cache-Control': 'no-cache'
             },
             cache: "no-store"
-        }))).then(() => location.reload());
-    };
+        }))).then(() => setTimeout(() => location.reload(), 100));
+    }
 });

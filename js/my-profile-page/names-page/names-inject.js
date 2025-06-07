@@ -29,6 +29,7 @@ waitForSelector('.card.mt-3', (historyEl) => {
 
     document.querySelector('#hideAll').onclick = () => {
         document.querySelector('#hideAll').classList.add('disabled');
+        document.documentElement.style.cursor = 'wait';
         const datas = history
             .map((a, i) => ({ value: a, index: i }))
             .filter(({ value }) => value === hasTrue)
@@ -48,6 +49,6 @@ waitForSelector('.card.mt-3', (historyEl) => {
                 'Cache-Control': 'no-cache'
             },
             cache: "no-store"
-        }))).then(() => location.reload());
+        }))).then(() => setTimeout(() => location.reload(), 100));
     }
 });

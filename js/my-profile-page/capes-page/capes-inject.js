@@ -28,6 +28,7 @@ waitForSelector('.card.my-3', (capesEl) => {
 
     document.querySelector('#hideAll').onclick = () => {
         document.querySelector('#hideAll').classList.add('disabled');
+        document.documentElement.style.cursor = 'wait';
         const datas = capes
             .map((a, i) => ({ value: a, cape: capeValues[i] }))
             .filter(({ value }) => value === hasTrue)
@@ -47,6 +48,6 @@ waitForSelector('.card.my-3', (capesEl) => {
                 'Cache-Control': 'no-cache'
             },
             cache: "no-store"
-        }))).then(() => location.reload());
+        }))).then(() => setTimeout(() => location.reload(), 100));
     }
 });
