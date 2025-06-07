@@ -26,7 +26,7 @@ waitForSelector('.card.my-3', (capesEl) => {
         </div>`;
 
 
-    document.querySelector('#hideAll').onclick = () => {
+    document.querySelector('#hideAll').onclick = async () => {
         document.querySelector('#hideAll').classList.add('disabled');
         document.documentElement.style.cursor = 'wait';
         const datas = capes
@@ -40,7 +40,7 @@ waitForSelector('.card.my-3', (capesEl) => {
                 return formData.toString();
             });
 
-        Promise.all(datas.map(formData => fetch(location.href, {
+        await Promise.all(datas.map(formData => fetch(location.href, {
             method: "POST",
             body: formData,
             headers: {
@@ -48,6 +48,8 @@ waitForSelector('.card.my-3', (capesEl) => {
                 'Cache-Control': 'no-cache'
             },
             cache: "no-store"
-        }))).then(() => setTimeout(() => location.reload(), 100));
+        })));
+
+        location.reload();
     }
 });

@@ -24,11 +24,13 @@ const extractSkins = (doc, skipFirst = false) => {
 
 waitForSelector('.card.mb-3', async (skinsEl) => {
     const skins = [];
-
-    const response = await fetch('/my-profile/skins?show_hidden=true');
-    const html = await response.text();
     const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+
+    const currentUrl = new URL(location.href);
+    const showHidden = currentUrl.searchParams.get('show_hidden') === 'true';
+    const doc = showHidden
+        ? document
+        : await fetch('/my-profile/skins?show_hidden=true').then(res => res.text()).then(html => parser.parseFromString(html, 'text/html'));
 
     let lastPage = 1;
     const lastPageEl = doc.querySelector('.fa-angle-double-right');
@@ -38,10 +40,7 @@ waitForSelector('.card.mb-3', async (skinsEl) => {
 
     if (!skins.length) return;
 
-    const currentUrl = new URL(location.href);
-    const isVisibleOnly = currentUrl.searchParams.get('show_hidden') !== 'true';
-
-    const visibleDoc = isVisibleOnly
+    const visibleDoc = !showHidden
         ? document
         : await fetch('/my-profile/skins?show_hidden=false').then(res => res.text()).then(html => parser.parseFromString(html, 'text/html'));
 
@@ -69,7 +68,7 @@ waitForSelector('.card.mb-3', async (skinsEl) => {
 
     const hasTrue = skins.some(a => a.value === true);
 
-    document.querySelector('#hideAll').onclick = () => {
+    document.querySelector('#hideAll').onclick = async () => {
         document.querySelector('#hideAll').classList.add('disabled');
         document.documentElement.style.cursor = 'wait';
         const datas = skins
@@ -81,7 +80,7 @@ waitForSelector('.card.mb-3', async (skinsEl) => {
                 return formData.toString();
             });
 
-        Promise.all(datas.map(formData => fetch(location.href, {
+        await Promise.all(datas.map(formData => fetch(location.href, {
             method: "POST",
             body: formData,
             headers: {
@@ -89,6 +88,8 @@ waitForSelector('.card.mb-3', async (skinsEl) => {
                 'Cache-Control': 'no-cache'
             },
             cache: "no-store"
-        }))).then(() => setTimeout(() => location.reload(), 100));
+        })));
+
+        location.reload();
     }
 });

@@ -27,7 +27,7 @@ waitForSelector('.card.mt-3', (historyEl) => {
 
     if (!history.length) return;
 
-    document.querySelector('#hideAll').onclick = () => {
+    document.querySelector('#hideAll').onclick = async () => {
         document.querySelector('#hideAll').classList.add('disabled');
         document.documentElement.style.cursor = 'wait';
         const datas = history
@@ -41,7 +41,7 @@ waitForSelector('.card.mt-3', (historyEl) => {
                 return formData.toString();
             });
 
-        Promise.all(datas.map(formData => fetch(location.href, {
+        await Promise.all(datas.map(formData => fetch(location.href, {
             method: "POST",
             body: formData,
             headers: {
@@ -49,6 +49,8 @@ waitForSelector('.card.mt-3', (historyEl) => {
                 'Cache-Control': 'no-cache'
             },
             cache: "no-store"
-        }))).then(() => setTimeout(() => location.reload(), 100));
+        })));
+
+        location.reload();
     }
 });
