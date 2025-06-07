@@ -34,7 +34,8 @@
       ],
       "exclude_matches": [
         "*://*.namemc.com/extras/skin-cape-test*/*",
-        "*://*.namemc.com/extras/badges*/*"
+        "*://*.namemc.com/extras/badges*/*",
+        "*://*.namemc.com/extras/badge/*/*"
       ],
       "run_at": "document_start"
     },
