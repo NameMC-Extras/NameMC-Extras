@@ -23,10 +23,6 @@ function getCookie(name) {
   return cookies[name];
 }
 
-function endsWithNumber(str) {
-  return /[0-9]+$/.test(str);
-}
-
 const rows = 9;
 const columns = 3;
 const size = 32;
@@ -911,11 +907,13 @@ waitForSelector('.order-lg-2', () => {
     skinViewer.cameraLight.position.set(12, 25, 0);
 
     if (paused) {
-      skinViewer.playerObject.skin.leftArm.rotation.x = 0.33
-      skinViewer.playerObject.skin.rightArm.rotation.x = -0.33
+      skinViewer.playerObject.skin.leftArm.rotation.x = 0.32;
+      skinViewer.playerObject.skin.rightArm.rotation.x = -0.3;
 
-      skinViewer.playerObject.skin.leftLeg.rotation.x = -0.33
-      skinViewer.playerObject.skin.rightLeg.rotation.x = 0.33
+      skinViewer.playerObject.skin.leftLeg.rotation.x = -0.32;
+      skinViewer.playerObject.skin.rightLeg.rotation.x = 0.38;
+
+      skinViewer.playerObject.cape.rotation.x = 0.3;
     }
 
     skinContainer.addEventListener(
