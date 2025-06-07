@@ -25,6 +25,8 @@ waitForSelector('.card.mt-3', (historyEl) => {
         </div>
     </div>`);
 
+    if (!history.length) return;
+
     document.querySelector('#hideAll').onclick = () => {
         document.querySelector('#hideAll').classList.add('disabled');
         const datas = history
@@ -38,12 +40,14 @@ waitForSelector('.card.mt-3', (historyEl) => {
                 return formData.toString();
             });
 
-        Promise.all(datas.map(formData => fetch("/my-profile/names", {
+        Promise.all(datas.map(formData => fetch(location.href, {
             method: "POST",
             body: formData,
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        }))).then(() => window.location.href = window.location.pathname);
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Cache-Control': 'no-cache'
+            },
+            cache: "no-store"
+        }))).then(() => location.reload());
     }
 });
