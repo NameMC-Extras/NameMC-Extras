@@ -1,7 +1,7 @@
 // Add debounce helper at the top of the file
 function debounce(func, wait) {
   let timeout;
-  return function(...args) {
+  return function (...args) {
     const context = this;
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(context, args), wait);
@@ -201,6 +201,11 @@ const createStealBtn = () => {
   }
 }
 
+// fix bug
+waitForFunc("updateSkin", () => {
+  window.updateSkin = () => { }
+});
+
 // wait for supabase before creating official description card
 waitForSelector(".col-md-6", () => {
   // create html for card
@@ -343,14 +348,16 @@ waitForSelector(".col-md-6", () => {
     skinViewer.globalLight.intensity = .65;
     skinViewer.cameraLight.intensity = .38;
     skinViewer.cameraLight.position.set(12, 25, 0);
-    skinViewer.zoom = 0.86
+    skinViewer.zoom = 0.86;
 
     if (paused) {
-      skinViewer.playerObject.skin.leftArm.rotation.x = 0.3
-      skinViewer.playerObject.skin.rightArm.rotation.x = -0.3
+      skinViewer.playerObject.skin.leftArm.rotation.x = 0.32;
+      skinViewer.playerObject.skin.rightArm.rotation.x = -0.3;
 
-      skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36
-      skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36
+      skinViewer.playerObject.skin.leftLeg.rotation.x = -0.32;
+      skinViewer.playerObject.skin.rightLeg.rotation.x = 0.38;
+
+      skinViewer.playerObject.cape.rotation.x = 0.3;
     }
 
     skinContainer.addEventListener(

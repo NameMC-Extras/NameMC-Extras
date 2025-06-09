@@ -189,10 +189,8 @@ async function loadPage() {
     const bedrockInfo = await (await fetch(`https://bedrock.lol/api/v1/capes/${capeId}`)).json();
     cape = new CustomCape(bedrockInfo.name, bedrockInfo.description, bedrockInfo.image_data, bedrockInfo.users);
     cape.user_count = bedrockInfo.user_count;
-    console.log(cape);
   } else {
     cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
-    console.log(cape);
   }
   if (!cape) return;
   const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name ?? "Bedrock";
@@ -281,13 +279,13 @@ async function loadPage() {
 
   waitForSelector("main", async (mainDiv) => {
     mainDiv.append(capeHTML);
-    
+
     // Add the graph card to the left column using functions from graph-utils.js
     const leftColumn = document.querySelector('.col-md-6');
     if (leftColumn && window.createUsageGraphCard) {
       const graphCard = window.createUsageGraphCard(capeId);
       leftColumn.appendChild(graphCard);
-      
+
       // Initialize the graph after everything is set up
       setTimeout(() => {
         if (window.initializeGraph) {
@@ -295,7 +293,7 @@ async function loadPage() {
         }
       }, 100);
     }
-    
+
     let badgeOwnerNames;
     if (isBedrock) {
       //capeOwners.push({ username: "..." });
@@ -331,17 +329,17 @@ async function loadPage() {
 
     if (isBedrock && document.querySelector('#bedrockList')) {
       document.querySelector("#bedrockList").innerHTML = capeOwners.filter(a => !a.java_uuid).map((u, i) => {
-      let userEl;
-      userEl = document.createElement("span");
+        let userEl;
+        userEl = document.createElement("span");
         userEl.textContent = u.username;
-      userEl.translate = "no";
-      if (u.note) {
-        userEl.setAttribute("data-note", "");
-        userEl.title = u.note;
-      }
+        userEl.translate = "no";
+        if (u.note) {
+          userEl.setAttribute("data-note", "");
+          userEl.title = u.note;
+        }
 
-      return userEl.outerHTML;
-    }).join(" ");
+        return userEl.outerHTML;
+      }).join(" ");
     }
 
     // create skin viewer
@@ -376,14 +374,16 @@ async function loadPage() {
       skinViewer.globalLight.intensity = .65;
       skinViewer.cameraLight.intensity = .38;
       skinViewer.cameraLight.position.set(12, 25, 0);
-      skinViewer.zoom = 0.86
+      skinViewer.zoom = 0.86;
 
       if (paused) {
-        skinViewer.playerObject.skin.leftArm.rotation.x = 0.3
-        skinViewer.playerObject.skin.rightArm.rotation.x = -0.3
+        skinViewer.playerObject.skin.leftArm.rotation.x = 0.32;
+        skinViewer.playerObject.skin.rightArm.rotation.x = -0.3;
 
-        skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36
-        skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36
+        skinViewer.playerObject.skin.leftLeg.rotation.x = -0.32;
+        skinViewer.playerObject.skin.rightLeg.rotation.x = 0.38;
+
+        skinViewer.playerObject.cape.rotation.x = 0.3;
       }
 
       skinContainer.addEventListener(
@@ -402,7 +402,7 @@ async function loadPage() {
       var iframeEl = document.createElement("iframe");
       iframeEl.width = 0;
       iframeEl.height = 0;
-      iframeEl.style.display ='none';
+      iframeEl.style.display = 'none';
       iframeEl.srcdoc = `<script>
             window.top.$("[data-note]").tooltip()
         </script>`;

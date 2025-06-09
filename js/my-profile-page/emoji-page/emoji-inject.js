@@ -75,7 +75,6 @@ waitForStorage('supabase_data', () => waitForSelector('.nav.mt-3', async (navEl)
         const entries = [...e.formData.entries()];
         for (let i = 0; i < entries.length; i++) {
             const [key, value] = entries[i];
-            console.log(key, value)
             if (key === "filter" && value === "all") {
                 e.formData.delete(key);
             }

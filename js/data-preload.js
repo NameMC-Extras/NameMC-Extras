@@ -16,8 +16,8 @@
 
   try {
     const supabase_data = JSON.parse(localStorage.getItem('supabase_data'));
-    if (Object.keys(supabase_data).length === Object.keys(endPoints).length+1 && new Date(Number(localStorage.getItem("supabase_expires"))).valueOf() > new Date().valueOf()) return;
-  } catch (e){ console.log(e) }
+    if (Object.keys(supabase_data).length === Object.keys(endPoints).length + 1 && new Date(Number(localStorage.getItem("supabase_expires"))).valueOf() > new Date().valueOf()) return;
+  } catch { }
 
   async function fetchSupabase(endPoints) {
     return Promise.all([...endPoints.map(async endPoint => await fetch(`https://raw.githubusercontent.com/NameMC-Extras/data/main/${endPoint}.json`)),
