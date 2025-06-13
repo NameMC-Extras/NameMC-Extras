@@ -402,3 +402,32 @@ a:has([class*=fa-eye]) {
     outline: 0;
     box-shadow: 0 0 0 0.25rem rgba(35, 109, 173, 0.25);
 }
+
+#markAllRead {
+    color: var(--bs-body-color) !important;
+    opacity: 0.75;
+    margin-left: .25rem;
+    transition: color 200ms linear, opacity 200ms linear;
+}
+
+#markAllRead:hover {
+    opacity: 1;
+}
+
+#captchaModal {
+    overflow: hidden;
+}
+
+#captchaModal .modal-body {
+    height: 90px;
+    overflow: hidden;
+}
+
+#captchaIf {
+    width: 600px;
+    height: 250px;
+    position: absolute;
+    top: -160%;
+    left: -12.5%;
+    transform: scale(0.9);
+}
