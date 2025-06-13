@@ -406,7 +406,7 @@ a:has([class*=fa-eye]) {
 #markAllRead {
     color: var(--bs-body-color) !important;
     opacity: 0.75;
-    margin-left: .25rem;
+    float: right;
     transition: color 200ms linear, opacity 200ms linear;
 }
 
