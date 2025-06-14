@@ -609,6 +609,14 @@ class CapeUsageGraph {
   }
   
   addEventListeners() {
+    // Touch state tracking
+    this.touches = new Map();
+    this.initialPinchDistance = 0;
+    this.initialTimeRange = 0;
+    this.initialViewportStart = 0;
+    this.initialViewportEnd = 0;
+    this.lastTouchTime = 0;
+    
     // Mouse wheel for zooming
     this.canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
@@ -641,8 +649,203 @@ class CapeUsageGraph {
       this.draw();
     });
     
-    // Mouse drag for panning
+    // Touch events for mobile support
+    this.canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      
+      const rect = this.canvas.getBoundingClientRect();
+      
+      // Clear existing touches
+      this.touches.clear();
+      
+      // Store all current touches
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        this.touches.set(touch.identifier, {
+          x: touch.clientX - rect.left,
+          y: touch.clientY - rect.top,
+          startX: touch.clientX - rect.left,
+          startY: touch.clientY - rect.top
+        });
+      }
+      
+      if (e.touches.length === 1) {
+        // Single finger - start panning
+        this.isDragging = true;
+        this.dragStart = {
+          x: e.touches[0].clientX - rect.left,
+          timeStart: this.viewportStart,
+          timeEnd: this.viewportEnd
+        };
+      } else if (e.touches.length === 2) {
+        // Two fingers - start pinch zoom
+        this.isDragging = false;
+        const touch1 = this.touches.get(e.touches[0].identifier);
+        const touch2 = this.touches.get(e.touches[1].identifier);
+        
+        this.initialPinchDistance = Math.sqrt(
+          Math.pow(touch2.x - touch1.x, 2) + 
+          Math.pow(touch2.y - touch1.y, 2)
+        );
+        
+        this.initialTimeRange = this.viewportEnd - this.viewportStart;
+        this.initialViewportStart = this.viewportStart;
+        this.initialViewportEnd = this.viewportEnd;
+        
+        // Calculate center point for zoom
+        this.pinchCenterX = (touch1.x + touch2.x) / 2;
+        this.pinchCenterTime = this.xToTime(this.pinchCenterX);
+      }
+      
+      this.lastTouchTime = Date.now();
+    });
+    
+    this.canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      
+      const rect = this.canvas.getBoundingClientRect();
+      
+      if (e.touches.length === 1 && this.isDragging) {
+        // Single finger panning
+        const touch = e.touches[0];
+        const touchX = touch.clientX - rect.left;
+        const dx = touchX - this.dragStart.x;
+        
+        // Convert pixel movement to time delta
+        const displayWidth = this.canvas.width / (window.devicePixelRatio || 1);
+        const timeRange = this.dragStart.timeEnd - this.dragStart.timeStart;
+        const timeDelta = -dx / (displayWidth - 2 * this.options.padding) * timeRange;
+        
+        // Calculate new viewport times
+        this.viewportStart = this.dragStart.timeStart + timeDelta;
+        this.viewportEnd = this.dragStart.timeEnd + timeDelta;
+        
+        // Apply constraints
+        this.validateViewport();
+        
+        this.draw();
+        
+      } else if (e.touches.length === 2) {
+        // Two finger pinch zoom
+        const touch1 = { 
+          x: e.touches[0].clientX - rect.left, 
+          y: e.touches[0].clientY - rect.top 
+        };
+        const touch2 = { 
+          x: e.touches[1].clientX - rect.left, 
+          y: e.touches[1].clientY - rect.top 
+        };
+        
+        const currentDistance = Math.sqrt(
+          Math.pow(touch2.x - touch1.x, 2) + 
+          Math.pow(touch2.y - touch1.y, 2)
+        );
+        
+        if (this.initialPinchDistance > 0) {
+          // Calculate zoom factor based on pinch distance change
+          const scaleFactor = this.initialPinchDistance / currentDistance;
+          const newTimeRange = this.initialTimeRange * scaleFactor;
+          
+          // Calculate new viewport centered on pinch point
+          const centerPercent = (this.pinchCenterTime - this.initialViewportStart) / this.initialTimeRange;
+          const newStart = this.pinchCenterTime - centerPercent * newTimeRange;
+          const newEnd = newStart + newTimeRange;
+          
+          // Update viewport
+          this.viewportStart = newStart;
+          this.viewportEnd = newEnd;
+          
+          // Apply constraints
+          this.validateViewport();
+          
+          this.draw();
+        }
+      }
+    });
+    
+    this.canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      
+      // Check if this was a tap (quick touch without much movement)
+      const touchDuration = Date.now() - this.lastTouchTime;
+      const wasTap = touchDuration < 300 && this.isDragging && this.dragStart;
+      
+      if (wasTap && e.touches.length === 0) {
+        // Handle tap for opening modal if in simplified mode
+        if (this.options.simplified) {
+          // Check if we tapped on a data point first
+          const rect = this.canvas.getBoundingClientRect();
+          const tapX = this.dragStart.x;
+          const tapY = (e.changedTouches[0].clientY - rect.top);
+          
+          // Find if we tapped near a data point
+          let tappedPoint = null;
+          const hoverRadius = this.options.hoverRadius || 15;
+          
+          for (const point of this.data) {
+            const x = this.timeToX(point.timestamp, this.canvas.width / (window.devicePixelRatio || 1));
+            const y = this.userCountToY(point.users, this.canvas.height / (window.devicePixelRatio || 1));
+            const distance = Math.sqrt(Math.pow(tapX - x, 2) + Math.pow(tapY - y, 2));
+            
+            if (distance <= hoverRadius) {
+              tappedPoint = point;
+              break;
+            }
+          }
+          
+          // If we didn't tap on a point, open the modal
+          if (!tappedPoint) {
+            // Dispatch a custom event to open the modal
+            this.canvas.dispatchEvent(new CustomEvent('graphTap'));
+          }
+        }
+      }
+      
+      if (e.touches.length === 0) {
+        // All fingers lifted
+        this.isDragging = false;
+        this.touches.clear();
+        this.initialPinchDistance = 0;
+        
+        // If there was a pending fetch request during interaction, execute it now
+        if (this.pendingFetch) {
+          this.fetchDataForViewport();
+        }
+      } else if (e.touches.length === 1 && this.touches.size > 1) {
+        // Went from multi-touch to single touch - restart single touch tracking
+        this.touches.clear();
+        const rect = this.canvas.getBoundingClientRect();
+        const remainingTouch = e.touches[0];
+        
+        this.touches.set(remainingTouch.identifier, {
+          x: remainingTouch.clientX - rect.left,
+          y: remainingTouch.clientY - rect.top,
+          startX: remainingTouch.clientX - rect.left,
+          startY: remainingTouch.clientY - rect.top
+        });
+        
+        this.isDragging = true;
+        this.dragStart = {
+          x: remainingTouch.clientX - rect.left,
+          timeStart: this.viewportStart,
+          timeEnd: this.viewportEnd
+        };
+        this.initialPinchDistance = 0;
+      }
+    });
+    
+    // Handle touch cancel (when system interrupts touch)
+    this.canvas.addEventListener('touchcancel', (e) => {
+      this.isDragging = false;
+      this.touches.clear();
+      this.initialPinchDistance = 0;
+    });
+    
+    // Mouse drag for panning (desktop)
     this.canvas.addEventListener('mousedown', (e) => {
+      // Only handle mouse events if no touches are active
+      if (this.touches.size > 0) return;
+      
       const rect = this.canvas.getBoundingClientRect();
       this.isDragging = true;
       this.dragStart = {
@@ -653,6 +856,9 @@ class CapeUsageGraph {
     });
     
     window.addEventListener('mousemove', (e) => {
+      // Only handle mouse events if no touches are active
+      if (this.touches.size > 0) return;
+      
       if (this.isDragging) {
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -678,6 +884,9 @@ class CapeUsageGraph {
     });
     
     window.addEventListener('mouseup', () => {
+      // Only handle mouse events if no touches are active
+      if (this.touches.size > 0) return;
+      
       if (this.isDragging) {
         this.isDragging = false;
         
@@ -689,6 +898,9 @@ class CapeUsageGraph {
     });
     
     this.canvas.addEventListener('mouseleave', () => {
+      // Only handle mouse events if no touches are active
+      if (this.touches.size > 0) return;
+      
       // Hide tooltip and hover elements when mouse leaves the canvas
       if (this.options.tooltipContainer) {
         this.options.tooltipContainer.style.display = 'none';
@@ -1907,6 +2119,11 @@ function initializeGraph(capeId) {
       if (!graph.hoverPoint) {
         openGraphModal();
       }
+    });
+    
+    // Listen for custom tap events from touch handling
+    canvas.addEventListener('graphTap', () => {
+      openGraphModal();
     });
   }
   
