@@ -20,7 +20,7 @@
   } catch { }
 
   async function fetchSupabase(endPoints) {
-    return Promise.all([...endPoints.map(async endPoint => await fetch(`https://raw.githubusercontent.com/NameMC-Extras/data/main/${endPoint}.json`)),
+    return Promise.all([...endPoints.map(async endPoint => await fetch(`https://data.faav.top/${endPoint}.json`)),
     await fetch('https://bedrock.lol/api/v1/capes')
     ]);
   };
