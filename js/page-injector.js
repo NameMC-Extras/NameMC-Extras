@@ -19,27 +19,7 @@
             });
         }
     };
-
-    var iframeEl = document.createElement("iframe");
-    iframeEl.width = 0;
-    iframeEl.height = 0;
-    iframeEl.style.display = 'none';
-    iframeEl.srcdoc = `<script>
-    window.addEventListener("storage", (event) => {
-        const storageEvent = new StorageEvent("storage", {
-            key: event.key,
-            newValue: event.newValue,
-            oldValue: event.oldValue,
-            storageArea: localStorage,
-            url: window.location.href
-        });
-
-        window.top.dispatchEvent(storageEvent);
-    });
-    </script>`;
-    document.documentElement.append(iframeEl);
-
-    window.top.addEventListener('storage', () => {
+    window.top.addEventListener('visibilitychange', () => {
         let allLocalStorage = { ...localStorage };
         chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
     });
@@ -333,7 +313,7 @@
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
                         </script>`;
                         document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 1000)
+                        setTimeout(() => iframeEl.remove(), 1000);
 
                         localStorage.customBg = "#EEF0F2";
                         localStorage.customText = "#212529";
@@ -373,7 +353,7 @@
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
                         </script>`;
                         document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 1000)
+                        setTimeout(() => iframeEl.remove(), 1000);
 
                         localStorage.customBg = "#12161A";
                         localStorage.customText = "#dee2e6";
@@ -447,7 +427,7 @@
                                 window.top.document.querySelector("#custombtncolor").jscolor.fromString("#236DAD");
                             </script>`;
                             document.documentElement.append(iframeEl);
-                            setTimeout(() => iframeEl.remove(), 1000)
+                            setTimeout(() => iframeEl.remove(), 1000);
 
                             localStorage.customBg = "#12161A";
                             localStorage.customText = "#dee2e6";
@@ -473,7 +453,7 @@
                                 window.top.document.querySelector("#custombtncolor").jscolor.fromString("#236DAD");
                             </script>`;
                             document.documentElement.append(iframeEl);
-                            setTimeout(() => iframeEl.remove(), 1000)
+                            setTimeout(() => iframeEl.remove(), 1000);
 
                             localStorage.customBg = "#EEF0F2";
                             localStorage.customText = "#212529";
@@ -532,7 +512,7 @@
                             window.top.document.querySelector("#custombtncolor").jscolor.fromString("${code[3].replace(/"/g, '')}");
                         </script>`;
                             document.documentElement.append(iframeEl);
-                            setTimeout(() => iframeEl.remove(), 1000)
+                            setTimeout(() => iframeEl.remove(), 1000);
 
                             localStorage.customBg = code[0];
                             localStorage.customText = code[1];
@@ -585,8 +565,8 @@
                             window.top.jscolor.init();
                         </script>`;
                         document.documentElement.append(iframeEl);
-                        setTimeout(() => iframeEl.remove(), 1000)
-                    }, 1000)
+                        setTimeout(() => iframeEl.remove(), 1000);
+                    }, 1000);
                 });
 
                 // PROFILE SETTINGS
@@ -729,7 +709,7 @@
                 copyLink.classList.add("color-inherit");
 
                 // fix title
-                setTimeout(() => copyLink.title = "Copy", 1000)
+                setTimeout(() => copyLink.title = "Copy", 1000);
             });
         }, 5)
 
@@ -740,6 +720,75 @@
                 input.removeAttribute('max');
             });
         }
+
+        // MARK ALL READ
+        waitForSelector('.dropdown-header', async () => {
+            const header = document.querySelectorAll('.dropdown-header')[1];
+            header.insertAdjacentHTML('beforeend', `<a href="javascript:void 0" id="markAllRead" class="color-inherit" title="Mark All Read"><i class="far fa-envelope-open"></i></a>`);
+            const currProfile = document.querySelector('[style] > .dropdown-item.active').href;
+            const profiles = [...document.querySelectorAll('[href*="%2Ffollowers%3Fsort%3Ddate%3Adesc"]')].map(a => a.href);
+            const currURL = document.querySelector('[href*="/followers?sort=date:desc"]').href;
+
+            const modalHTML = `
+            <div class="modal fade" id="captchaModal" tabindex="-1" role="dialog" aria-labelledby="captchaModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width:300px">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <iframe src="${currURL}" id="captchaIf"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+            document.documentElement.insertAdjacentHTML('beforeend', modalHTML);
+
+            const fetchAllProfiles = async () => {
+                document.querySelector('#markAllRead').classList.add('disabled');
+                document.documentElement.style.cursor = 'wait';
+
+                for (const url of profiles) {
+                    await fetch(url);
+                }
+
+                await fetch(currProfile);
+            }
+
+            document.querySelector('#markAllRead').onclick = async () => {
+                const curr = await fetch(currURL);
+                if (curr.status === 403) {
+                    var iframeEl = document.createElement("iframe");
+                    iframeEl.width = 0;
+                    iframeEl.height = 0;
+                    iframeEl.style.display = 'none';
+                    iframeEl.srcdoc = `<script>
+                        window.top.captchaModal = new window.top.bootstrap.Modal("#captchaModal");
+                        window.top.captchaModal.show();
+                    </script>`;
+                    document.documentElement.append(iframeEl);
+                    setTimeout(() => iframeEl.remove(), 1000);
+
+                    setTimeout(() => {
+                        document.querySelector('#captchaIf').contentWindow.addEventListener('visibilitychange', async () => {
+                            var iframeEl = document.createElement("iframe");
+                            iframeEl.width = 0;
+                            iframeEl.height = 0;
+                            iframeEl.style.display = 'none';
+                            iframeEl.srcdoc = `<script>
+                                window.top.captchaModal.hide();
+                            </script>`;
+                            document.documentElement.append(iframeEl);
+                            setTimeout(() => iframeEl.remove(), 1000);
+                            await fetchAllProfiles();
+                            location.reload();
+                        });
+                    }, 1000);
+                    return;
+                }
+
+                await fetchAllProfiles();
+                location.reload();
+            }
+        })
     });
 
     // INJECT CREDITS

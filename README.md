@@ -88,6 +88,8 @@ Have a suggestion or found a bug? Feel free to:
 
 ## 🙌 Credits
 
+Made by Faav
+
 Special thanks to:
 - M6
 - Orius

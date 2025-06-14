@@ -407,7 +407,7 @@ async function loadPage() {
             window.top.$("[data-note]").tooltip()
         </script>`;
       document.documentElement.append(iframeEl);
-      setTimeout(() => iframeEl.remove(), 1000)
+      setTimeout(() => iframeEl.remove(), 1000);
     });
   });
 }

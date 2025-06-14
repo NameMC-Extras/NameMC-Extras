@@ -539,6 +539,8 @@ waitForSelector('.order-lg-2', () => {
           const curCape = data.capes[i];
           capeTemplates.push(new CapeTemplate("data:image/png;base64," + curCape.image_data, curCape.name, curCape.description, "/cape/bedrock/" + curCape.id, curCape.java_equivalent));
         }
+        const cardHeader = document.querySelector(".card:has(.cape-2d) .card-header");
+        cardHeader.innerHTML = "Java " + cardHeader.innerText;
         createCapeCard(capeTemplates, "Bedrock Capes", (() => {
           let hasBedrockOnly = document.querySelector("a[href*='/bedrock/']:not([data-java_equivalent])");
           if (bedrockOnly && !hasBedrockOnly) {
@@ -1001,7 +1003,7 @@ waitForSelector('.order-lg-2', () => {
       });
 
       // fix pause button
-      setTimeout(fixPauseBtn, 1000)
+      setTimeout(fixPauseBtn, 1000);
 
       // capes
       document.querySelectorAll('.cape-2d').forEach((el) => {
