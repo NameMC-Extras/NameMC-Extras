@@ -12,6 +12,7 @@ class UserEntity {
         this.capes = data.capes || [];
         this.currentSkin = data.currentSkin || null;
         this.currentCape = data.currentCape || null;
+        this.badges = data.badges || [];
     }
 }
 
@@ -21,6 +22,80 @@ class UserDataUtils {
         this.cache = new Map(); // Cache for profiles
     }
     
+    /**
+     * Retrieves Supabase data from localStorage
+     * @returns {Object} The Supabase data
+     */
+    getSupabaseData() {
+        try {
+            const supabaseData = localStorage.getItem('supabase_data');
+            return supabaseData ? JSON.parse(supabaseData) : {};
+        } catch (error) {
+            console.error('Error retrieving Supabase data:', error);
+            return {};
+        }
+    }
+
+    /**
+     * Retrieves custom badges for a user
+     * @param {string} userUuid - The user's UUID
+     * @returns {Array} The user's badges
+     */
+    getUserCustomBadges(userUuid) {
+        if (!userUuid) return [];
+        
+        const supabaseData = this.getSupabaseData();
+        const allBadges = supabaseData.badges || [];
+        const userBadges = supabaseData.user_badges || [];
+
+        // Filter badges for this user
+        const userBadgeIds = userBadges
+            .filter(ub => ub.user === userUuid)
+            .map(ub => ub.badge);
+
+        // Return complete badge data
+        return allBadges.filter(badge => userBadgeIds.includes(badge.id));
+    }
+
+    /**
+     * Retrieves custom capes for a user
+     * @param {string} userUuid - The user's UUID
+     * @returns {Object} The user's capes {capes: Array, equippedCape: Object|null}
+     */
+    getUserCustomCapes(userUuid) {
+        if (!userUuid) return { capes: [], equippedCape: null };
+        
+        const supabaseData = this.getSupabaseData();
+        const allCapes = supabaseData.capes || [];
+        const userCapes = supabaseData.user_capes || [];
+
+        // Filter capes for this user
+        const userCapeAssignments = userCapes.filter(uc => uc.user === userUuid);
+        const userCapeIds = userCapeAssignments.map(uc => uc.cape);
+
+        // Retrieve complete cape data
+        const userCustomCapes = allCapes
+            .filter(cape => userCapeIds.includes(cape.id))
+            .map(cape => {
+                const assignment = userCapeAssignments.find(uc => uc.cape === cape.id);
+                return {
+                    id: cape.id,
+                    name: cape.name,
+                    description: cape.description,
+                    imageUrl: cape.image_src,
+                    renderUrl: cape.image_render,
+                    category: cape.category,
+                    isCustom: true, // Mark as custom cape
+                    equipped: assignment ? assignment.equipped : false,
+                    note: assignment ? assignment.note : null
+                };
+            });
+
+        // Find the equipped cape
+        const equippedCape = userCustomCapes.find(cape => cape.equipped) || null;
+
+        return { capes: userCustomCapes, equippedCape };
+    }
 
     async fetchUserName() {
         return await waitForSelector('#header > nav > ul.navbar-nav.ms-auto > li.nav-item.dropdown > a > span', (userName) => {
@@ -156,7 +231,7 @@ class UserDataUtils {
             }
         });
 
-        // Collect capes data
+        // Collect capes data (normal)
         const capes = [];
         let currentCape = null;
         const capeElements = doc.querySelectorAll('a[href*="/cape/"] canvas, a[href*="/cape/"] img');
@@ -175,13 +250,23 @@ class UserDataUtils {
             const capeData = {
                 id: capeId,
                 url: capeUrl,
-                imageUrl: capeId ? `https://s.namemc.com/i/${capeId}.png` : null
+                imageUrl: capeId ? `https://s.namemc.com/i/${capeId}.png` : null,
+                isCustom: false // Mark as normal cape
             };
             capes.push(capeData);
             if (isSelected) {
                 currentCape = capeData;
             }
         });
+
+        // Retrieve and add custom capes
+        const customCapesData = this.getUserCustomCapes(uuid);
+        capes.push(...customCapesData.capes);
+        
+        // If no normal cape is equipped, check custom capes
+        if (!currentCape && customCapesData.equippedCape) {
+            currentCape = customCapesData.equippedCape;
+        }
 
         return new UserEntity({
             username,
@@ -195,7 +280,8 @@ class UserDataUtils {
             skins,
             capes,
             currentSkin,
-            currentCape
+            currentCape,
+            badges: this.getUserCustomBadges(uuid)
         });
     }
 
