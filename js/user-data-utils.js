@@ -125,7 +125,9 @@ class UserDataUtils {
             if (strongElement && strongElement.textContent.trim() === 'Views') {
                 const viewsElement = row.querySelector('.col-auto');
                 if (viewsElement && viewsElement.textContent.includes('/ month')) {
-                    views = viewsElement.textContent.trim();
+                    // Extract all numbers from the string and convert to integer
+                    const numbersOnly = viewsElement.textContent.replace(/[^\d]/g, '');
+                    views = numbersOnly ? parseInt(numbersOnly, 10) : null;
                     break;
                 }
             }
