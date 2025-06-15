@@ -12,7 +12,9 @@
   "content_scripts": [
     {
       "js": [
+        "js/url-cleaner.js",
         "js/data-preload.js",
+        "js/user-data-utils.js",
         "js/announcement.js",
         "js/page-injector.js"
       ],
