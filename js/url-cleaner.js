@@ -50,7 +50,7 @@
         cleanGoogleVignette();
     }, 500); // Check every 500ms
 
-    // Clean up interval after 30 seconds to avoid unnecessary checks
+    // Clean up interval after 5 seconds to avoid unnecessary checks
     setTimeout(() => {
         clearInterval(intervalCheck);
     }, 5000);
