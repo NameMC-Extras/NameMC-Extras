@@ -686,7 +686,8 @@
     createSettingsButton();
 
     const pages = [
-        ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']
+        ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait'],
+        ['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']
     ];
 
     if (!hideBadges2) pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);

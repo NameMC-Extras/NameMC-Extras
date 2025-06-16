@@ -168,12 +168,18 @@ function createCapeEvents() {
 }
 
 const waitForSelector = function (selector, callback) {
-  if (document.querySelector(selector)) {
+  console.log("CALLED");
+  const result = document.querySelector(selector);
+  if (result) {
+    console.log("FOUND");
     setTimeout(() => {
-      callback();
+      console.log("CALLBACK");
+      callback(result);
     });
   } else {
+    console.log("NOT FOUND");
     setTimeout(() => {
+      console.log("RECURSIVE");
       waitForSelector(selector, callback);
     });
   }
@@ -465,7 +471,7 @@ if (!hideCreatedAt) {
   });
 }
 
-waitForSelector('.order-lg-2', () => {
+  waitForSelector('.order-lg-2', () => {
   var username = document.querySelector('.text-nowrap[translate=no]').innerText;
 
   var uuid_select = document.querySelector('#uuid-select');
@@ -1028,5 +1034,56 @@ waitForSelector('.order-lg-2', () => {
         }
       });
     }, skinHash);
+  });
+  // Create instance from globally available class
+  const userDataUtils = new UserDataUtils();
+  
+  // Try the success dropdown button (the main follow button)
+  waitForSelector('body > main > div.row.align-items-end > div.col > div > div.col.text-end > form > div', (followBtn) => {
+    console.log(followBtn);
+    if (document.getElementById('pin-user-btn')) {
+      return;
+    }
+    const isPinned = userDataUtils.isPinned(username);
+    const pinButton = document.createElement('button');
+    pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+    pinButton.id = 'pin-user-btn';
+    pinButton.innerHTML = `<i class="fas fa-thumbtack"></i> ${isPinned ? 'Unpin' : 'Pin'}`;
+    pinButton.title = `${isPinned ? 'Remove from' : 'Add to'} pinned users`;
+    
+    pinButton.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const btn = e.target.closest('#pin-user-btn');
+      const wasUnpinning = btn.classList.contains('btn-warning');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+      
+      try {
+        let success = false;
+        if (wasUnpinning) {
+          success = userDataUtils.unpinUser(username);
+        } else {
+          success = await userDataUtils.pinUser(username);
+        }
+        
+        if (success) {
+          const newIsPinned = !wasUnpinning;
+          btn.className = `btn ${newIsPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+          btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${newIsPinned ? 'Unpin' : 'Pin'}`;
+          btn.title = `${newIsPinned ? 'Remove from' : 'Add to'} pinned users`;
+        } else {
+          btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+          btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+        }
+      } catch (error) {
+        console.error('Error toggling pin status:', error);
+        btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+        btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+    followBtn.insertBefore(pinButton, followBtn.firstChild);
   });
 });

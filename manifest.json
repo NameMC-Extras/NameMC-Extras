@@ -20,7 +20,8 @@
       ],
       "css": [
         "css/NameMC.css",
-        "css/announcement.css"
+        "css/announcement.css",
+        "css/pinned.css"
       ],
       "matches": [
         "*://*.namemc.com/*"

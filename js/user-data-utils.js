@@ -98,7 +98,7 @@ class UserDataUtils {
     }
 
     async fetchUserName() {
-        return await waitForSelector('#header > nav > ul.navbar-nav.ms-auto > li.nav-item.dropdown > a > span', (userName) => {
+        return await waitForProfileSelector('#header > nav > ul.navbar-nav.ms-auto > li.nav-item.dropdown > a > span', (userName) => {
             return userName.textContent;
         });
     }
@@ -348,9 +348,74 @@ class UserDataUtils {
         console.log('Test Zenection : ', await userDataUtils.fetchUserProfile("Zenection"))
     }
 
+    // Pinning system methods
+    getPinnedUsers() {
+        try {
+            const pinnedData = localStorage.getItem('namemc_pinned_users');
+            return pinnedData ? JSON.parse(pinnedData) : [];
+        } catch (error) {
+            console.error('Error retrieving pinned users:', error);
+            return [];
+        }
+    }
+
+    isPinned(username) {
+        const pinnedUsers = this.getPinnedUsers();
+        return pinnedUsers.some(user => user.username === username);
+    }
+
+    async pinUser(username) {
+        try {
+            const userProfile = await this.fetchUserProfile(username);
+            const pinnedUsers = this.getPinnedUsers();
+            
+            if (!this.isPinned(username)) {
+                pinnedUsers.push({
+                    username: userProfile.username,
+                    uuid: userProfile.uuid,
+                    pinnedAt: Date.now()
+                });
+                localStorage.setItem('namemc_pinned_users', JSON.stringify(pinnedUsers));
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error pinning user:', error);
+            return false;
+        }
+    }
+
+    unpinUser(username) {
+        try {
+            const pinnedUsers = this.getPinnedUsers();
+            const filteredUsers = pinnedUsers.filter(user => user.username !== username);
+            localStorage.setItem('namemc_pinned_users', JSON.stringify(filteredUsers));
+            return true;
+        } catch (error) {
+            console.error('Error unpinning user:', error);
+            return false;
+        }
+    }
+
+    async getPinnedUserProfiles() {
+        const pinnedUsers = this.getPinnedUsers();
+        const profiles = [];
+        
+        for (const pinnedUser of pinnedUsers) {
+            try {
+                const profile = await this.fetchUserProfile(pinnedUser.username);
+                profiles.push(profile);
+            } catch (error) {
+                console.error(`Error fetching profile for ${pinnedUser.username}:`, error);
+            }
+        }
+        
+        return profiles;
+    }
+
 }
 
-const waitForSelector = function (selector, callback) {
+const waitForProfileSelector = function (selector, callback) {
     return new Promise((resolve, reject) => {
         const checkElement = () => {
             let query = document.querySelector(selector);
@@ -364,13 +429,13 @@ const waitForSelector = function (selector, callback) {
     });
 };
 
+// Export class globally
+window.UserDataUtils = UserDataUtils;
+
 // Create global instance
 const userDataUtils = new UserDataUtils();
 
 // Auto-run test when on main page
 if (window.location.pathname === '/' || window.location.pathname === '') {
     userDataUtils.launch();
-
-}
-
-window.userDataUtils = userDataUtils; 
+} 
