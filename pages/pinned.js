@@ -260,15 +260,3 @@ waitForSelector('main', (main) => {
         loadPinnedUsers();
     });
 });
-
-window.onmessage = (e) => {
-    if (e.origin === 'https://namemc.com' || e.origin.endsWith('.namemc.com')) {
-        if (e.data === 'reload') {
-            setTimeout(() => {
-                document.querySelector('#captchaIf2').contentWindow.addEventListener('visibilitychange', async () => {
-                    location.reload();
-                });
-            }, 1000);
-        }
-    }
-}

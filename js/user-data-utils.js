@@ -302,17 +302,21 @@
             }
 
             try {
-                const response = await fetch(`/profile/${uuid}/followers?sort=date:desc`);
+                const response = await fetch(`/profile/${uuid}`);
 
-                if (!window.top.document.querySelector('#captchaIf2')) {
+                if (!document.querySelector('#captchaIf2')) {
                     const iframeHTML = `<iframe src="/profile/${uuid}" id="captchaIf2" style="display:none"></iframe>`;
 
-                    window.top.document.documentElement.insertAdjacentHTML('beforeend', iframeHTML);
+                    document.documentElement.insertAdjacentHTML('beforeend', iframeHTML);
                 }
 
                 if (response.status === 403) {
-                    window.top.document.querySelector('#captchaIf2').style.display = 'block';
-                    window.top.postMessage('reload');
+                    document.querySelector('#captchaIf2').style.display = 'block';
+                    setTimeout(() => {
+                        document.querySelector('#captchaIf2').contentWindow.addEventListener('visibilitychange', async () => {
+                            location.reload();
+                        });
+                    }, 1000);
                     return;
                 } else if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -330,12 +334,6 @@
                 console.error(`Error fetching profile for ${uuid}:`, error);
                 throw error;
             }
-        }
-
-        async launch() {
-            const uuid = await userDataUtils.fetchUUID();
-            const userProfile = await userDataUtils.fetchUserProfile(uuid);
-            console.log('User profile:', userProfile);
         }
 
         // Pinning system methods
@@ -421,23 +419,4 @@
 
     // Export class globally
     window.UserDataUtils = UserDataUtils;
-
-    // Create global instance
-    const userDataUtils = new UserDataUtils();
-
-    if (window.location.pathname === '/' || window.location.pathname === '') {
-        userDataUtils.launch();
-    } else if (window.location.pathname === '/extras/pinned') {
-        window.addEventListener('load', () => {
-            var iframeEl = document.createElement("iframe");
-            iframeEl.width = 0;
-            iframeEl.height = 0;
-            iframeEl.style.display = 'none';
-            iframeEl.srcdoc = `<script>
-        window.UserEntity=${UserEntity.toString()};
-        window.top.UserDataUtils = ${UserDataUtils.toString()};
-    </script>`;
-            document.head.append(iframeEl);
-        });
-    }
 })()

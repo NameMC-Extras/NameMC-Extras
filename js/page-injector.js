@@ -626,6 +626,15 @@
                 };
                 (document.head || document.documentElement).appendChild(inject2);
 
+                if (location.pathname === '/extras/pinned') {
+                    var inject3 = document.createElement('script');
+                    inject3.src = chrome.runtime.getURL('js/user-data-utils.js');
+                    inject3.onload = function () {
+                        this.remove();
+                    };
+                    (document.head || document.documentElement).appendChild(inject3);
+                }
+
                 waitForSelector('#faq', (faq) => {
                     faq.remove()
                 });
