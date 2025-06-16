@@ -168,18 +168,13 @@ function createCapeEvents() {
 }
 
 const waitForSelector = function (selector, callback) {
-  console.log("CALLED");
   const result = document.querySelector(selector);
   if (result) {
-    console.log("FOUND");
     setTimeout(() => {
-      console.log("CALLBACK");
       callback(result);
     });
   } else {
-    console.log("NOT FOUND");
     setTimeout(() => {
-      console.log("RECURSIVE");
       waitForSelector(selector, callback);
     });
   }
@@ -1039,12 +1034,11 @@ if (!hideCreatedAt) {
   const userDataUtils = new UserDataUtils();
   
   // Try the success dropdown button (the main follow button)
-  waitForSelector('body > main > div.row.align-items-end > div.col > div > div.col.text-end > form > div', (followBtn) => {
-    console.log(followBtn);
+  waitForSelector('[method=POST] div', (followBtn) => {
     if (document.getElementById('pin-user-btn')) {
       return;
     }
-    const isPinned = userDataUtils.isPinned(username);
+    const isPinned = userDataUtils.isPinned(uuid);
     const pinButton = document.createElement('button');
     pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
     pinButton.id = 'pin-user-btn';
@@ -1062,9 +1056,9 @@ if (!hideCreatedAt) {
       try {
         let success = false;
         if (wasUnpinning) {
-          success = userDataUtils.unpinUser(username);
+          success = userDataUtils.unpinUser(uuid);
         } else {
-          success = await userDataUtils.pinUser(username);
+          success = await userDataUtils.pinUser(uuid);
         }
         
         if (success) {

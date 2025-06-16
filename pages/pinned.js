@@ -79,7 +79,7 @@ const createPinnedUserCard = (userProfile) => {
                         <div class="badge-container">
                             ${userProfile.badges.map(badge => `<span class="badge text-bg-secondary me-1 small">${badge.name}</span>`).join('')}
                         </div>
-                        <button class="btn btn-outline-danger btn-sm unpin-btn" data-username="${userProfile.username}" title="Remove from pinned users">
+                        <button class="btn btn-outline-danger btn-sm unpin-btn" data-uuid="${userProfile.uuid}" title="Remove from pinned users">
                             <i class="fas fa-times"></i> Unpin
                         </button>
                     </div>
@@ -92,7 +92,7 @@ const createPinnedUserCard = (userProfile) => {
 const initSkinViewer = async (userProfile) => {
     const canvas = document.getElementById(`skin-viewer-${userProfile.uuid}`);
     const loadingElement = document.getElementById(`loading-${userProfile.uuid}`);
-    
+
     if (!canvas) return;
 
     try {
@@ -115,21 +115,21 @@ const initSkinViewer = async (userProfile) => {
             canvas: canvas,
             width: canvas.clientWidth,
             height: canvas.clientHeight,
-            skin: skinUrl,
-            cape: userProfile.currentCape ? userProfile.currentCape.imageUrl : null,
+            skin: skinUrl?.replace('.png', '')?.replace('https://s.namemc.com/i/', 'https://cors.faav.top/namemc/texture/'),
+            cape: userProfile.currentCape ? userProfile.currentCape.imageUrl?.replace('.png', '')?.replace('https://s.namemc.com/i/', 'https://cors.faav.top/namemc/texture/') : null,
             model: 'auto-detect'
         });
-        
+
         // Configure viewer controls
         skinViewer.controls.enableRotate = true;
         skinViewer.controls.enableZoom = true;
         skinViewer.controls.enablePan = false;
-        
+
         // Setup animation
         skinViewer.animation = new window.skinview3d.WalkingAnimation();
         skinViewer.animation.speed = 0.5;
         skinViewer.animation.headBobbing = false;
-        
+
         // Configure camera and lighting (similar to skin-cape-test.js)
         skinViewer.fov = 40;
         skinViewer.camera.position.y = 22 * Math.cos(.01);
@@ -143,11 +143,11 @@ const initSkinViewer = async (userProfile) => {
         if (loadingElement) {
             loadingElement.style.display = 'none';
         }
-        
+
         return skinViewer;
     } catch (error) {
         console.error('Error initializing skin viewer for', userProfile.username, ':', error);
-        
+
         // Show error message
         if (loadingElement) {
             loadingElement.innerHTML = `
@@ -156,17 +156,17 @@ const initSkinViewer = async (userProfile) => {
                 <small class="text-muted">Unable to load skin</small>
             `;
         }
-        
+
         return null;
     }
 };
 
 const loadPinnedUsers = async () => {
     const container = document.getElementById('pinned-users-container');
-    
+
     try {
         const pinnedProfiles = await window.pinnedUserDataUtils.getPinnedUserProfiles();
-        
+
         if (pinnedProfiles.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-5">
@@ -177,14 +177,14 @@ const loadPinnedUsers = async () => {
                 </div>`;
             return;
         }
-        
+
         container.innerHTML = `<div class="row g-3" id="pinned-cards-row"></div>`;
         const cardsRow = document.getElementById('pinned-cards-row');
-        
+
         pinnedProfiles.forEach(userProfile => {
             cardsRow.innerHTML += createPinnedUserCard(userProfile);
         });
-        
+
         // Initialize skin viewers after DOM is updated
         setTimeout(async () => {
             for (const userProfile of pinnedProfiles) {
@@ -193,14 +193,14 @@ const loadPinnedUsers = async () => {
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
         }, 200);
-        
+
         // Add event handlers for unpin buttons
         document.querySelectorAll('.unpin-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const username = e.target.closest('.unpin-btn').dataset.username;
-                if (window.pinnedUserDataUtils.unpinUser(username)) {
+                const uuid = e.target.closest('.unpin-btn').dataset.uuid;
+                if (window.pinnedUserDataUtils.unpinUser(uuid)) {
                     e.target.closest('.col-lg-4').remove();
-                    
+
                     // Check if there are no more pinned users
                     if (document.querySelectorAll('.unpin-btn').length === 0) {
                         loadPinnedUsers();
@@ -208,7 +208,7 @@ const loadPinnedUsers = async () => {
                 }
             });
         });
-        
+
     } catch (error) {
         console.error('Error loading pinned users:', error);
         container.innerHTML = `
@@ -259,4 +259,16 @@ waitForSelector('main', (main) => {
         window.pinnedUserDataUtils = userDataUtils; // Make it globally accessible for this page
         loadPinnedUsers();
     });
-}); 
+});
+
+window.onmessage = (e) => {
+    if (e.origin === 'https://namemc.com' || e.origin.endsWith('.namemc.com')) {
+        if (e.data === 'reload') {
+            setTimeout(() => {
+                document.querySelector('#captchaIf2').contentWindow.addEventListener('visibilitychange', async () => {
+                    location.reload();
+                });
+            }, 1000);
+        }
+    }
+}

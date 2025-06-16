@@ -630,7 +630,7 @@
                     faq.remove()
                 });
 
-                document.querySelector('.dropdown-item.active')?.classList.remove('active');
+                document.querySelector('.dropdown-menu > .active')?.classList.remove('active');
                 document.querySelector('#' + page)?.classList.add('active');
             }
 

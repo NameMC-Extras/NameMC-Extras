@@ -431,3 +431,12 @@ a:has([class*=fa-eye]) {
     left: -12.5%;
     transform: scale(0.9);
 }
+
+#captchaIf2 {
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
