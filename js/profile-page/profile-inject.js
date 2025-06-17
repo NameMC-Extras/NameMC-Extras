@@ -1049,7 +1049,7 @@ if (!hideCreatedAt) {
     
     pinButton.addEventListener('click', async (e) => {
       e.preventDefault();
-      const btn = e.target.closest('#pin-user-btn');
+      const btn = pinButton;
       const wasUnpinning = btn.classList.contains('btn-warning');
       
       btn.disabled = true;

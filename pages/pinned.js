@@ -9,7 +9,7 @@ const pinnedPageContent = `
         <p class="mt-2">Loading pinned users...</p>
     </div>
 </div>
-<div id="pagination-controls" class="d-flex justify-content-center mt-4" style="display: none !important;">
+<div id="pagination-controls" class="d-flex justify-content-center mt-4 d-none">
     <nav aria-label="Page navigation">
         <ul class="pagination">
             <li class="page-item" id="prev-page">
@@ -25,7 +25,7 @@ const pinnedPageContent = `
         </ul>
     </nav>
 </div>
-<div class="text-center mt-2" id="page-info" style="display: none;">
+<div class="text-center mt-2 d-none" id="page-info">
     <small class="text-muted">Page <span id="current-page-text">1</span> of <span id="total-pages-text">1</span> - <span id="users-count-text">0</span> users total</small>
 </div>
 <div class="mb-2"></div>
@@ -351,7 +351,7 @@ const createPinnedUserCard = (userProfile) => {
             <button class="btn btn-outline-danger btn-sm unpin-btn position-absolute" 
                     data-uuid="${userProfile.uuid}" 
                     title="Remove from pinned users" 
-                    style="top: 6px; right: 6px; z-index: 10; border-radius: 50%; width: 24px; height: 24px; padding: 0; font-size: 10px; border-width: 1px;">
+                    style="top: 6px; right: 6px; z-index: 2; border-radius: 50%; width: 24px; height: 24px; padding: 0; font-size: 10px; border-width: 1px;">
                 <i class="fas fa-times"></i>
             </button>
             <div class="card-body d-flex flex-column p-3">
@@ -488,7 +488,7 @@ const initSkinViewer = async (userProfile) => {
 
         // Hide loading indicator
         if (loadingElement) {
-            loadingElement.style.display = 'none';
+            loadingElement.classList.add('d-none');
         }
 
         return skinViewer;
@@ -519,13 +519,13 @@ const updatePaginationControls = () => {
     const usersCountText = document.getElementById('users-count-text');
 
     if (totalPages <= 1) {
-        paginationControls.style.display = 'none !important';
-        pageInfo.style.display = 'none !important';
+        paginationControls.classList.add('d-none');
+        pageInfo.classList.add('d-none');
         return;
     }
 
-    paginationControls.style.display = 'flex';
-    pageInfo.style.display = 'block';
+    paginationControls.classList.remove('d-none');
+    pageInfo.classList.remove('d-none');
 
     // Update page information
     currentPageText.textContent = currentPage;
@@ -630,8 +630,8 @@ const displayCurrentPage = async (updateUrl = true) => {
 
         // Add event handlers for unpin buttons
         document.querySelectorAll('.unpin-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const uuid = e.target.closest('.unpin-btn').dataset.uuid;
+            btn.addEventListener('click', async () => {
+                const uuid = btn.dataset.uuid;
                 if (window.pinnedUserDataUtils.unpinUser(uuid)) {
                     // Remove user from global list
                     allPinnedUsers = allPinnedUsers.filter(user => user.uuid !== uuid);
@@ -653,6 +653,8 @@ const displayCurrentPage = async (updateUrl = true) => {
                     } else {
                         displayCurrentPage();
                     }
+
+                    updatePaginationControls();
                 }
             });
         });
@@ -752,8 +754,8 @@ const showEmptyState = () => {
             <p class="text-muted small">Pinned users will appear here for quick access.</p>
         </div>`;
 
-    paginationControls.style.display = 'none';
-    pageInfo.style.display = 'none';
+    paginationControls.classList.add('d-none');
+    pageInfo.classList.add('d-none');
 };
 
 const loadPinnedUsers = async () => {
