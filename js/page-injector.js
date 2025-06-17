@@ -43,6 +43,7 @@
     var hideHeadCmd2 = localStorage.getItem("hideHeadCmd2") === "false";
     var hideDegreesOfSep2 = localStorage.getItem("hideDegreesOfSep2") === "false";
     var hideBadges2 = localStorage.getItem("hideBadges2") === "false";
+
     var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
     var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
     var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "false";
@@ -52,6 +53,35 @@
     var hideServers = localStorage.getItem("hideServers") === "false";
     var hideFollowing = localStorage.getItem("hideFollowing") === "false";
     var hideOptifine = localStorage.getItem("hideOptifine") === "false";
+
+    // Function to inject user-data-utils and check for pinned users
+    const checkPinnedUsers = () => {
+        return new Promise((resolve) => {
+            // Inject user-data-utils script
+            var inject = document.createElement('script');
+            inject.src = chrome.runtime.getURL('js/user-data-utils.js');
+            inject.onload = function() {
+                this.remove();
+                
+                // Wait for UserDataUtils to be available
+                const waitForUserDataUtils = () => {
+                    if (window.UserDataUtils) {
+                        const userDataUtils = new UserDataUtils();
+                        const pinnedUsers = userDataUtils.getPinnedUsers();
+                        resolve(pinnedUsers.length > 0);
+                    } else {
+                        setTimeout(waitForUserDataUtils, 50);
+                    }
+                };
+                waitForUserDataUtils();
+            };
+            inject.onerror = function() {
+                this.remove();
+                resolve(false); // Default to false if script fails to load
+            };
+            (document.head || document.documentElement).appendChild(inject);
+        });
+    };
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -694,15 +724,27 @@
     // INJECT SETTINGS BUTTON
     createSettingsButton();
 
-    const pages = [
-        ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait'],
-        ['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']
-    ];
+    // Initialize pages with basic pages
+    const initializePages = async () => {
+        const pages = [
+            ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']
+        ];
 
-    if (!hideBadges2) pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
+        const hasPinnedUsers = await checkPinnedUsers();
+        if (hasPinnedUsers) {
+            pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
+        }
 
-    // INJECT PAGES
-    injectPages(pages);
+        if (!hideBadges2) {
+            pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
+        }
+
+        // INJECT PAGES
+        injectPages(pages);
+    };
+
+    // Initialize pages asynchronously
+    initializePages();
 
     // INJECT MENU ITEMS
     injectMenus([
@@ -801,7 +843,7 @@
         })
     });
 
-    // INJECT CREDITS
+        // INJECT CREDITS
     waitForSelector("footer .row", (footer) => {
         var creditsRange = document.createRange();
         var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://github.com/NameMC-Extras/NameMC-Extras" target="_blank">NameMC Extras</a></small></div>`);
