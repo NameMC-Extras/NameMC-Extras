@@ -359,7 +359,6 @@
 
                 if (!this.isPinned(uuid)) {
                     pinnedUsers.push({
-                        username: userProfile.username,
                         uuid: userProfile.uuid,
                         pinnedAt: Date.now()
                     });
