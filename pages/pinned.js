@@ -17,7 +17,6 @@ const pinnedPageContent = `
                     <span aria-hidden="true">&laquo;</span>
                 </button>
             </li>
-            <div id="page-numbers" class="d-flex"></div>
             <li class="page-item" id="next-page">
                 <button class="page-link" aria-label="Next page">
                     <span aria-hidden="true">&raquo;</span>
@@ -29,6 +28,7 @@ const pinnedPageContent = `
 <div class="text-center mt-2" id="page-info" style="display: none;">
     <small class="text-muted">Page <span id="current-page-text">1</span> of <span id="total-pages-text">1</span> - <span id="users-count-text">0</span> users total</small>
 </div>
+<div class="mb-2"></div>
 
 <div class="modal fade" id="badgesModal" tabindex="-1" aria-labelledby="badgesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -59,12 +59,12 @@ const getCachedProfile = (uuid) => {
     try {
         const cache = localStorage.getItem(CACHE_KEY);
         if (!cache) return null;
-        
+
         const cacheData = JSON.parse(cache);
         const userCache = cacheData[uuid];
-        
+
         if (!userCache) return null;
-        
+
         // Check if cache is still valid (within 10 minutes)
         const now = Date.now();
         if (now - userCache.timestamp > CACHE_DURATION) {
@@ -73,7 +73,7 @@ const getCachedProfile = (uuid) => {
             localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
             return null;
         }
-        
+
         return userCache.profile;
     } catch (error) {
         console.error('Error reading profile cache:', error);
@@ -85,12 +85,12 @@ const setCachedProfile = (uuid, profile) => {
     try {
         const cache = localStorage.getItem(CACHE_KEY);
         const cacheData = cache ? JSON.parse(cache) : {};
-        
+
         cacheData[uuid] = {
             profile: profile,
             timestamp: Date.now()
         };
-        
+
         localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
     } catch (error) {
         console.error('Error writing profile cache:', error);
@@ -101,11 +101,11 @@ const cleanExpiredCache = () => {
     try {
         const cache = localStorage.getItem(CACHE_KEY);
         if (!cache) return;
-        
+
         const cacheData = JSON.parse(cache);
         const now = Date.now();
         let hasExpired = false;
-        
+
         // Remove expired entries
         for (const uuid in cacheData) {
             if (now - cacheData[uuid].timestamp > CACHE_DURATION) {
@@ -113,7 +113,7 @@ const cleanExpiredCache = () => {
                 hasExpired = true;
             }
         }
-        
+
         // Update cache if we removed any expired entries
         if (hasExpired) {
             localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
@@ -128,12 +128,12 @@ const getCacheStats = () => {
     try {
         const cache = localStorage.getItem(CACHE_KEY);
         if (!cache) return { total: 0, expired: 0, valid: 0 };
-        
+
         const cacheData = JSON.parse(cache);
         const now = Date.now();
         let expired = 0;
         let valid = 0;
-        
+
         for (const uuid in cacheData) {
             if (now - cacheData[uuid].timestamp > CACHE_DURATION) {
                 expired++;
@@ -141,7 +141,7 @@ const getCacheStats = () => {
                 valid++;
             }
         }
-        
+
         return {
             total: expired + valid,
             expired: expired,
@@ -173,26 +173,26 @@ window.pinnedCacheUtils = {
 const showAllBadgesModal = (userProfile) => {
     const modalTitle = document.getElementById('badgesModalLabel');
     const modalBody = document.getElementById('badgesModalBody');
-    
+
     // Set modal title
     modalTitle.textContent = `${userProfile.username}'s Badges (${userProfile.badges.length})`;
-    
+
     // Create badges grid
     const badgesGrid = userProfile.badges.map(badge => `
         <div class="col-6 col-md-4 col-lg-3 mb-3">
-            <div class="text-center p-2 border rounded" style="background-color: var(--bs-tertiary-bg, rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.05));">
-                <img src="${badge.image}" alt="${badge.name}" class="mb-2" style="width: 32px; height: 32px; image-rendering: pixelated;">
+            <div class="text-center p-2 border rounded bg-body-tertiary">
+                <img src="${badge.image}" alt="${badge.name}" width="32" height="32" class="mb-2" style="image-rendering: pixelated;">
                 <div class="small fw-bold text-truncate" title="${badge.name}">${badge.name}</div>
             </div>
         </div>
     `).join('');
-    
+
     modalBody.innerHTML = `
         <div class="row g-2">
             ${badgesGrid}
         </div>
     `;
-    
+
     // Show the modal
     const modal = new bootstrap.Modal(document.getElementById('badgesModal'));
     modal.show();
@@ -202,26 +202,26 @@ const showAllBadgesModal = (userProfile) => {
 const getPaginatedUserProfiles = async (page, pageSize = USERS_PER_PAGE) => {
     // Clean expired cache before starting
     cleanExpiredCache();
-    
+
     const startIndex = (page - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, allPinnedUsers.length);
     const usersForPage = allPinnedUsers.slice(startIndex, endIndex);
-    
+
     const profiles = [];
     const totalUsers = usersForPage.length;
-    
+
     for (let i = 0; i < usersForPage.length; i++) {
         const pinnedUser = usersForPage[i];
         let profile = null;
-        
+
         try {
             // Try to get from cache first
             profile = getCachedProfile(pinnedUser.uuid);
-            
+
             if (profile) {
                 // Profile found in cache and still valid
                 profiles.push(profile);
-                
+
                 // Update progress bar
                 const progressBar = document.getElementById('loading-progress-bar');
                 const progressText = document.getElementById('loading-progress-text');
@@ -235,10 +235,10 @@ const getPaginatedUserProfiles = async (page, pageSize = USERS_PER_PAGE) => {
                 // Not in cache or expired, fetch from API
                 profile = await window.pinnedUserDataUtils.fetchUserProfile(pinnedUser.uuid);
                 profiles.push(profile);
-                
+
                 // Store in cache
                 setCachedProfile(pinnedUser.uuid, profile);
-                
+
                 // Update progress bar
                 const progressBar = document.getElementById('loading-progress-bar');
                 const progressText = document.getElementById('loading-progress-text');
@@ -251,7 +251,7 @@ const getPaginatedUserProfiles = async (page, pageSize = USERS_PER_PAGE) => {
             }
         } catch (error) {
             console.error(`Error fetching profile for ${pinnedUser.uuid}:`, error);
-            
+
             // Still update progress bar even on error
             const progressBar = document.getElementById('loading-progress-bar');
             const progressText = document.getElementById('loading-progress-text');
@@ -263,7 +263,7 @@ const getPaginatedUserProfiles = async (page, pageSize = USERS_PER_PAGE) => {
             }
         }
     }
-    
+
     return profiles;
 };
 
@@ -287,7 +287,7 @@ const updateUrlWithPage = (page, replace = false) => {
     } else {
         url.searchParams.set('page', page.toString());
     }
-    
+
     if (replace) {
         window.history.replaceState({}, '', url);
     } else {
@@ -336,15 +336,15 @@ const waitForSkinview3d = function (callback) {
 
 const createPinnedUserCard = (userProfile) => {
     // Truncate bio if too long
-    const truncatedBio = userProfile.bio && userProfile.bio.length > 80 
-        ? userProfile.bio.substring(0, 80) + '...' 
+    const truncatedBio = userProfile.bio && userProfile.bio.length > 80
+        ? userProfile.bio.substring(0, 80) + '...'
         : userProfile.bio;
-    
+
     // Limit number of badges displayed
     const maxBadges = 3;
     const displayBadges = userProfile.badges.slice(0, maxBadges);
     const remainingBadges = userProfile.badges.length - maxBadges;
-    
+
     return `
     <div class="col-lg-4 col-md-6 d-flex">
         <div class="card h-100 w-100 position-relative" style="height: 420px;">
@@ -363,7 +363,7 @@ const createPinnedUserCard = (userProfile) => {
                         </a>
                     </h5>
                     <div class="skin-viewer-container checkered mx-auto" style="width: 120px; height: 150px; position: relative; border-radius: 8px; overflow: hidden;">
-                        <canvas id="skin-viewer-${userProfile.uuid}" style="width: 100%; height: 100%; display: block;"></canvas>
+                        <canvas id="skin-viewer-${userProfile.uuid}" style="touch-action: none; width: 100%; height: 100%; display: block;" class="drop-shadow"></canvas>
                         <div class="skin-loading" id="loading-${userProfile.uuid}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
                             <div class="spinner-border spinner-border-sm" role="status">
                                 <span class="visually-hidden">Loading...</span>
@@ -373,7 +373,7 @@ const createPinnedUserCard = (userProfile) => {
                 </div>
                 
                 <!-- Statistics section -->
-                <div class="row text-center mb-3 small border rounded p-2" style="background-color: var(--bs-tertiary-bg, rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.05));">
+                <div class="row text-center mb-3 small border rounded p-2 bg-body-tertiary">
                     <div class="col-4">
                         <div class="fw-bold" style="color: rgba(var(--ne-btn-rgb, 13, 110, 253), 0.8);">${userProfile.views ? userProfile.views.toLocaleString() : '0'}</div>
                         <div class="text-muted" style="font-size: 0.75rem;">Views</div>
@@ -405,7 +405,7 @@ const createPinnedUserCard = (userProfile) => {
                     ` : ''}
                     
                     <!-- UUID at bottom (w copy event) -->
-                    <div class="mt-auto">
+                    <div>
                         <div class="text-center mb-2">
                             <small class="text-muted">UUID</small><br>
                             <code class="small text-break uuid-copy" 
@@ -419,7 +419,7 @@ const createPinnedUserCard = (userProfile) => {
                         <!-- Badges at bottom -->
                         ${displayBadges.length > 0 ? `
                         <div class="text-center">
-                            ${displayBadges.map(badge => `<img src="${badge.image}" alt="${badge.name}" title="${badge.name}" class="me-1" style="width: 20px; height: 20px; image-rendering: pixelated;">`).join('')}
+                            ${displayBadges.map(badge => `<img src="${badge.image}" alt="${badge.name}" title="${badge.name}" width="20" height="20" class="me-1" style="image-rendering: pixelated;">`).join('')}
                             ${remainingBadges > 0 ? `<span class="badge text-bg-light text-dark ms-1 show-all-badges" style="font-size: 0.65rem; cursor: pointer;" data-user-uuid="${userProfile.uuid}" title="Click to see all badges">+${remainingBadges}</span>` : ''}
                         </div>
                         ` : ''}
@@ -480,6 +480,12 @@ const initSkinViewer = async (userProfile) => {
         skinViewer.cameraLight.position.set(12, 25, 0);
         skinViewer.zoom = 0.86;
 
+        canvas.addEventListener(
+            "contextmenu",
+            (event) => event.stopImmediatePropagation(),
+            true
+        );
+
         // Hide loading indicator
         if (loadingElement) {
             loadingElement.style.display = 'none';
@@ -508,14 +514,13 @@ const updatePaginationControls = () => {
     const pageInfo = document.getElementById('page-info');
     const prevPage = document.getElementById('prev-page');
     const nextPage = document.getElementById('next-page');
-    const pageNumbers = document.getElementById('page-numbers');
     const currentPageText = document.getElementById('current-page-text');
     const totalPagesText = document.getElementById('total-pages-text');
     const usersCountText = document.getElementById('users-count-text');
 
     if (totalPages <= 1) {
-        paginationControls.style.display = 'none';
-        pageInfo.style.display = 'none';
+        paginationControls.style.display = 'none !important';
+        pageInfo.style.display = 'none !important';
         return;
     }
 
@@ -529,12 +534,11 @@ const updatePaginationControls = () => {
 
     // Previous button
     prevPage.classList.toggle('disabled', currentPage === 1);
-    
+
     // Next button
     nextPage.classList.toggle('disabled', currentPage === totalPages);
 
     // Generate page numbers
-    pageNumbers.innerHTML = '';
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -544,18 +548,23 @@ const updatePaginationControls = () => {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
+    document.querySelectorAll('[data-page]').forEach(el=>el.parentElement.remove());
     for (let i = startPage; i <= endPage; i++) {
         const pageItem = document.createElement('li');
-        pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageItem.className = `page-item${i === currentPage ? ' active' : ''}`;
         pageItem.innerHTML = `<button class="page-link" data-page="${i}">${i}</button>`;
-        pageNumbers.appendChild(pageItem);
+        nextPage.before(pageItem);
+
+        pageItem.addEventListener('click', () => {
+            currentPage = i;
+            displayCurrentPage();
+        });
     }
 };
 
 const setupPaginationEvents = () => {
     const prevPage = document.getElementById('prev-page');
     const nextPage = document.getElementById('next-page');
-    const pageNumbers = document.getElementById('page-numbers');
 
     // Previous button
     prevPage.querySelector('.page-link').addEventListener('click', () => {
@@ -570,17 +579,6 @@ const setupPaginationEvents = () => {
         if (currentPage < totalPages) {
             currentPage++;
             displayCurrentPage();
-        }
-    });
-
-    // Page numbers
-    pageNumbers.addEventListener('click', (e) => {
-        if (e.target.classList.contains('page-link')) {
-            const page = parseInt(e.target.dataset.page);
-            if (page && page !== currentPage) {
-                currentPage = page;
-                displayCurrentPage();
-            }
         }
     });
 
@@ -638,15 +636,15 @@ const displayCurrentPage = async (updateUrl = true) => {
                     // Remove user from global list
                     allPinnedUsers = allPinnedUsers.filter(user => user.uuid !== uuid);
                     totalUsersCount = allPinnedUsers.length;
-                    
+
                     // Recalculate pagination
                     totalPages = Math.ceil(allPinnedUsers.length / USERS_PER_PAGE);
-                    
+
                     // Adjust current page if necessary
                     if (currentPage > totalPages && totalPages > 0) {
                         currentPage = totalPages;
                     }
-                    
+
                     // Reload current page or show empty state
                     if (allPinnedUsers.length === 0) {
                         showEmptyState();
@@ -665,14 +663,14 @@ const displayCurrentPage = async (updateUrl = true) => {
                 const uuid = e.target.dataset.uuid;
                 try {
                     await navigator.clipboard.writeText(uuid);
-                    
+
                     // Visual feedback
                     const originalText = e.target.textContent;
                     const originalTitle = e.target.title;
                     e.target.textContent = 'Copied!';
                     e.target.title = 'UUID copied to clipboard';
                     e.target.style.backgroundColor = 'rgba(25, 135, 84, 0.2)';
-                    
+
                     // Reset after 2 seconds
                     setTimeout(() => {
                         e.target.textContent = originalText;
@@ -694,7 +692,7 @@ const displayCurrentPage = async (updateUrl = true) => {
                         e.target.textContent = 'Copied!';
                         e.target.title = 'UUID copied to clipboard';
                         e.target.style.backgroundColor = 'rgba(25, 135, 84, 0.2)';
-                        
+
                         setTimeout(() => {
                             e.target.textContent = originalText;
                             e.target.title = originalTitle;
@@ -713,7 +711,7 @@ const displayCurrentPage = async (updateUrl = true) => {
             badgeElement.addEventListener('click', (e) => {
                 const userUuid = e.target.dataset.userUuid;
                 const userProfile = currentPageProfiles.find(profile => profile.uuid === userUuid);
-                
+
                 if (userProfile && userProfile.badges) {
                     showAllBadgesModal(userProfile);
                 }
@@ -753,7 +751,7 @@ const showEmptyState = () => {
             <p class="text-muted">Visit user profiles and click the "Pin" button to add them here.</p>
             <p class="text-muted small">Pinned users will appear here for quick access.</p>
         </div>`;
-    
+
     paginationControls.style.display = 'none';
     pageInfo.style.display = 'none';
 };
@@ -773,11 +771,11 @@ const loadPinnedUsers = async () => {
 
         // Calculate pagination
         totalPages = Math.ceil(allPinnedUsers.length / USERS_PER_PAGE);
-        
+
         // Get initial page from URL or default to 1
         const urlPage = getPageFromUrl();
         currentPage = (urlPage <= totalPages) ? urlPage : 1;
-        
+
         // Update URL if page was adjusted
         if (urlPage > totalPages && totalPages > 0) {
             updateUrlWithPage(currentPage, true); // Replace state to avoid broken history
@@ -837,10 +835,10 @@ waitForSelector('main', (main) => {
     waitForUserDataUtils(() => {
         const userDataUtils = new UserDataUtils();
         window.pinnedUserDataUtils = userDataUtils; // Make it globally accessible for this page
-        
+
         // Clean expired cache on page load
         cleanExpiredCache();
-        
+
         loadPinnedUsers();
     });
 });

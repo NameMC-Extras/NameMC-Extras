@@ -614,6 +614,8 @@ if (!hideCreatedAt) {
           `);
 
           badgeHTML.querySelector("img").src = badge.image;
+          badgeHTML.querySelector("img").width = 27;
+          badgeHTML.querySelector("img").height = 27;
           badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
           badgeHTML.querySelector("a").setAttribute("title", badge.name);
           badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
