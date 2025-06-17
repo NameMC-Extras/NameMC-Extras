@@ -134,7 +134,7 @@ body main {
 
 .customTheme[data-bs-theme="dark"] .btn-primary,
 .customTheme[data-bs-theme="dark"] .btn-secondary,
-.customTheme[data-bs-theme="dark"] .badge:not(.text-bg-light):not(.text-bg-dark):not(.text-bg-warning):not(.text-bg-info),
+.customTheme[data-bs-theme="dark"] .badge:not(.text-bg-light):not(.text-bg-dark):not(.text-bg-warning):not(.text-bg-info):not(.text-dark):not(.text-bg-danger),
 .customTheme[data-bs-theme="dark"] ul.nav-pills button.active,
 .customTheme[data-bs-theme="dark"] ul.nav-pills>li>a.active,
 .customTheme[data-bs-theme="dark"] ul.nav-pills>li.active>a,
@@ -150,7 +150,7 @@ body main {
 
 .customTheme[data-bs-theme="light"] .btn-primary,
 .customTheme[data-bs-theme="light"] .btn-secondary,
-.customTheme[data-bs-theme="light"] .badge:not(.text-bg-light):not(.text-bg-dark):not(.text-bg-warning):not(.text-bg-info),
+.customTheme[data-bs-theme="light"] .badge:not(.text-bg-light):not(.text-bg-dark):not(.text-bg-warning):not(.text-bg-info):not(.text-dark):not(.text-bg-danger),
 .customTheme[data-bs-theme="light"] ul.nav-pills button.active,
 .customTheme[data-bs-theme="light"] ul.nav-pills>li>a.active,
 .customTheme[data-bs-theme="light"] ul.nav-pills>li.active>a,

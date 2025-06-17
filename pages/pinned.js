@@ -392,7 +392,7 @@ const createPinnedUserCard = (userProfile) => {
                 <div class="flex-grow-1 d-flex flex-column">
                     ${userProfile.rank ? `
                     <div class="mb-2 text-center">
-                        <span class="badge ${userProfile.rank.toLowerCase() === 'emerald' ? 'text-white fw-bold' : 'bg-warning text-dark fw-bold'}" ${userProfile.rank.toLowerCase() === 'emerald' ? 'style="background-color: #0A0 !important;"' : ''}>${userProfile.rank}</span>
+                        <span class="badge ${userProfile.rank.toLowerCase() === 'emerald' ? 'text-white fw-bold' : 'text-bg-danger fw-bold'}" ${userProfile.rank.toLowerCase() === 'emerald' ? 'style="background-color: #0A0 !important;"' : ''}>${userProfile.rank}</span>
                     </div>
                     ` : ''}
                     
