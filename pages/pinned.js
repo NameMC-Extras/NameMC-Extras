@@ -379,7 +379,7 @@ const createPinnedUserCard = (userProfile) => {
                         <div class="text-muted" style="font-size: 0.75rem;">Views</div>
                     </div>
                     <div class="col-4 border-start border-end">
-                        <div class="fw-bold" style="color: rgba(25, 135, 84, 0.8);">${userProfile.followersCount || '0'}</div>
+                        <div class="fw-bold" style="color: #198754;">${userProfile.followersCount || '0'}</div>
                         <div class="text-muted" style="font-size: 0.75rem;">Followers</div>
                     </div>
                     <div class="col-4">
@@ -392,7 +392,7 @@ const createPinnedUserCard = (userProfile) => {
                 <div class="flex-grow-1 d-flex flex-column">
                     ${userProfile.rank ? `
                     <div class="mb-2 text-center">
-                        <span class="badge ${userProfile.rank.toLowerCase() === 'emerald' ? 'text-white fw-bold' : 'text-bg-danger fw-bold'}" ${userProfile.rank.toLowerCase() === 'emerald' ? 'style="background-color: #0A0 !important;"' : ''}>${userProfile.rank}</span>
+                        <span class="badge" style=${userProfile.rank.toLowerCase() === 'emerald' ? '"background-color: #0A0 !important;"' : '"background-color: #F00 !important;"'}>${userProfile.rank}</span>
                     </div>
                     ` : ''}
                     
