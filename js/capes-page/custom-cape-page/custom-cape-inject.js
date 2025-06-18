@@ -247,14 +247,7 @@ async function loadPage() {
             <div class="card-header py-1">
               <strong>Description</strong>
             </div>
-            ${(() => {
-      var cardBody = document.createElement("div");
-      cardBody.classList.add("card-body");
-      cardBody.classList.add("py-2");
-      cardBody.textContent = cape.description ?? "Awarded for something pretty cool this person did... I think?\nNo description available, contact a NameMC Extras developer!";
-
-      return cardBody.outerHTML;
-    })()}
+            <div class="card-body py-2" id="description"></div>
           </div>
         </div>
       </div>
@@ -279,6 +272,34 @@ async function loadPage() {
 
   waitForSelector("main", async (mainDiv) => {
     mainDiv.append(capeHTML);
+
+    var descText = cape.description.toString()  ?? "Awarded for something pretty cool this person did... I think?\nNo description available, contact a NameMC Extras developer!";
+    var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
+
+    description.innerHTML = descText;
+
+    if (hasMdLink) {
+      var textAreaTag = document.createElement("textarea");
+      textAreaTag.textContent = descText;
+      descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
+      var elements = descText.match(/\[.*?\)/g);
+      if (elements && elements.length > 0) {
+        for (el of elements) {
+          let text = el.match(/\[(.*?)\]/)[1];
+          let url = el.match(/\((.*?)\)/)[1];
+          let aTag = document.createElement("a");
+          let urlHref = new URL(url);
+          urlHref.protocol = "https:";
+          aTag.href = urlHref;
+          aTag.textContent = text;
+          aTag.target = '_blank';
+          descText = descText.replace(el, aTag.outerHTML)
+        }
+      }
+
+      description.innerHTML = descText;
+    }
 
     // Add the graph card to the left column using functions from graph-utils.js
     const leftColumn = document.querySelector('.col-md-6');
