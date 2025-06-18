@@ -43,6 +43,8 @@
     var hideHeadCmd2 = localStorage.getItem("hideHeadCmd2") === "false";
     var hideDegreesOfSep2 = localStorage.getItem("hideDegreesOfSep2") === "false";
     var hideBadges2 = localStorage.getItem("hideBadges2") === "false";
+    var hidePinned = localStorage.getItem("hidePinned") === "false";
+    var hideSkinTester = localStorage.getItem("hideSkinTester") === "false";
 
     var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
     var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
@@ -250,6 +252,14 @@
                                                 <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers" data-bs-toggle="tooltip" title="Show favorite servers on profile">Favorite Servers</button>
                                                 <button type="button" class="btn btn-outline-primary${!hideHeadCmd2 ? ' active' : ''}" id="hideHeadCmd2" data-bs-toggle="tooltip" title="Display head command">Head Command</button>
                                                 <button type="button" class="btn btn-outline-primary${!hideDegreesOfSep2 ? ' active' : ''}" id="hideDegreesOfSep2" data-bs-toggle="tooltip" title="Show degree of separation">Degree of Separation</button>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="form-label"><strong>Custom Pages:</strong></label>
+                                            <div class="btn-group w-100 toggle-group" role="group">
+                                                <button type="button" class="btn btn-outline-primary${!hidePinned ? ' active' : ''}" id="hidePinned" data-bs-toggle="tooltip" title="Enable pinned users page">Pinned Users</button>
+                                                <button type="button" class="btn btn-outline-primary${!hideSkinTester ? ' active' : ''}" id="hideSkinTester" data-bs-toggle="tooltip" title="Enable skin tester">Skin Tester</button>
                                             </div>
                                         </div>
                                     </div>
@@ -726,12 +736,14 @@
 
     // Initialize pages with basic pages
     const initializePages = async () => {
-        const pages = [
-            ['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']
-        ];
+        const pages = [];
+
+        if (!hideSkinTester) {
+            pages.push(['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']);
+        }
 
         const hasPinnedUsers = await checkPinnedUsers();
-        if (hasPinnedUsers) {
+        if (hasPinnedUsers && !hidePinned) {
             pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
         }
 
