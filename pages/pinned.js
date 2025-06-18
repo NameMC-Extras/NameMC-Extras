@@ -30,7 +30,7 @@ const pinnedPageContent = `
 </div>
 <div class="mb-2"></div>
 
-<div class="modal fade" id="badgesModal" tabindex="-1" aria-labelledby="badgesModalLabel" aria-hidden="true">
+<div class="modal fade" style="overflow: hidden;" id="badgesModal" tabindex="-1" aria-labelledby="badgesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -335,34 +335,42 @@ const waitForSkinview3d = function (callback) {
 };
 
 const createPinnedUserCard = (userProfile) => {
-    // Truncate bio if too long
-    const truncatedBio = userProfile.bio && userProfile.bio.length > 80
-        ? userProfile.bio.substring(0, 80) + '...'
-        : userProfile.bio;
+    // Keep full bio without truncation
+    const fullBio = userProfile.bio;
 
     // Limit number of badges displayed
-    const maxBadges = 3;
+    const maxBadges = 4;
     const displayBadges = userProfile.badges.slice(0, maxBadges);
     const remainingBadges = userProfile.badges.length - maxBadges;
 
+
+    
     return `
     <div class="col-lg-4 col-md-6 d-flex">
-        <div class="card h-100 w-100 position-relative" style="height: 420px;">
-            <button class="btn btn-outline-danger btn-sm unpin-btn position-absolute" 
-                    data-uuid="${userProfile.uuid}" 
-                    title="Remove from pinned users" 
-                    style="top: 6px; right: 6px; z-index: 2; border-radius: 50%; width: 24px; height: 24px; padding: 0; font-size: 10px; border-width: 1px;">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="card-body d-flex flex-column p-3">
-                <!-- Name and skin section -->
-                <div class="text-center mb-3">
-                    <h5 class="mb-2 text-truncate">
-                        <a href="/profile/${userProfile.username}" class="text-decoration-none fw-bold">
-                            ${userProfile.username}
-                        </a>
-                    </h5>
-                    <div class="skin-viewer-container checkered mx-auto" style="width: 120px; height: 150px; position: relative; border-radius: 8px; overflow: hidden;">
+        <div class="card h-100 w-100 position-relative overflow-hidden" style="min-height: 480px;">
+            <!-- Header with username and unpin button -->
+            <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 border-0" style="background: linear-gradient(135deg, rgba(var(--ne-btn-rgb, 13, 110, 253), 0.1), rgba(var(--ne-btn-rgb, 13, 110, 253), 0.05));">
+                <h6 class="mb-0 text-truncate me-2">
+                    <a href="/profile/${userProfile.username}" class="text-decoration-none fw-bold">
+                        ${userProfile.username}
+                    </a>
+                </h6>
+                ${userProfile.rank ? `
+                <span class="badge" style="background-color: ${userProfile.rank.toLowerCase() === 'emerald' ? '#0A0' : '#F00'}!important; font-size: 0.65rem;">${userProfile.rank}</span>
+                ` : ''}
+                <button class="unpin-btn btn ms-auto" 
+                        data-uuid="${userProfile.uuid}" 
+                        title="Remove from pinned users" 
+                        style="background-color: transparent;outline: none;border: none;color: var(--bs-secondary-color) !important;opacity: 0.7;
+">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="card-body d-flex flex-column p-0">
+                <!-- Enhanced 3D Skin Section (Primary Focus) -->
+                <div class="position-relative" style="background: linear-gradient(45deg, rgba(var(--ne-btn-rgb, 13, 110, 253), 0.05), transparent);">
+                    <div class="skin-viewer-container checkered mx-auto" style="width: 100%; height: 250px; position: relative;">
                         <canvas id="skin-viewer-${userProfile.uuid}" style="touch-action: none; width: 100%; height: 100%; display: block;" class="drop-shadow"></canvas>
                         <div class="skin-loading" id="loading-${userProfile.uuid}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
                             <div class="spinner-border spinner-border-sm" role="status">
@@ -371,58 +379,59 @@ const createPinnedUserCard = (userProfile) => {
                         </div>
                     </div>
                 </div>
-                
-                <!-- Statistics section -->
-                <div class="row text-center mb-3 small border rounded p-2 bg-body-tertiary">
-                    <div class="col-4">
-                        <div class="fw-bold" style="color: rgba(var(--ne-btn-rgb, 13, 110, 253), 0.8);">${userProfile.views ? userProfile.views.toLocaleString() : '0'}</div>
-                        <div class="text-muted" style="font-size: 0.75rem;">Views</div>
-                    </div>
-                    <div class="col-4 border-start border-end">
-                        <div class="fw-bold" style="color: #198754;">${userProfile.followersCount || '0'}</div>
-                        <div class="text-muted" style="font-size: 0.75rem;">Followers</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="fw-bold" style="color: rgba(13, 202, 240, 0.8);">${userProfile.followingCount || '0'}</div>
-                        <div class="text-muted" style="font-size: 0.75rem;">Following</div>
+
+                <!-- Statistics Section (Separate from skin) -->
+                <div class="px-3 py-2" style="background: linear-gradient(135deg, rgba(var(--ne-btn-rgb, 13, 110, 253), 0.08), rgba(var(--ne-btn-rgb, 13, 110, 253), 0.02)); border-top: 1px solid rgba(var(--ne-btn-rgb, 13, 110, 253), 0.15);">
+                    <div class="row text-center small">
+                        <div class="col-4">
+                            <div class="fw-bold">${userProfile.views ? userProfile.views.toLocaleString() : '0'}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Views</div>
+                        </div>
+                        <div class="col-4 border-start border-end" style="border-color: rgba(var(--ne-btn-rgb, 13, 110, 253), 0.2) !important;">
+                            <div class="fw-bold">${userProfile.followersCount.toLocaleString() || '0'}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Followers</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold">${userProfile.followingCount.toLocaleString() || '0'}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Following</div>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Information section -->
-                <div class="flex-grow-1 d-flex flex-column">
-                    ${userProfile.rank ? `
-                    <div class="mb-2 text-center">
-                        <span class="badge" style=${userProfile.rank.toLowerCase() === 'emerald' ? '"background-color: #0A0 !important;"' : '"background-color: #F00 !important;"'}>${userProfile.rank}</span>
-                    </div>
-                    ` : ''}
-                    
-                    ${truncatedBio ? `
-                    <div class="text-center mb-2">
-                        <p class="text-muted small mb-0" style="font-style: italic; line-height: 1.3;">
-                            "${truncatedBio}"
+
+                <!-- Content Section -->
+                <div class="flex-grow-1 d-flex flex-column p-3">
+                    <!-- Bio Section -->
+                    ${fullBio ? `
+                    <div class="text-center mb-3">
+                        <p class="text-muted small mb-0 fst-italic" style="line-height: 1.4; border-left: 3px solid rgba(var(--ne-btn-rgb, 13, 110, 253), 0.3); padding-left: 8px; text-align: left !important;">
+                            "${fullBio}"
                         </p>
                     </div>
                     ` : ''}
                     
-                    <!-- UUID at bottom (w copy event) -->
-                    <div>
-                        <div class="text-center mb-2">
-                            <small class="text-muted">UUID</small><br>
-                            <code class="small text-break uuid-copy" 
+                    <!-- Badges Section -->
+                    ${displayBadges.length > 0 ? `
+                    <div class="text-center mb-3">
+                        <div class="d-flex justify-content-center align-items-center flex-wrap gap-1">
+                            ${displayBadges.map(badge => `<img src="${badge.image}" alt="${badge.name}" title="${badge.name}" width="24" height="24" class="border rounded" style="image-rendering: pixelated; background: rgba(var(--ne-btn-rgb, 13, 110, 253), 0.1); padding: 2px;">`).join('')}
+                            ${remainingBadges > 0 ? `<span class="badge text-bg-primary show-all-badges" style="font-size: 0.7rem; cursor: pointer;" data-user-uuid="${userProfile.uuid}" title="Click to see all badges">+${remainingBadges}</span>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+
+
+                    
+                    <!-- UUID Section (Bottom) -->
+                    <div class="mt-auto pt-2 border-top">
+                        <div class="text-center">
+                            <small class="text-muted d-block mb-1">UUID</small>
+                            <code class="small uuid-copy d-block" 
                                   data-uuid="${userProfile.uuid}"
                                   title="Click to copy UUID"
-                                  style="font-size: 0.7rem; word-break: break-all; cursor: pointer; padding: 2px 4px; border-radius: 3px; transition: background-color 0.2s;"
-                                  onmouseover="this.style.backgroundColor='var(--bs-secondary-bg, rgba(108, 117, 125, 0.1))'"
-                                  onmouseout="this.style.backgroundColor='transparent'">${userProfile.uuid}</code>
+                                  style="color: rgba(var(--bs-link-color-rgb)); font-size: 0.65rem; word-break: break-all; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: all 0.2s; background: rgba(var(--ne-btn-rgb, 13, 110, 253), 0.1); border: 1px solid rgba(var(--ne-btn-rgb, 13, 110, 253), 0.2);"
+                                  onmouseover="this.style.backgroundColor='rgba(var(--ne-btn-rgb, 13, 110, 253), 0.2)'"
+                                  onmouseout="this.style.backgroundColor='rgba(var(--ne-btn-rgb, 13, 110, 253), 0.1)'">${userProfile.uuid}</code>
                         </div>
-                        
-                        <!-- Badges at bottom -->
-                        ${displayBadges.length > 0 ? `
-                        <div class="text-center">
-                            ${displayBadges.map(badge => `<img src="${badge.image}" alt="${badge.name}" title="${badge.name}" width="20" height="20" class="me-1" style="image-rendering: pixelated;">`).join('')}
-                            ${remainingBadges > 0 ? `<span class="badge text-bg-light text-dark ms-1 show-all-badges" style="font-size: 0.65rem; cursor: pointer;" data-user-uuid="${userProfile.uuid}" title="Click to see all badges">+${remainingBadges}</span>` : ''}
-                        </div>
-                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -719,6 +728,8 @@ const displayCurrentPage = async (updateUrl = true) => {
                 }
             });
         });
+
+
 
         // Scroll to top after page change
         window.scrollTo({ top: 0, behavior: 'smooth' });
