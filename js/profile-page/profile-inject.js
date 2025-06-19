@@ -460,7 +460,11 @@ if (!hideCreatedAt) {
           "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
         }))
       } else {
-        cdate.textContent = 'Not Found!';
+        // If no date is found, remove the entire "Created At" section
+        var createdAtSection = document.getElementById("created-at-section");
+        if (createdAtSection) {
+          createdAtSection.remove();
+        }
       }
     }
   });
@@ -517,7 +521,7 @@ if (!hideCreatedAt) {
   }
 
   views.outerHTML += `
-      ${!hideCreatedAt ? `<div class="row g-0">
+      ${!hideCreatedAt ? `<div class="row g-0" id="created-at-section">
         <div class="col col-lg-3"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>` : ''}
