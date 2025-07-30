@@ -1,11 +1,5 @@
 console.log("Creating badge page...");
 
-// only use for getting animate cookie
-function getCookie(name) {
-  let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));
-  return cookies[name];
-}
-
 const waitForSelector = function (selector, callback) {
   let query = document.querySelector(selector)
   if (query) {
@@ -19,18 +13,6 @@ const waitForSelector = function (selector, callback) {
   }
 };
 
-const waitForFunc = function (func, callback) {
-  if (window[func] ?? window.wrappedJSObject?.[func]) {
-      setTimeout(() => {
-          callback(window[func] ?? window.wrappedJSObject?.[func]);
-      });
-  } else {
-      setTimeout(() => {
-          waitForFunc(func, callback);
-      });
-  }
-};
-
 const waitForStorage = function (key, callback) {
   if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
     setTimeout(() => {
@@ -39,18 +21,6 @@ const waitForStorage = function (key, callback) {
   } else {
     setTimeout(() => {
       waitForStorage(key, callback);
-    });
-  }
-};
-
-const waitForTooltip = function (callback) {
-  if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForTooltip(callback);
     });
   }
 };
@@ -128,14 +98,7 @@ async function loadPage(mainDiv) {
             <div class="card-header py-1">
               <strong>Description</strong>
             </div>
-            ${(() => {
-      var cardBody = document.createElement("div");
-      cardBody.classList.add("card-body");
-      cardBody.classList.add("py-2");
-      cardBody.textContent = badge.description ?? "Awarded for unknown reasons.";
-
-      return cardBody.outerHTML;
-    })()}
+            <div class="card-body py-2" id="description"></div>
           </div>
         </div>
       </div>
@@ -151,7 +114,35 @@ async function loadPage(mainDiv) {
     </div>
   `);
 
-  mainDiv.append(badgeHTML)
+  mainDiv.append(badgeHTML);
+
+  var descText = badge.description.toString() ?? "Awarded for something pretty cool this person did... I think?\nNo description available, contact a NameMC Extras developer!";
+  var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
+
+  description.innerHTML = descText;
+
+  if (hasMdLink) {
+    var textAreaTag = document.createElement("textarea");
+    textAreaTag.textContent = descText;
+    descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
+    var elements = descText.match(/\[.*?\)/g);
+    if (elements && elements.length > 0) {
+      for (el of elements) {
+        let text = el.match(/\[(.*?)\]/)[1];
+        let url = el.match(/\((.*?)\)/)[1];
+        let aTag = document.createElement("a");
+        let urlHref = new URL(url);
+        urlHref.protocol = "https:";
+        aTag.href = urlHref;
+        aTag.textContent = text;
+        aTag.target = '_blank';
+        descText = descText.replace(el, aTag.outerHTML)
+      }
+    }
+
+    description.innerHTML = descText;
+  }
 
   var badgeOwnerNames = (await Promise.all(badgeOwners.map(async badge => {
     const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);

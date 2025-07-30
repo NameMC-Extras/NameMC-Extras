@@ -168,9 +168,10 @@ function createCapeEvents() {
 }
 
 const waitForSelector = function (selector, callback) {
-  if (document.querySelector(selector)) {
+  const result = document.querySelector(selector);
+  if (result) {
     setTimeout(() => {
-      callback();
+      callback(result);
     });
   } else {
     setTimeout(() => {
@@ -459,13 +460,17 @@ if (!hideCreatedAt) {
           "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
         }))
       } else {
-        cdate.textContent = 'Not Found!';
+        // If no date is found, remove the entire "Created At" section
+        var createdAtSection = document.getElementById("created-at-section");
+        if (createdAtSection) {
+          createdAtSection.remove();
+        }
       }
     }
   });
 }
 
-waitForSelector('.order-lg-2', () => {
+  waitForSelector('.order-lg-2', () => {
   var username = document.querySelector('.text-nowrap[translate=no]').innerText;
 
   var uuid_select = document.querySelector('#uuid-select');
@@ -516,7 +521,7 @@ waitForSelector('.order-lg-2', () => {
   }
 
   views.outerHTML += `
-      ${!hideCreatedAt ? `<div class="row g-0">
+      ${!hideCreatedAt ? `<div class="row g-0" id="created-at-section">
         <div class="col col-lg-3"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
       </div>` : ''}
@@ -613,6 +618,8 @@ waitForSelector('.order-lg-2', () => {
           `);
 
           badgeHTML.querySelector("img").src = badge.image;
+          badgeHTML.querySelector("img").width = 27;
+          badgeHTML.querySelector("img").height = 27;
           badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
           badgeHTML.querySelector("a").setAttribute("title", badge.name);
           badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
@@ -1028,5 +1035,55 @@ waitForSelector('.order-lg-2', () => {
         }
       });
     }, skinHash);
+  });
+  // Create instance from globally available class
+  const userDataUtils = new UserDataUtils();
+  
+  // Try the success dropdown button (the main follow button)
+  waitForSelector('[method=POST] div', (followBtn) => {
+    if (document.getElementById('pin-user-btn')) {
+      return;
+    }
+    const isPinned = userDataUtils.isPinned(uuid);
+    const pinButton = document.createElement('button');
+    pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+    pinButton.id = 'pin-user-btn';
+    pinButton.innerHTML = `<i class="fas fa-thumbtack"></i> ${isPinned ? 'Unpin' : 'Pin'}`;
+    pinButton.title = `${isPinned ? 'Remove from' : 'Add to'} pinned users`;
+    
+    pinButton.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const btn = pinButton;
+      const wasUnpinning = btn.classList.contains('btn-warning');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+      
+      try {
+        let success = false;
+        if (wasUnpinning) {
+          success = userDataUtils.unpinUser(uuid);
+        } else {
+          success = await userDataUtils.pinUser(uuid);
+        }
+        
+        if (success) {
+          const newIsPinned = !wasUnpinning;
+          btn.className = `btn ${newIsPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+          btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${newIsPinned ? 'Unpin' : 'Pin'}`;
+          btn.title = `${newIsPinned ? 'Remove from' : 'Add to'} pinned users`;
+        } else {
+          btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+          btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+        }
+      } catch (error) {
+        console.error('Error toggling pin status:', error);
+        btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+        btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+    followBtn.insertBefore(pinButton, followBtn.firstChild);
   });
 });

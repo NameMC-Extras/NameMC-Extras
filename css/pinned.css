@@ -1,0 +1,41 @@
+.skin-viewer-container {
+    border-radius: 8px;
+    background: var(--bs-light);
+    overflow: hidden;
+}
+
+.user-info p {
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.user-info strong {
+    font-weight: 600;
+}
+
+.badge-container .badge {
+    font-size: 0.7rem;
+}
+
+.pinned-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.pinned-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pin-user-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+@media (max-width: 768px) {
+    .skin-viewer-container {
+        height: 150px !important;
+    }
+    
+    .user-info {
+        font-size: 0.85rem;
+    }
+} 
