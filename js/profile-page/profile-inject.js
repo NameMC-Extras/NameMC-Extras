@@ -41,392 +41,274 @@ var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
 var hideOptifine = localStorage.getItem("hideOptifine") === "false";
 var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
 var bedrockOnly = localStorage.getItem("bedrockOnly") !== "false";
+var pinned = localStorage.getItem("pinned") === "true";
 
 var currentSkinId = null;
 var currentDataModel = "classic";
 var currentCape = null;
 var nmceCape = false;
 
-/* Cape card creator */
 /**
- * @param {CapeTemplate[]} capes 
+ * Create a cape card.
+ * @param {CapeTemplate[]} capes
  * @param {string} title
- * @param {function} callback 
- * @param {boolean} showAmount 
+ * @param {function} callback
+ * @param {boolean} showAmount
  * @param {string} redirect
  */
-function createCapeCard(capes, title, callback = console.log("Successfully made cape card!"), showAmount = false, redirect = null) {
-  let titleArray = title.split(" ");
-  titleArray.shift();
+function createCapeCard(capes, title, callback = () => console.log("Successfully made cape card!"), showAmount = false, redirect = null) {
+  const [firstWord, ...rest] = title.split(" ");
+  const cardId = title.toLowerCase().replace(/\s+/g, "-");
 
-  // Create cape card
   const cardDiv = document.createElement("div");
-  cardDiv.id = title.toLowerCase().replace(" ", "-");
+  cardDiv.id = cardId;
   cardDiv.className = "card mb-3";
-  cardDiv.innerHTML = `
-        <div class="card-header py-1" style="display: flex; justify-content: space-between;">
-            <strong>
-                ${redirect ? `<a href="${redirect}" target="_blank" rel="nofollow noopener noreferrer">` : ""}${title.split(" ")[0]}${redirect ? `</a>` : ""}${" " + titleArray.join(" ")}${showAmount ? " (" + capes.length + ")" : ""}
-            </strong>
-            <div>
-              <a href="javascript:void(0)" class="color-inherit" title="Bedrock Only Capes" id="bedrockBtn">
-                ${bedrockOnly ? '<i class="fas fa-fw fa-eye"></i>' : '<i class="fas fa-fw fa-eye-slash"></i>'}
-              </a>
-            </div>
-        </div>
-        <div class="card-body text-center" style="padding: 3px; width: 324px; margin: auto; text-align: center;">
-        </div>
-    `;
 
-  // Render capes
+  const bedrockIcon = bedrockOnly ? 'fa-eye' : 'fa-eye-slash';
+  const nameText = `${redirect ? `<a href="${redirect}" target="_blank" rel="nofollow noopener noreferrer">${firstWord}</a>` : firstWord} ${rest.join(" ")}${showAmount ? ` (${capes.length})` : ""}`;
+
+  cardDiv.innerHTML = `
+    <div class="card-header py-1" style="display: flex; justify-content: space-between;">
+      <strong>${nameText}</strong>
+      <div>
+        <a href="javascript:void(0)" class="color-inherit" title="Bedrock Only Capes" id="bedrockBtn">
+          <i class="fas fa-fw ${bedrockIcon}"></i>
+        </a>
+      </div>
+    </div>
+    <div class="card-body text-center" style="padding: 3px; width: 324px; margin: auto;"></div>
+  `;
+
+  const cardBody = cardDiv.querySelector(".card-body");
+
   capes.forEach(cape => {
-    createCape(cape.src, cardDiv.querySelector("div.card-body.text-center"), cape.name, cape.description, cape.redirect ?? cape, cape.java_equivalent)
+    createCape(cape.src, cardBody, cape.name, cape.description, cape.redirect ?? cape, cape.java_equivalent);
   });
 
-  // find element with class name "col-md-auto order-md-1", then make cardDiv come after the third "card mb-3" classed element
   const colDiv = document.querySelector(".col-md-auto.order-md-1");
   const cardDivs = colDiv.querySelectorAll(".card.mb-3");
-  if (cardDivs.length > 2) {
-    colDiv.insertBefore(cardDiv, cardDivs[2].nextSibling);
-  } else {
-    colDiv.appendChild(cardDiv);
-  }
+  (cardDivs.length > 2)
+    ? colDiv.insertBefore(cardDiv, cardDivs[2].nextSibling)
+    : colDiv.appendChild(cardDiv);
 
   callback(cardDiv);
 }
 
-
-/* Cape canvas creator */
 /**
- * @param {string} src 
- * @param {HTMLElement} parentElement 
- * @param {string} name 
- * @param {string} description 
- * @param {string} redirect 
+ * Create a cape canvas and add to parent.
+ * @param {string} src
+ * @param {HTMLElement} parent
+ * @param {string} name
+ * @param {string} description
+ * @param {string} redirect
+ * @param {string} java_equivalent
  */
-function createCape(src, parentElement, name = "", description = "", redirect = "", java_equivalent = "") {
-  let capeCanvas = document.createElement("canvas");
-  capeCanvas.className = "cape-2d align-top skin-button";
-  let capeDataHash = `custom-${name.replace(" ", "-").toLowerCase()}`;
-  capeCanvas.setAttribute("data-cape-hash", capeDataHash);
-  capeDB[capeDataHash] = src;
-  capeCanvas.width = 40;
-  capeCanvas.height = 64;
-  capeImage = new Image();
-  capeImage.src = src;
+function createCape(src, parent, name = "", description = "", redirect = "", java_equivalent = "") {
+  const canvas = document.createElement("canvas");
+  canvas.className = "cape-2d align-top skin-button";
+  const hash = `custom-${name.replace(/\s+/g, "-").toLowerCase()}`;
+  canvas.dataset.capeHash = hash;
+  capeDB[hash] = src;
 
-  capeImage.onload = () => {
-    const ctx = capeCanvas.getContext('2d');
-    ctx.mozImageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.msImageSmoothingEnabled = false;
+  canvas.width = 40;
+  canvas.height = 64;
+
+  const image = new Image();
+  image.src = src;
+  image.onload = () => {
+    const ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = false;
-    if (capeImage.src !== src) capeImage.src = src;
-    const localCapeScale = capeScale(capeImage.height)
-    ctx.drawImage(capeImage, localCapeScale, localCapeScale, 10 * localCapeScale, 16 * localCapeScale, 0, 0, capeCanvas.width, capeCanvas.height)
-    createCapeEvents();
-  }
+    const scale = capeScale(image.height);
+    ctx.drawImage(image, scale, scale, 10 * scale, 16 * scale, 0, 0, canvas.width, canvas.height);
+    attachCapeEvents(); // only attach once
+  };
 
-  // Puts the image in a href
-  let featureImageHref = document.createElement("a");
-  featureImageHref.href = redirect ? redirect : src;
-  if (java_equivalent) featureImageHref.dataset['java_equivalent'] = java_equivalent;
-  featureImageHref.setAttribute("data-toggle", "tooltip"),
-    featureImageHref.setAttribute("data-html", "true")
-  if (typeof name !== 'undefined') {
-    featureImageHref.setAttribute("title", name)
-  }
-  featureImageHref.appendChild(capeCanvas);
-  parentElement.appendChild(featureImageHref);
+  const link = document.createElement("a");
+  link.href = redirect || src;
+  if (java_equivalent) link.dataset.java_equivalent = java_equivalent;
+  link.dataset.toggle = "tooltip";
+  link.dataset.html = "true";
+  if (name) link.title = name;
+
+  link.appendChild(canvas);
+  parent.appendChild(link);
 }
 
+/**
+ * Attaches mouseover events to all cape canvases once.
+ */
+let capeEventsAttached = false;
+function attachCapeEvents() {
+  if (capeEventsAttached) return;
+  capeEventsAttached = true;
 
-/* Creates cape events for the custom viewer */
-function createCapeEvents() {
-  let capeChildren = document.getElementsByClassName("cape-2d")
-  console.log(`Found ${capeChildren.length} capes`)
-  for (var i = 0; i < capeChildren.length; i++) {
-    capeChildren[i].addEventListener('mouseover', (event) => {
-      for (var i = 0; i < capeChildren.length; i++) {
-        capeChildren[i].classList.remove("skin-button-selected");
-      }
-      event.target.classList.add("skin-button-selected");
-      let capeHash = event.target.getAttribute("data-cape-hash")
+  document.addEventListener("mouseover", function (e) {
+    const target = e.target.closest(".cape-2d");
+    if (!target) return;
 
-      if (capeHash && !capeHash.startsWith("custom-")) {
-        let capeUrl = "https://texture.namemc.com/" + capeHash.substring(0, 2) + "/" + capeHash.substring(2, 4) + "/" + capeHash + ".png";
-        this.skinViewer.loadCape(capeUrl)
-        console.log("capeEvent: Mojang/Optifine")
-      } else if (capeHash && capeHash.startsWith("custom-")) {
-        const options = {};
-        if (elytraOn) options.backEquipment = "elytra";
-        this.skinViewer.loadCape(capeDB[capeHash], options);
-        console.log("capeEvent: Custom")
-      }
-    })
-  }
-}
+    document.querySelectorAll(".cape-2d").forEach(el => el.classList.remove("skin-button-selected"));
+    target.classList.add("skin-button-selected");
 
-const waitForSelector = function (selector, callback) {
-  const result = document.querySelector(selector);
-  if (result) {
-    setTimeout(() => {
-      callback(result);
-    });
-  } else {
-    setTimeout(() => {
-      waitForSelector(selector, callback);
-    });
-  }
-};
+    const hash = target.dataset.capeHash;
+    if (!hash) return;
 
-const waitForSVSelector = function (selector, callback) {
-  if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d.SkinViewer !== 'undefined' && window.skinview3d.SkinViewer) {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForSVSelector(selector, callback);
-    });
-  }
-};
-
-const waitForImage = function (callback, hash) {
-  if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[hash] !== 'undefined' && window.namemc.images[hash].src) {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForImage(callback, hash);
-    });
-  }
-};
-
-const waitForFunc = function (func, callback) {
-  if (window[func] ?? window.wrappedJSObject?.[func]) {
-    setTimeout(() => {
-      callback(window[func] ?? window.wrappedJSObject?.[func]);
-    });
-  } else {
-    setTimeout(() => {
-      waitForFunc(func, callback);
-    });
-  }
-};
-
-const waitForSupabase = function (callback) {
-  var supabase_data = window.localStorage.getItem("supabase_data");
-  if (supabase_data && supabase_data.length > 0) {
-    setTimeout((supabase_data) => {
-      callback(supabase_data);
-    }, null, JSON.parse(supabase_data));
-  } else {
-    setTimeout(() => {
-      waitForSupabase(callback);
-    });
-  }
-};
-
-const waitForTooltip = function (callback) {
-  if (typeof $ !== 'undefined' && typeof $().tooltip !== 'undefined') {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForTooltip(callback);
-    });
-  }
-};
-
-const downloadSkinArt = () => {
-  var a = document.createElement("a");
-  a.href = resizedArt.toDataURL();
-  a.setAttribute("download", "skinart");
-  a.click();
-}
-
-// toggle skin layers
-const toggleLayers = () => {
-  var layerIcon = document.querySelector("#layer-btn i");
-  if (layer === false) {
-    layer = true;
-    layerIcon.className = "fas fa-clone";
-    layerIcon.parentElement.title = "No Layers";
-  } else if (layer === true) {
-    layer = false;
-    layerIcon.className = "far fa-clone";
-    layerIcon.parentElement.title = "Layers";
-  }
-  skinViewer.playerObject.skin.head.outerLayer.visible = layer;
-  skinViewer.playerObject.skin.body.outerLayer.visible = layer;
-  skinViewer.playerObject.skin.rightArm.outerLayer.visible = layer;
-  skinViewer.playerObject.skin.leftArm.outerLayer.visible = layer;
-  skinViewer.playerObject.skin.rightLeg.outerLayer.visible = layer;
-  skinViewer.playerObject.skin.leftLeg.outerLayer.visible = layer;
-}
-
-// fix pause button
-const fixPauseBtn = () => {
-  var pauseBtn = document.querySelector('#play-pause-btn');
-  var pauseIcon = pauseBtn.querySelector('i');
-  if (paused == true) {
-    pauseIcon.classList.remove('fa-pause');
-    pauseIcon.classList.add('fa-play');
-  } else {
-    pauseIcon.classList.remove('fa-play');
-    pauseIcon.classList.add('fa-pause');
-  }
-  pauseBtn.setAttribute('onclick', '');
-  pauseBtn.onclick = () => {
-    if (paused === false) {
-      paused = true;
-      pauseIcon.classList.remove('fa-pause');
-      pauseIcon.classList.add('fa-play');
+    if (hash.startsWith("custom-")) {
+      const options = elytraOn ? { backEquipment: "elytra" } : {};
+      skinViewer.loadCape(capeDB[hash], options);
+      console.log("capeEvent: Custom");
     } else {
-      paused = false;
-      pauseIcon.classList.remove('fa-play');
-      pauseIcon.classList.add('fa-pause');
+      const url = `https://texture.namemc.com/${hash.slice(0, 2)}/${hash.slice(2, 4)}/${hash}.png`;
+      skinViewer.loadCape(url);
+      console.log("capeEvent: Mojang/Optifine");
     }
+  });
+}
+
+/** Utility waiters */
+const waitFor = (conditionFn, callback) => {
+  if (conditionFn()) return setTimeout(callback);
+  setTimeout(() => waitFor(conditionFn, callback), 50);
+};
+
+const waitForSelector = (selector, callback) =>
+  waitFor(() => document.querySelector(selector), () => callback(document.querySelector(selector)));
+
+const waitForSVSelector = (selector, callback) =>
+  waitFor(() => document.querySelector(selector) && window.skinview3d?.SkinViewer, callback);
+
+const waitForImage = (callback, hash) =>
+  waitFor(() => window.namemc?.images?.[hash]?.src, callback);
+
+const waitForFunc = (funcName, callback) =>
+  waitFor(() => window[funcName] || window.wrappedJSObject?.[funcName], () => callback(window[funcName] || window.wrappedJSObject?.[funcName]));
+
+const waitForSupabase = (callback) =>
+  waitFor(() => !!window.localStorage.getItem("supabase_data"), () =>
+    callback(JSON.parse(window.localStorage.getItem("supabase_data"))));
+
+const waitForTooltip = (callback) =>
+  waitFor(() => typeof $ !== 'undefined' && typeof $().tooltip !== 'undefined', callback);
+
+/** Misc actions */
+const downloadSkinArt = () => {
+  const a = document.createElement("a");
+  a.href = resizedArt.toDataURL();
+  a.download = "skinart";
+  a.click();
+};
+
+const toggleLayers = () => {
+  layer = !layer;
+  const icon = document.querySelector("#layer-btn i");
+  icon.className = layer ? "fas fa-clone" : "far fa-clone";
+  icon.parentElement.title = layer ? "No Layers" : "Layers";
+  const parts = skinViewer.playerObject.skin;
+  ["head", "body", "rightArm", "leftArm", "rightLeg", "leftLeg"].forEach(part => {
+    parts[part].outerLayer.visible = layer;
+  });
+};
+
+const fixPauseBtn = () => {
+  const btn = document.querySelector("#play-pause-btn");
+  const icon = btn.querySelector("i");
+  icon.className = paused ? "fas fa-play" : "fas fa-pause";
+
+  btn.onclick = () => {
+    paused = !paused;
+    icon.className = paused ? "fas fa-play" : "fas fa-pause";
     setCookie("animate", !paused);
     skinViewer.animation.paused = paused;
-  }
-}
+  };
+};
 
-// add layer button
 const createLayerBtn = () => {
-  if (!hideLayers) {
-    waitForSelector('#play-pause-btn', () => {
-      let pauseBtn = document.querySelector('#play-pause-btn');
-      let layerBtn = document.createElement('button');
-      layerBtn.id = 'layer-btn';
-      layerBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-      layerBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
-      layerBtn.title = "No Layers";
-      let layerIcon = document.createElement('i');
-      layerIcon.classList.add('fas');
-      layerIcon.classList.add('fa-clone');
-      layerBtn.innerHTML = layerIcon.outerHTML;
-      pauseBtn.outerHTML += layerBtn.outerHTML;
-    });
-  }
-}
+  if (hideLayers) return;
+  waitForSelector("#play-pause-btn", btn => {
+    const layerBtn = document.createElement("button");
+    layerBtn.id = "layer-btn";
+    layerBtn.className = "btn btn-secondary position-absolute top-0 end-0 m-2 p-0";
+    layerBtn.style = "width:32px;height:32px;margin-top:50px!important;";
+    layerBtn.title = "No Layers";
+    layerBtn.innerHTML = '<i class="fas fa-clone"></i>';
+    btn.insertAdjacentElement("afterend", layerBtn);
+  });
+};
 
-// add elytra button
 const createElytraBtn = () => {
-  if (!hideElytra) {
-    waitForSelector('#play-pause-btn', () => {
-      let pauseBtn = document.querySelector('#play-pause-btn');
-      if (skinViewer.capeTexture && !document.querySelector("#elytra-btn")) {
-        let elytraBtn = document.createElement('button');
-        elytraBtn.id = 'elytra-btn';
-        elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
-        let margin = 135;
-        if (hideLayers) margin -= 42.5;
-        if (hideSkinStealer) margin -= 42.5;
-        if (document.querySelectorAll(".skin-2d.skin-button").length > 0) elytraBtn.setAttribute('style', `width:32px;height:32px;margin-top:${margin}px!important`);
-        else {
-          elytraBtn.setAttribute('style', 'width:32px;height:32px;margin-top:92.5px!important');
-        }
+  if (hideElytra) return;
+  waitForSelector("#play-pause-btn", btn => {
+    if (!skinViewer.capeTexture || document.querySelector("#elytra-btn")) return;
 
-        elytraBtn.title = "Elytra";
-        let elytraIcon = document.createElement('i');
-        elytraIcon.classList.add('fas');
-        elytraIcon.classList.add('fa-dove');
-        elytraBtn.innerHTML = elytraIcon.outerHTML;
-        pauseBtn.outerHTML += elytraBtn.outerHTML;
+    const elytraBtn = document.createElement("button");
+    elytraBtn.id = "elytra-btn";
+    elytraBtn.className = "btn btn-secondary position-absolute top-0 end-0 m-2 p-0";
 
-        document.querySelector('#elytra-btn').onclick = () => {
-          let elytraIconEl = document.querySelector('#elytra-btn i');
-          if (!elytraOn) {
-            elytraOn = true;
-            elytraIconEl.classList.remove('fa-dove');
-            elytraIconEl.classList.add('fa-square');
-            elytraIconEl.parentElement.title = "No Elytra"
-            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-              backEquipment: "elytra"
-            });
-          } else {
-            elytraOn = false;
-            elytraIconEl.classList.remove('fa-square');
-            elytraIconEl.classList.add('fa-dove');
-            elytraIconEl.parentElement.title = "Elytra"
-            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
-          }
-        }
-      }
-    });
-  }
-}
+    let margin = 135;
+    if (hideLayers) margin -= 42.5;
+    if (hideSkinStealer) margin -= 42.5;
+    elytraBtn.style = `width:32px;height:32px;margin-top:${margin}px!important;`;
+    elytraBtn.title = "Elytra";
+    elytraBtn.innerHTML = '<i class="fas fa-dove"></i>';
+    btn.insertAdjacentElement("afterend", elytraBtn);
 
-// add steal button
+    elytraBtn.onclick = () => {
+      const icon = elytraBtn.querySelector("i");
+      elytraOn = !elytraOn;
+      icon.className = elytraOn ? "fas fa-square" : "fas fa-dove";
+      elytraBtn.title = elytraOn ? "No Elytra" : "Elytra";
+      skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), elytraOn ? { backEquipment: "elytra" } : {});
+    };
+  });
+};
+
 const createStealBtn = () => {
-  if (!hideSkinStealer) {
-    waitForSelector('#play-pause-btn', () => {
-      let pauseBtn = document.querySelector('#play-pause-btn');
-      let username = document.querySelector('.text-nowrap[translate=no]').innerText;
+  if (hideSkinStealer) return;
+  waitForSelector("#play-pause-btn", btn => {
+    const username = document.querySelector('.text-nowrap[translate=no]')?.innerText;
+    if (!username || document.querySelector("#steal-btn")) return;
 
-      if (!document.querySelector("#steal-btn")) {
-        let stealBtn = document.createElement('button');
-        stealBtn.id = 'steal-btn';
-        stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-        let margin = 92.5;
-        if (hideLayers) margin -= 42.5;
-        stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:${margin}px!important;`)
-        stealBtn.title = "Steal Skin/Cape";
-        let stealIcon = document.createElement('i');
-        stealIcon.classList.add('fas');
-        stealIcon.classList.add('fa-user-secret');
-        stealBtn.innerHTML = stealIcon.outerHTML;
-        pauseBtn.outerHTML += stealBtn.outerHTML;
+    const stealBtn = document.createElement("button");
+    stealBtn.id = "steal-btn";
+    stealBtn.className = "btn btn-secondary position-absolute top-0 end-0 m-2 p-0";
+    const margin = hideLayers ? 50 : 92.5;
+    stealBtn.style = `width:32px;height:32px;margin-top:${margin}px!important;`;
+    stealBtn.title = "Steal Skin/Cape";
+    stealBtn.innerHTML = '<i class="fas fa-user-secret"></i>';
+    btn.insertAdjacentElement("afterend", stealBtn);
 
-        document.querySelector('#steal-btn').onclick = () => {
-          const queryParams = [];
-          if (currentSkinId) queryParams.push(`skin=${currentSkinId}`);
-          if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
-          if (currentCape) queryParams.push(`cape=${currentCape}`);
-          if (username) queryParams.push(`username=${username}`);
-          if (nmceCape) queryParams.push(`nmceCape=${nmceCape}`);
-          const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
-          window.location.href = url;
-        }
-      }
-    });
-  }
-}
+    stealBtn.onclick = () => {
+      const params = new URLSearchParams();
+      if (currentSkinId) params.set("skin", currentSkinId);
+      if (currentDataModel) params.set("model", currentDataModel);
+      if (currentCape) params.set("cape", currentCape);
+      if (username) params.set("username", username);
+      if (nmceCape) params.set("nmceCape", nmceCape);
+      location.href = `${location.origin}/extras/skin-cape-test?${params.toString()}`;
+    };
+  });
+};
 
-// hide element not delete
-const hideElement = (el) => {
-  el.classList.add('d-none')
-}
+// Hide elements instead of removing them
+const hideElement = el => el.classList.add("d-none");
 
-// hide hidden nh
 const hideHidden = () => {
-  var nameElements = document.querySelectorAll('tr');
-  for (var i = 0; i < nameElements.length; i++) {
-    var historyEl = nameElements[i];
-    if (historyEl.classList.value === '' && historyEl.innerText.includes('—')) {
-      hideElement(nameElements[i]);
-      if (nameElements[i + 1] && nameElements[i + 1].classList.value !== '') {
-        hideElement(nameElements[i + 1]);
-      }
+  const rows = document.querySelectorAll("tr");
+  rows.forEach((row, i) => {
+    if (!row.classList.length && row.innerText.includes("—")) {
+      hideElement(row);
+      if (rows[i + 1] && rows[i + 1].classList.length) hideElement(rows[i + 1]);
     }
-  }
-  var newHistory = document.querySelectorAll('tr:not(.d-none)');
-  newHistory[newHistory.length - 1].classList.remove('border-bottom');
-}
+  });
 
-// show hidden nh
+  const visibleRows = document.querySelectorAll("tr:not(.d-none)");
+  visibleRows[visibleRows.length - 1]?.classList.remove("border-bottom");
+};
+
 const showHidden = () => {
-  var newHistory = document.querySelectorAll('tr:not(.d-none)');
-  var hiddenHist = document.querySelectorAll('tr.d-none');
-  newHistory[newHistory.length - 1].classList.add('border-bottom');
-  hiddenHist.forEach((el) => {
-    el.classList.remove('d-none');
-  })
-}
+  document.querySelectorAll("tr.d-none").forEach(el => el.classList.remove("d-none"));
+  const rows = document.querySelectorAll("tr:not(.d-none)");
+  rows[rows.length - 1]?.classList.add("border-bottom");
+};
 
 // fix bug
 waitForFunc("updateSkin", () => {
@@ -470,14 +352,13 @@ if (!hideCreatedAt) {
   });
 }
 
-  waitForSelector('.order-lg-2', () => {
+waitForSelector('#uuid-select', (uuid_select) => {
   var username = document.querySelector('.text-nowrap[translate=no]').innerText;
 
-  var uuid_select = document.querySelector('#uuid-select');
   var uuid = uuid_select.children[0].innerText;
 
   // fix uuid select
-  document.querySelector("#uuid-select").onclick = (e) => {
+  uuid_select.onclick = (e) => {
     if (e.pointerType === 0 || e.target.tagName === "OPTION") document.querySelector("#uuid-select").blur();
   }
 
@@ -566,7 +447,7 @@ if (!hideCreatedAt) {
             }
           }
         }), true);
-      });
+      }).catch(() => { });
   }
 
   // add badges
@@ -1036,54 +917,56 @@ if (!hideCreatedAt) {
       });
     }, skinHash);
   });
-  // Create instance from globally available class
-  const userDataUtils = new UserDataUtils();
-  
-  // Try the success dropdown button (the main follow button)
-  waitForSelector('[method=POST] div', (followBtn) => {
-    if (document.getElementById('pin-user-btn')) {
-      return;
-    }
-    const isPinned = userDataUtils.isPinned(uuid);
-    const pinButton = document.createElement('button');
-    pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-    pinButton.id = 'pin-user-btn';
-    pinButton.innerHTML = `<i class="fas fa-thumbtack"></i> ${isPinned ? 'Unpin' : 'Pin'}`;
-    pinButton.title = `${isPinned ? 'Remove from' : 'Add to'} pinned users`;
-    
-    pinButton.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const btn = pinButton;
-      const wasUnpinning = btn.classList.contains('btn-warning');
-      
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-      
-      try {
-        let success = false;
-        if (wasUnpinning) {
-          success = userDataUtils.unpinUser(uuid);
-        } else {
-          success = await userDataUtils.pinUser(uuid);
-        }
-        
-        if (success) {
-          const newIsPinned = !wasUnpinning;
-          btn.className = `btn ${newIsPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-          btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${newIsPinned ? 'Unpin' : 'Pin'}`;
-          btn.title = `${newIsPinned ? 'Remove from' : 'Add to'} pinned users`;
-        } else {
+  if (pinned) {
+    // Create instance from globally available class
+    const userDataUtils = new UserDataUtils();
+
+    // Try the success dropdown button (the main follow button)
+    waitForSelector('[method=POST] div', (followBtn) => {
+      if (document.getElementById('pin-user-btn')) {
+        return;
+      }
+      const isPinned = userDataUtils.isPinned(uuid);
+      const pinButton = document.createElement('button');
+      pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+      pinButton.id = 'pin-user-btn';
+      pinButton.innerHTML = `<i class="fas fa-thumbtack"></i> ${isPinned ? 'Unpin' : 'Pin'}`;
+      pinButton.title = `${isPinned ? 'Remove from' : 'Add to'} pinned users`;
+
+      pinButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const btn = pinButton;
+        const wasUnpinning = btn.classList.contains('btn-warning');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        try {
+          let success = false;
+          if (wasUnpinning) {
+            success = userDataUtils.unpinUser(uuid);
+          } else {
+            success = await userDataUtils.pinUser(uuid);
+          }
+
+          if (success) {
+            const newIsPinned = !wasUnpinning;
+            btn.className = `btn ${newIsPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+            btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${newIsPinned ? 'Unpin' : 'Pin'}`;
+            btn.title = `${newIsPinned ? 'Remove from' : 'Add to'} pinned users`;
+          } else {
+            btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+            btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+          }
+        } catch (error) {
+          console.error('Error toggling pin status:', error);
           btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
           btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+        } finally {
+          btn.disabled = false;
         }
-      } catch (error) {
-        console.error('Error toggling pin status:', error);
-        btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-        btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
-      } finally {
-        btn.disabled = false;
-      }
+      });
+      followBtn.insertBefore(pinButton, followBtn.firstChild);
     });
-    followBtn.insertBefore(pinButton, followBtn.firstChild);
-  });
+  }
 });

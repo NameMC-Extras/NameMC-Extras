@@ -43,7 +43,7 @@
     var hideHeadCmd2 = localStorage.getItem("hideHeadCmd2") === "false";
     var hideDegreesOfSep2 = localStorage.getItem("hideDegreesOfSep2") === "false";
     var hideBadges2 = localStorage.getItem("hideBadges2") === "false";
-    var hidePinned = localStorage.getItem("hidePinned") === "false";
+    var pinned = localStorage.getItem("pinned") === "true";
     var hideSkinTester = localStorage.getItem("hideSkinTester") === "false";
 
     var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
@@ -246,7 +246,7 @@
                                             </div>
                                         </div>
 
-                                        <div>
+                                        <div class="mb-2">
                                             <label class="form-label"><strong>Additional Features:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
                                                 <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers" data-bs-toggle="tooltip" title="Show favorite servers on profile">Favorite Servers</button>
@@ -258,7 +258,7 @@
                                         <div>
                                             <label class="form-label"><strong>Custom Pages:</strong></label>
                                             <div class="btn-group w-100 toggle-group" role="group">
-                                                <button type="button" class="btn btn-outline-primary${!hidePinned ? ' active' : ''}" id="hidePinned" data-bs-toggle="tooltip" title="Enable pinned users page">Pinned Users</button>
+                                                <button type="button" class="btn btn-outline-primary${pinned ? ' active' : ''}" id="pinned" data-bs-toggle="tooltip" title="Enable pinned users page">Pinned Users</button>
                                                 <button type="button" class="btn btn-outline-primary${!hideSkinTester ? ' active' : ''}" id="hideSkinTester" data-bs-toggle="tooltip" title="Enable skin tester">Skin Tester</button>
                                             </div>
                                         </div>
@@ -278,7 +278,8 @@
                                                 <small class="text-muted ms-2">Configure links to external Minecraft profile services</small>
                                             </label>
                                             <textarea class="form-control" id="linksTextArea" rows="3" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
-                                            <div class="form-text">Use Markdown format: [Label](URL) with {uuid} and {username} as placeholders</div>
+                                            <div class="form-text mb-3">Use Markdown format: [Label](URL) with {uuid} and {username} as placeholders</div>
+                                            <button style="min-width:6rem" class="btn btn-primary" id="linksTextBtn">Save</button>
                                         </div>
                                     </div>
                                 </div>
@@ -602,7 +603,9 @@
                         iframeEl.height = 0;
                         iframeEl.style.display = 'none';
                         iframeEl.srcdoc = `<script>
-                            window.top.jscolor.init();
+                            try{
+                                window.top.jscolor.init();
+                            } catch {}
                         </script>`;
                         document.documentElement.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 1000);
@@ -613,8 +616,9 @@
                 [...document.querySelectorAll("#settingsModal .btn-outline-primary")].forEach(a => createSettingsToggle(a.id));
 
                 var linksTextAreaEl = document.querySelector("#linksTextArea");
+                var linksTextBtn = document.querySelector("#linksTextBtn");
                 if (typeof localStorage.linksTextArea == "undefined") localStorage.linksTextArea = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
-                linksTextAreaEl.onchange = () => {
+                linksTextBtn.onclick = () => {
                     localStorage.linksTextArea = linksTextAreaEl.value;
                     linksTextArea = linksTextAreaEl.value;
                 }
@@ -743,7 +747,7 @@
         }
 
         const hasPinnedUsers = await checkPinnedUsers();
-        if (hasPinnedUsers && !hidePinned) {
+        if (hasPinnedUsers && pinned) {
             pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
         }
 
