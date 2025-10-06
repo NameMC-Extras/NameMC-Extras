@@ -273,7 +273,7 @@ async function loadPage() {
   waitForSelector("main", async (mainDiv) => {
     mainDiv.append(capeHTML);
 
-    var descText = cape.description.toString()  ?? "Awarded for something pretty cool this person did... I think?\nNo description available, contact a NameMC Extras developer!";
+    var descText = cape.description.toString() ?? "Awarded for something pretty cool this person did... I think?\nNo description available, contact a NameMC Extras developer!";
     var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
 
     description.innerHTML = descText;
@@ -320,13 +320,21 @@ async function loadPage() {
       //capeOwners.push({ username: "..." });
       badgeOwnerNames = (await Promise.all(capeOwners.filter(a => a.java_uuid).map(async badge => {
         const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.java_uuid);
-        return await resp.json();
+        try {
+          return await resp.json();
+        } catch {
+          return null;
+        }
       }))).map(a => a.name);
     } else {
       badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
         const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
-        return await resp.json();
-      }))).map(a => a.name);
+        try {
+          return await resp.json();
+        } catch {
+          return null;
+        }
+      }))).map(a => a && a.name);
     }
 
     document.querySelector(".player-list").innerHTML = (isBedrock ? capeOwners.filter(a => a.java_uuid) : capeOwners).map((u, i) => {
