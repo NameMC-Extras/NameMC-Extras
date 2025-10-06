@@ -146,8 +146,12 @@ async function loadPage(mainDiv) {
 
   var badgeOwnerNames = (await Promise.all(badgeOwners.map(async badge => {
     const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
-    return await resp.json();
-  }))).map(a => a.name);
+    try {
+      return await resp.json();
+    } catch {
+      return null;
+    }
+  }))).map(a => a && a.name);
 
   document.querySelector(".player-list").innerHTML = badgeOwners.map((u, i) => {
     var userEl = document.createElement("a");

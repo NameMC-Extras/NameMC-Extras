@@ -11,18 +11,6 @@ const waitForSelector = function (selector, callback) {
   }
 };
 
-const waitForFunc = function (func, callback) {
-  if (window[func] ?? window.wrappedJSObject?.[func]) {
-      setTimeout(() => {
-          callback(window[func] ?? window.wrappedJSObject?.[func]);
-      });
-  } else {
-      setTimeout(() => {
-          waitForFunc(func, callback);
-      });
-  }
-};
-
 const waitForStorage = function (key, callback) {
   if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
     setTimeout(() => {

@@ -34,180 +34,122 @@ const noElytra = [
 const UUIDRegex = /([0-9a-f]{8})(?:-|)([0-9a-f]{4})(?:-|)(4[0-9a-f]{3})(?:-|)([89ab][0-9a-f]{3})(?:-|)([0-9a-f]{12})/;
 var model = "auto-detect";
 
-const waitForSelector = function (selector, callback) {
-    let query = document.querySelector(selector)
-    if (query) {
-        setTimeout((query) => {
-            callback(query);
-        }, null, query);
-    } else {
-        setTimeout(() => {
-            waitForSelector(selector, callback);
-        });
-    }
+/** Utility waiters */
+const waitFor = (conditionFn, callback) => {
+  if (conditionFn()) return setTimeout(callback);
+  setTimeout(() => waitFor(conditionFn, callback), 50);
 };
 
-const waitForFunc = function (func, callback) {
-    if (window[func] ?? window.wrappedJSObject?.[func]) {
-        setTimeout(() => {
-            callback(window[func] ?? window.wrappedJSObject?.[func]);
-        });
-    } else {
-        setTimeout(() => {
-            waitForFunc(func, callback);
-        });
-    }
-};
+const waitForSelector = (selector, callback) =>
+  waitFor(() => document.querySelector(selector), () => callback(document.querySelector(selector)));
 
-const waitForSupabase = function (callback) {
-    var supabase_data = window.localStorage.getItem("supabase_data");
-    if (supabase_data && supabase_data.length > 0) {
-        setTimeout((supabase_data) => {
-            callback(supabase_data);
-        }, null, JSON.parse(supabase_data));
-    } else {
-        setTimeout(() => {
-            waitForSupabase(callback);
-        });
-    }
-};
+const waitForFunc = (funcName, callback) =>
+  waitFor(() => window[funcName] || window.wrappedJSObject?.[funcName], () => callback(window[funcName] || window.wrappedJSObject?.[funcName]));
+
+const waitForSupabase = (callback) =>
+  waitFor(() => !!window.localStorage.getItem("supabase_data"), () =>
+    callback(JSON.parse(window.localStorage.getItem("supabase_data"))));
 
 // toggle skin layers
 const toggleLayers = () => {
-    var layerIcon = document.querySelector("#layer-btn i");
-    if (layer === false) {
-        layer = true;
-        layerIcon.className = "fas fa-clone";
-        layerIcon.parentElement.title = "No Layers";
-    } else if (layer === true) {
-        layer = false;
-        layerIcon.className = "far fa-clone";
-        layerIcon.parentElement.title = "Layers";
-    }
-    skinViewer.playerObject.skin.head.outerLayer.visible = layer;
-    skinViewer.playerObject.skin.body.outerLayer.visible = layer;
-    skinViewer.playerObject.skin.rightArm.outerLayer.visible = layer;
-    skinViewer.playerObject.skin.leftArm.outerLayer.visible = layer;
-    skinViewer.playerObject.skin.rightLeg.outerLayer.visible = layer;
-    skinViewer.playerObject.skin.leftLeg.outerLayer.visible = layer;
-}
+  layer = !layer;
+  const icon = document.querySelector("#layer-btn i");
+  icon.className = layer ? "fas fa-clone" : "far fa-clone";
+  icon.parentElement.title = layer ? "No Layers" : "Layers";
+  const parts = skinViewer.playerObject.skin;
+  ["head", "body", "rightArm", "leftArm", "rightLeg", "leftLeg"].forEach(part => {
+    parts[part].outerLayer.visible = layer;
+  });
+};
 
 // fix pause button
 const fixPauseBtn = () => {
-    setTimeout(() => {
-        var pauseBtn = document.querySelector('#play-pause-btn');
-        var pauseIcon = pauseBtn.querySelector('i');
-        if (paused == true) {
-            pauseIcon.classList.remove('fa-pause');
-            pauseIcon.classList.add('fa-play');
-        } else {
-            pauseIcon.classList.remove('fa-play');
-            pauseIcon.classList.add('fa-pause');
-        }
-        pauseBtn.setAttribute('onclick', '');
-        pauseBtn.onclick = () => {
-            if (paused == false) {
-                paused = true;
-                pauseIcon.classList.remove('fa-pause');
-                pauseIcon.classList.add('fa-play');
-            } else {
-                paused = false;
-                pauseIcon.classList.remove('fa-play');
-                pauseIcon.classList.add('fa-pause');
-            }
-            setCookie("animate", !paused);
-            skinViewer.animation.paused = paused;
-        }
-    })
-}
+  const btn = document.querySelector("#play-pause-btn");
+  const icon = btn.querySelector("i");
+  icon.className = paused ? "fas fa-play" : "fas fa-pause";
 
-// add layers button
-const createLayerBtn = () => {
-    waitForSelector('#play-pause-btn', () => {
-        var pauseBtn = document.querySelector('#play-pause-btn');
-        var layerBtn = document.createElement('button');
-        layerBtn.id = 'layer-btn';
-        layerBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-        layerBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
-        layerBtn.title = "No Layers";
-        layerIcon = document.createElement('i');
-        layerIcon.classList.add('fas');
-        layerIcon.classList.add('fa-clone');
-        layerBtn.innerHTML = layerIcon.outerHTML;
-        pauseBtn.outerHTML += layerBtn.outerHTML;
-    });
-}
+  btn.onclick = () => {
+    paused = !paused;
+    icon.className = paused ? "fas fa-play" : "fas fa-pause";
+    setCookie("animate", !paused);
+    skinViewer.animation.paused = paused;
+  };
+};
 
-// add elytra button
+/** Create elytra toggle button */
 const createElytraBtn = () => {
-    waitForSelector('#play-pause-btn', () => {
-        if (!document.querySelector("#elytra-btn")) {
-            var pauseBtn = document.querySelector('#play-pause-btn');
-            var elytraBtn = document.createElement('button');
-            elytraBtn.id = 'elytra-btn';
-            elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
-            elytraBtn.setAttribute('style', 'width:36px;height:36px;margin-top:177.5px!important;')
-            elytraBtn.title = "Elytra";
-            let elytraIcon = document.createElement('i');
-            elytraIcon.classList.add('fas');
-            elytraIcon.classList.add('fa-dove');
-            elytraBtn.innerHTML = elytraIcon.outerHTML;
-            pauseBtn.outerHTML += elytraBtn.outerHTML;
-        }
+  waitFor(() => document.querySelector('#play-pause-btn'), () => {
+    if (document.querySelector('#elytra-btn')) return; // prevent duplicates
 
-        document.querySelector('#elytra-btn').onclick = () => {
-            var elytraIconEl = document.querySelector('#elytra-btn i');
-            if (!elytraOn) {
-                elytraOn = true;
-                elytraIconEl.classList.remove('fa-dove');
-                elytraIconEl.classList.add('fa-square');
-                elytraIconEl.parentElement.title = "No Elytra"
-                skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-                    backEquipment: "elytra"
-                });
-            } else {
-                elytraOn = false;
-                elytraIconEl.classList.remove('fa-square');
-                elytraIconEl.classList.add('fa-dove');
-                elytraIconEl.parentElement.title = "Elytra"
-                skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
-            }
-        }
-    });
-}
+    const pauseBtn = document.querySelector('#play-pause-btn');
+    const elytraBtn = document.createElement('button');
+    elytraBtn.id = 'elytra-btn';
+    elytraBtn.className = 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0';
+    elytraBtn.style.cssText = 'width:36px;height:36px;margin-top:177.5px!important;';
+    elytraBtn.title = "Elytra";
 
+    const elytraIcon = document.createElement('i');
+    elytraIcon.classList.add('fas', 'fa-dove');
+
+    elytraBtn.appendChild(elytraIcon);
+    pauseBtn.insertAdjacentElement('afterend', elytraBtn);
+
+    elytraBtn.onclick = () => {
+      elytraOn = !elytraOn;
+      if (elytraOn) {
+        elytraIcon.classList.replace('fa-dove', 'fa-square');
+        elytraIcon.parentElement.title = "No Elytra";
+        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), { backEquipment: "elytra" });
+      } else {
+        elytraIcon.classList.replace('fa-square', 'fa-dove');
+        elytraIcon.parentElement.title = "Elytra";
+        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
+      }
+    };
+  });
+};
+
+/** Get skin texture URL from UUID */
 const getSkinFromId = async (uuid) => {
-    var sessionAPI = await fetch("https://api.gapple.pw/cors/sessionserver/" + encodeURIComponent(uuid));
-    if (sessionAPI.status == 200) {
-        const sessionJSON = await sessionAPI.json();
-        var sessionData = JSON.parse(atob(sessionJSON.properties[0].value));
-        var skinTextureURL = sessionData.textures.SKIN.url;
-        return skinTextureURL?.replace('http:', 'https:');
-    }
-}
+  try {
+    const response = await fetch(`https://api.gapple.pw/cors/sessionserver/${encodeURIComponent(uuid)}`);
+    if (!response.ok) return null;
 
-// get/cache special capes
-function getSpecialCapes(supabase_data) {
-    if (Object.keys(specialCapes).length > 0) return specialCapes;
-    supabase_data.categories.forEach(cat => {
-        specialCapes[cat.name] = supabase_data.capes.filter(cape => cape.category == cat.id);
-    });
-    return specialCapes;
-}
+    const sessionJSON = await response.json();
+    const sessionData = JSON.parse(atob(sessionJSON.properties[0].value));
+    return sessionData.textures?.SKIN?.url?.replace('http:', 'https:') ?? null;
+  } catch {
+    return null;
+  }
+};
 
-// get/cache official minecraft capes
-function getOfficialCapes(supabase_data) {
-    if (Object.keys(officialCapes).length > 0) return officialCapes;
-    const tempOrder = [];
-    supabase_data.tester_categories.forEach(cat => {
-        officialCapes[cat.name] = supabase_data.nmc_capes.filter(cape => cape.tester_category == cat.id);
-        const testerCapes = supabase_data.tester_capes.filter(cape => cape.category == cat.id);
-        officialCapes[cat.name] = officialCapes[cat.name].concat(testerCapes);
-        tempOrder[cat.position] = cat.name;
-    });
-    officialCapesCategoryOrder = tempOrder;
-    return officialCapes;
-}
+/** Get/cache special capes */
+const getSpecialCapes = (supabase_data) => {
+  if (Object.keys(specialCapes).length) return specialCapes;
+
+  supabase_data.categories.forEach(cat => {
+    specialCapes[cat.name] = supabase_data.capes.filter(cape => cape.category === cat.id);
+  });
+
+  return specialCapes;
+};
+
+/** Get/cache official capes */
+const getOfficialCapes = (supabase_data) => {
+  if (Object.keys(officialCapes).length) return officialCapes;
+
+  const tempOrder = [];
+  supabase_data.tester_categories.forEach(cat => {
+    officialCapes[cat.name] = [
+      ...supabase_data.nmc_capes.filter(cape => cape.tester_category === cat.id),
+      ...supabase_data.tester_capes.filter(cape => cape.category === cat.id)
+    ];
+    tempOrder[cat.position] = cat.name;
+  });
+
+  officialCapesCategoryOrder = tempOrder;
+  return officialCapes;
+};
 
 waitForSelector('main', (main) => {
     // get url params for applying skin/cape
