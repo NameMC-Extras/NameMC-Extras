@@ -4,6 +4,13 @@
 
 (function() {
     'use strict';
+
+    var noAntiAdblocker = document.createElement('script');
+    noAntiAdblocker.src = chrome.runtime.getURL(`js/tinyShield.user.js`);
+    noAntiAdblocker.onload = function () {
+        this.remove();
+    };
+    (document.head || document.documentElement).appendChild(noAntiAdblocker);
     
     // Function to clean URL by removing #google_vignette fragment
     const cleanGoogleVignette = () => {

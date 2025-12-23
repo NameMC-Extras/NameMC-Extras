@@ -760,13 +760,6 @@
         injectPages(pages);
     };
 
-    var noAntiAdblocker = document.createElement('script');
-    noAntiAdblocker.src = chrome.runtime.getURL(`js/tinyShield.user.js`);
-    noAntiAdblocker.onload = function () {
-        this.remove();
-    };
-    (document.head || document.documentElement).appendChild(noAntiAdblocker);
-
     // Initialize pages asynchronously
     initializePages();
 
