@@ -19,6 +19,7 @@
             });
         }
     };
+
     window.top.addEventListener('visibilitychange', () => {
         let allLocalStorage = { ...localStorage };
         chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
@@ -62,9 +63,9 @@
             // Inject user-data-utils script
             var inject = document.createElement('script');
             inject.src = chrome.runtime.getURL('js/user-data-utils.js');
-            inject.onload = function() {
+            inject.onload = function () {
                 this.remove();
-                
+
                 // Wait for UserDataUtils to be available
                 const waitForUserDataUtils = () => {
                     if (window.UserDataUtils) {
@@ -77,7 +78,7 @@
                 };
                 waitForUserDataUtils();
             };
-            inject.onerror = function() {
+            inject.onerror = function () {
                 this.remove();
                 resolve(false); // Default to false if script fails to load
             };
@@ -759,6 +760,13 @@
         injectPages(pages);
     };
 
+    var noAntiAdblocker = document.createElement('script');
+    noAntiAdblocker.src = chrome.runtime.getURL(`js/tinyShield.user.js`);
+    noAntiAdblocker.onload = function () {
+        this.remove();
+    };
+    (document.head || document.documentElement).appendChild(noAntiAdblocker);
+
     // Initialize pages asynchronously
     initializePages();
 
@@ -859,7 +867,7 @@
         })
     });
 
-        // INJECT CREDITS
+    // INJECT CREDITS
     waitForSelector("footer .row", (footer) => {
         var creditsRange = document.createRange();
         var creditsHTML = creditsRange.createContextualFragment(`<div class="col-6 col-sm-4 col-lg py-1"><small>Using <a class="text-nowrap" href="https://github.com/NameMC-Extras/NameMC-Extras" target="_blank">NameMC Extras</a></small></div>`);
