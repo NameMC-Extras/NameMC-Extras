@@ -12,6 +12,15 @@
   "content_scripts": [
     {
       "js": [
+        "js/noAntiAdblocker.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
         "js/url-cleaner.js",
         "js/data-preload.js",
         "js/user-data-utils.js",
