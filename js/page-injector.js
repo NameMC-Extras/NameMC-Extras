@@ -40,9 +40,6 @@
         window.top.document.querySelectorAll('[data-google-query-id]').forEach(el => {
             el.remove();
         })
-        window.top.document.querySelectorAll('[src*=primis.tech]').forEach(el => {
-            el.remove();
-        })
     }
     test()
     setInterval(() => {
