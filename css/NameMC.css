@@ -7,8 +7,8 @@ html {
     --bedrock-only: contents;
 }
 
-div:has(> [id^="nn_"]):not(main):not(body):not(html),
-div:has(> [id^="img_"]):not(main):not(body):not(html),
+div:has(> [id^="nn_"]:not([class])):not(main):not(body):not(html),
+div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
 .ad-container:not(#test),
 .mt-0:has(+ .ad-container),
 [id*=nn_]:not(main):not(body):not(html),
