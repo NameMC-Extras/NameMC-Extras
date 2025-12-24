@@ -1,6 +1,24 @@
 (async () => {
     if (!document.contentType.startsWith('text/html')) return;
 
+    // bypass anti ad blocker
+    var iframeEl = document.createElement("iframe");
+    iframeEl.width = 0;
+    iframeEl.height = 0;
+    iframeEl.style.display = 'none';
+    iframeEl.srcdoc = `<script>
+    const bypassAntiAdBlocker = () => {
+        window.top.document.querySelectorAll('iframe').forEach(el => {
+            try {
+                el.contentWindow.confirm = () => {};
+            } catch {}
+        })
+    }
+    bypassAntiAdBlocker();
+    setInterval(bypassAntiAdBlocker, 50);
+    </script>`;
+    document.documentElement.append(iframeEl);
+
     let currentUrl = location.href;
 
     let cleanUrl = currentUrl.replace(/\/+$/, '');
@@ -19,24 +37,6 @@
             });
         }
     };
-
-    // bypass anti ad blocker
-    var iframeEl = document.createElement("iframe");
-    iframeEl.width = 0;
-    iframeEl.height = 0;
-    iframeEl.style.display = 'none';
-    iframeEl.srcdoc = `<script>
-    const bypassAntiAdBlocker = () => {
-        window.top.document.querySelectorAll('iframe').forEach(el => {
-            try {
-                el.contentWindow.confirm = () => {};
-            } catch {}
-        })
-    }
-    bypassAntiAdBlocker();
-    setInterval(bypassAntiAdBlocker, 50);
-    </script>`;
-    document.documentElement.append(iframeEl);
 
     window.top.addEventListener('visibilitychange', () => {
         let allLocalStorage = { ...localStorage };
