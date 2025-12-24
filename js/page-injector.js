@@ -1,5 +1,15 @@
 (async () => {
     if (!document.contentType.startsWith('text/html')) return;
+    var iframeEl = document.createElement("iframe");
+    iframeEl.width = 0;
+    iframeEl.height = 0;
+    iframeEl.style.display = 'none';
+    iframeEl.srcdoc = `<script>
+        window.top.alert = (a) => console.log(1, a);
+        window.top.prompt = (a) => console.log(2, a);
+        window.top.confirm = (a) => console.log(3, a);
+    </script>`;
+    document.documentElement.append(iframeEl);
 
     let currentUrl = location.href;
 
