@@ -26,15 +26,15 @@
     iframeEl.height = 0;
     iframeEl.style.display = 'none';
     iframeEl.srcdoc = `<script>
-    const test = () => {
+    const bypassAntiAdBlocker = () => {
         window.top.document.querySelectorAll('iframe').forEach(el => {
             try {
-                el.contentWindow.confirm = () {}
+                el.contentWindow.confirm = () => {};
             } catch {}
         })
     }
-    test()
-    setInterval(test, 50);
+    bypassAntiAdBlocker();
+    setInterval(bypassAntiAdBlocker, 50);
     </script>`;
     document.documentElement.append(iframeEl);
 
