@@ -5,31 +5,15 @@
     iframeEl.height = 0;
     iframeEl.style.display = 'none';
     iframeEl.srcdoc = `<script>
-        const test = () => {
+    const test = () => {
         window.top.document.querySelectorAll('iframe').forEach(el => {
             try {
-            el.contentWindow.alert = (a) => console.log(1, a);
-            el.contentWindow.prompt = (a) => console.log(2, a);
-            el.contentWindow.confirm = (a) => console.log(3, a);
-            } catch (e) { }
-        })
-        window.top.document.querySelectorAll('iframe[allow]').forEach(el => {
-            el.remove();
-        })
-        window.top.document.querySelectorAll('iframe[allowfullscreen]').forEach(el => {
-            el.remove();
-        })
-        window.top.document.querySelectorAll('iframe[name]').forEach(el => {
-            el.remove();
-        })
-        window.top.document.querySelectorAll('iframe[title]').forEach(el => {
-            el.remove();
+                el.contentWindow.confirm = () {}
+            } catch {}
         })
     }
     test()
-    setInterval(() => {
-        test();
-    }, 50);
+    setInterval(test, 50);
     </script>`;
     document.documentElement.append(iframeEl);
 
