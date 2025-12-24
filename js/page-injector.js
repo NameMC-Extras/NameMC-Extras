@@ -13,18 +13,6 @@
             el.contentWindow.confirm = (a) => console.log(3, a);
             } catch (e) { }
         })
-        window.top.document.querySelectorAll('[id*=dclk-studio]').forEach(el => {
-            el.remove();
-        })
-        window.top.document.querySelectorAll('[data-google-av-cxn]').forEach(el => {
-            el.remove();
-        })
-        window.top.document.querySelectorAll('[data-google-av-adk]').forEach(el => {
-            el.remove();
-        })
-        window.top.document.querySelectorAll('[data-google-av-override]').forEach(el => {
-            el.remove();
-        })
         window.top.document.querySelectorAll('iframe[allow]').forEach(el => {
             el.remove();
         })
@@ -35,9 +23,6 @@
             el.remove();
         })
         window.top.document.querySelectorAll('iframe[title]').forEach(el => {
-            el.remove();
-        })
-        window.top.document.querySelectorAll('[data-google-query-id]').forEach(el => {
             el.remove();
         })
     }
