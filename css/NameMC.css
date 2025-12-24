@@ -8,20 +8,22 @@ html {
 }
 
 div:has(> [id^="nn_"]):not(main):not(body):not(html),
-.ad-container,
+.ad-container:not(#test),
 .mt-0:has(+ .ad-container),
 [id*=nn_]:not(main):not(body):not(html),
 [class*=nn_]:not(main):not(body):not(html),
-[id*=celtra],
-[class*=celtra],
-[id*=jpx],
-[class*=jpx],
-[id*=lb1_],
-[class*=lb1_],
-[id*=ads_],
-[class*=ads_],
-[id*=gpt_],
-[class*=gpt_],
+[id*=primis]:not(#test),
+[id*=celtra]:not(#test),
+[class*=celtra]:not(#test),
+[id*=jpx]:not(#test),
+[class*=jpx]:not(#test),
+[id*=lb1_]:not(#test),
+[class*=lb1_]:not(#test),
+[id*=ads_]:not(#test),
+[id*=img_]:not(#test),
+[class*=ads_]:not(#test),
+[id*=gpt_]:not(#test),
+[class*=gpt_]:not(#test),
 .notranslate:has(iframe) {
     display: none !important;
     visibility: hidden !important;

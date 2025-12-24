@@ -5,9 +5,6 @@
     iframeEl.height = 0;
     iframeEl.style.display = 'none';
     iframeEl.srcdoc = `<script>
-        window.top.alert = (a) => console.log(1, a);
-        window.top.prompt = (a) => console.log(2, a);
-        window.top.confirm = (a) => console.log(3, a);
         const test = () => {
         window.top.document.querySelectorAll('iframe').forEach(el => {
             try {
@@ -40,10 +37,10 @@
         window.top.document.querySelectorAll('iframe[title]').forEach(el => {
             el.remove();
         })
-        window.top.document.querySelectorAll('iframe[scrolling]').forEach(el => {
+        window.top.document.querySelectorAll('[data-google-query-id]').forEach(el => {
             el.remove();
         })
-        window.top.document.querySelectorAll('[data-google-query-id]').forEach(el => {
+        window.top.document.querySelectorAll('[src*=primis.tech]').forEach(el => {
             el.remove();
         })
     }
