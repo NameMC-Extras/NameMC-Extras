@@ -1,21 +1,5 @@
 (async () => {
     if (!document.contentType.startsWith('text/html')) return;
-    var iframeEl = document.createElement("iframe");
-    iframeEl.width = 0;
-    iframeEl.height = 0;
-    iframeEl.style.display = 'none';
-    iframeEl.srcdoc = `<script>
-    const test = () => {
-        window.top.document.querySelectorAll('iframe').forEach(el => {
-            try {
-                el.contentWindow.confirm = () {}
-            } catch {}
-        })
-    }
-    test()
-    setInterval(test, 50);
-    </script>`;
-    document.documentElement.append(iframeEl);
 
     let currentUrl = location.href;
 
@@ -35,6 +19,24 @@
             });
         }
     };
+
+    // bypass anti ad blocker
+    var iframeEl = document.createElement("iframe");
+    iframeEl.width = 0;
+    iframeEl.height = 0;
+    iframeEl.style.display = 'none';
+    iframeEl.srcdoc = `<script>
+    const test = () => {
+        window.top.document.querySelectorAll('iframe').forEach(el => {
+            try {
+                el.contentWindow.confirm = () {}
+            } catch {}
+        })
+    }
+    test()
+    setInterval(test, 50);
+    </script>`;
+    document.documentElement.append(iframeEl);
 
     window.top.addEventListener('visibilitychange', () => {
         let allLocalStorage = { ...localStorage };
