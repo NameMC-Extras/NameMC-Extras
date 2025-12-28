@@ -84,7 +84,7 @@ Track and view the history of cape usage on accounts.
 
 Have a suggestion or found a bug? Feel free to:
 - [Create an issue](https://github.com/NameMC-Extras/NameMC-Extras/issues)
-- Contact me on Discord: `faav`
+- Contact me on Discord: `faav2`
 
 ## 🙌 Credits
 
