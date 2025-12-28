@@ -42,6 +42,7 @@ var hideOptifine = localStorage.getItem("hideOptifine") === "false";
 var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
 var bedrockOnly = localStorage.getItem("bedrockOnly") !== "false";
 var pinned = localStorage.getItem("pinned") === "true";
+var uuidFormat2 = localStorage.getItem("uuid-format") || "standard";
 
 var currentSkinId = null;
 var currentDataModel = "classic";
@@ -909,7 +910,8 @@ waitForSelector('#uuid-select', (uuid_select) => {
           }, el.getAttribute('data-cape'));
           setTimeout(fixPauseBtn);
         }
-      });
+      }); 
+      document.querySelector("#uuid-select").value = uuidFormat2;
     }, skinHash);
   });
   if (pinned) {
