@@ -751,15 +751,6 @@ waitForSelector('#uuid-select', (uuid_select) => {
     historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
   });
 
-
-  // fix select default value
-  document.querySelectorAll('select').forEach(select => {
-    let firstSelected = select.querySelector('[selected]');
-    if (firstSelected) {
-      select.value = firstSelected.value; // sets the selected value
-    }
-  });
-
   waitForSVSelector('.skin-3d', () => {
     const oldContainer = document.querySelector('.skin-3d');
     oldContainer.classList.remove('skin-3d');
