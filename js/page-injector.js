@@ -705,13 +705,6 @@
                 document.querySelector('.dropdown-menu > .active')?.classList.remove('active');
                 document.querySelector('#' + page)?.classList.add('active');
             }
-
-            var inject3 = document.createElement('script');
-            inject3.src = chrome.runtime.getURL('js/jscolor.min.js');
-            inject3.onload = function () {
-                this.remove();
-            };
-            (document.head || document.documentElement).appendChild(inject3);
         })
     }
 
@@ -753,6 +746,13 @@
     const injectMenus = (menus, i) => {
         menus.forEach(menu => setTimeout(customMenuItem(...menu), i))
     }
+
+    var inject3 = document.createElement('script');
+    inject3.src = chrome.runtime.getURL('js/jscolor.min.js');
+    inject3.onload = function () {
+        this.remove();
+    };
+    (document.head || document.documentElement).appendChild(inject3);
 
     // INJECT SETTINGS BUTTON
     createSettingsButton();

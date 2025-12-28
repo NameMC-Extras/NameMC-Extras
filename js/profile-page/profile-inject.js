@@ -315,11 +315,6 @@ waitForFunc("updateSkin", () => {
   window.updateSkin = () => { }
 });
 
-window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector(".skin-3d").id = "skin-3d";
-  document.querySelector(".skin-3d").classList.remove("skin-3d");
-});
-
 if (!hideCreatedAt) {
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
@@ -756,8 +751,17 @@ waitForSelector('#uuid-select', (uuid_select) => {
     historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
   });
 
-  waitForSVSelector('#skin-3d', () => {
-    const oldContainer = document.querySelector('#skin-3d');
+
+  // fix select default value
+  document.querySelectorAll('select').forEach(select => {
+    let firstSelected = select.querySelector('[selected]');
+    if (firstSelected) {
+      select.value = firstSelected.value; // sets the selected value
+    }
+  });
+
+  waitForSVSelector('.skin-3d', () => {
+    const oldContainer = document.querySelector('.skin-3d');
     oldContainer.classList.remove('skin-3d');
     const newContainer = document.createElement('canvas');
     newContainer.setAttribute('data-skin-hash', oldContainer.getAttribute('data-id'));
