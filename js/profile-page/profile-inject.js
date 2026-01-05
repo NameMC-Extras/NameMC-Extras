@@ -717,31 +717,11 @@ waitForSelector('#uuid-select', (uuid_select) => {
         </div>`;
     }
 
-    const moveBtn = (btn) => {
-      document.getElementById("historyButtons").append(btn);
-    }
-
-    var removeAllBtn = historyTitle.querySelector(".fa-trash")?.parentElement;
-    if (removeAllBtn) {
-      // check type
-      if (removeAllBtn && typeof removeAllBtn.onclick !== "undefined" && removeAllBtn.onclick) {
-        var removeOnClick = removeAllBtn.onclick;
-        removeAllBtn.classList.remove('position-absolute');
-        moveBtn(removeAllBtn);
-        document.querySelector("#historyButtons").lastElementChild.onclick = removeOnClick;
-      } else {
-        if (removeAllBtn.parentElement.tagName === "FORM") {
-          moveBtn(removeAllBtn.parentElement);
-        } else if (removeAllBtn.parentElement.parentElement.tagName === "FORM") {
-          moveBtn(removeAllBtn.parentElement.parentElement);
-        } else if (removeAllBtn.parentElement.parentElement.parentElement.tagName === "FORM") {
-          moveBtn(removeAllBtn.parentElement.parentElement.parentElement);
-        } else if (removeAllBtn.parentElement.parentElement.parentElement.parentElement.tagName === "FORM") {
-          moveBtn(removeAllBtn.parentElement.parentElement.parentElement.parentElement);
-        } else {
-          moveBtn(removeAllBtn);
-        }
-      }
+    // fix
+    var trash = historyTitle.querySelector(".fa-trash")?.parentElement;
+    if (trash) {
+      trash.classList.remove('position-absolute');
+      document.getElementById("historyButtons").append(trash);
     }
 
     // fix alignment
@@ -915,7 +895,7 @@ waitForSelector('#uuid-select', (uuid_select) => {
           }, el.getAttribute('data-cape'));
           setTimeout(fixPauseBtn);
         }
-      }); 
+      });
       document.querySelector("#uuid-select").value = uuidFormat2;
     }, skinHash);
   });
