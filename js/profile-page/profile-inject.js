@@ -316,6 +316,10 @@ waitForFunc("updateSkin", () => {
   window.updateSkin = () => { }
 });
 
+waitForFunc("animateSkin", () => {
+  window.animateSkin = () => { }
+});
+
 if (!hideCreatedAt) {
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
@@ -722,6 +726,7 @@ waitForSelector('#uuid-select', (uuid_select) => {
       // check type
       if (removeAllBtn && typeof removeAllBtn.onclick !== "undefined" && removeAllBtn.onclick) {
         var removeOnClick = removeAllBtn.onclick;
+        removeAllBtn.classList.remove('position-absolute');
         moveBtn(removeAllBtn);
         document.querySelector("#historyButtons").lastElementChild.onclick = removeOnClick;
       } else {
