@@ -810,7 +810,7 @@
 
         // MARK ALL READ
         waitForSelector('.dropdown-header', async () => {
-            const header = document.querySelectorAll('.dropdown-header')[1];
+            const header = document.querySelector('.dropdown-header:nth-child(6)');
             header.insertAdjacentHTML('beforeend', `<a href="javascript:void 0" id="markAllRead" class="color-inherit" title="Mark All Read"><i class="far fa-envelope-open"></i></a>`);
             const currProfile = document.querySelector('[style] > .dropdown-item.active').href;
             const profiles = [...document.querySelectorAll('[href*="%2Ffollowers%3Fsort%3Ddate%3Adesc"]')].map(a => a.href);

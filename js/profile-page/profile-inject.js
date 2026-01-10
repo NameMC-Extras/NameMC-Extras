@@ -320,6 +320,10 @@ waitForFunc("animateSkin", () => {
   window.animateSkin = () => { }
 });
 
+waitForFunc("initializeSkin", () => {
+  window.initializeSkin = () => { }
+});
+
 if (!hideCreatedAt) {
   window.addEventListener("message", (json) => {
     if (json.origin !== 'https://gadgets.faav.top') return;
