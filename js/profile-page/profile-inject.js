@@ -648,7 +648,7 @@ waitForSelector('#uuid-select', (uuid_select) => {
 
           img.src = skin.toDataURL();
         });
-      }, skins.at(-1).getAttribute("data-id"))
+      }, skins.at(-1).getAttribute("data-id") || skins.at(-1).getAttribute("data-skin-hash"));
 
       if (skinArt) {
         skinsContainer.style.width = '312px';
@@ -747,7 +747,7 @@ waitForSelector('#uuid-select', (uuid_select) => {
     const newContainer = document.createElement('canvas');
     newContainer.setAttribute('data-skin-hash', oldContainer.getAttribute('data-id'));
     newContainer.setAttribute('data-cape-hash', oldContainer.getAttribute('data-cape'));
-    newContainer.setAttribute('data-model', oldContainer.getAttribute('data-model'));
+    newContainer.setAttribute('data-model-type', oldContainer.getAttribute('data-model'));
     newContainer.classList.add('drop-shadow')
     newContainer.classList.add('auto-size')
     newContainer.classList.add('align-top')
@@ -799,7 +799,7 @@ waitForSelector('#uuid-select', (uuid_select) => {
 
     var skinHash = skinContainer.getAttribute('data-skin-hash');
     var capeHash = skinContainer.getAttribute('data-cape-hash');
-    var model = skinContainer.getAttribute('data-model');
+    var model = skinContainer.getAttribute('data-model-type');
     var hasEars = false;
     var optifineSelected = document.querySelector('a[href*="optifine.net/banners"] .skin-button-selected');
 
@@ -859,19 +859,23 @@ waitForSelector('#uuid-select', (uuid_select) => {
       if (!hideLayers) document.querySelector("#layer-btn").onclick = toggleLayers;
 
       // skins
-      document.querySelectorAll('.skin-2d').forEach((el) => {
+      document.querySelectorAll('.skin-2d').forEach((el, _, els) => {
+        el.setAttribute('data-skin-hash', el.getAttribute('data-id'));
+        el.removeAttribute('data-id');
+        el.setAttribute('data-model-type', el.getAttribute('data-model'));
+        el.removeAttribute('data-model');
         el.onmouseover = () => {
-          document.querySelectorAll('.skin-2d').forEach((el) => {
+          els.forEach((el) => {
             el.classList.remove('skin-button-selected');
           });
           el.classList.add('skin-button-selected');
           waitForImage(() => {
-            currentSkinId = el.getAttribute('data-id');
-            currentDataModel = el.getAttribute('data-model');
+            currentSkinId = el.getAttribute('data-skin-hash');
+            currentDataModel = el.getAttribute('data-model-type');
             skinViewer.loadSkin(window.namemc.images[currentSkinId].src, {
               model: currentDataModel
             });
-          }, el.getAttribute('data-id'));
+          }, el.getAttribute('data-skin-hash'));
         }
       });
 
@@ -879,24 +883,26 @@ waitForSelector('#uuid-select', (uuid_select) => {
       setTimeout(fixPauseBtn, 1000);
 
       // capes
-      document.querySelectorAll('.cape-2d').forEach((el) => {
+      document.querySelectorAll('.cape-2d').forEach((el, _, els) => {
+        el.setAttribute('data-cape-hash', el.getAttribute('data-cape'));
+        el.removeAttribute('data-cape');
         el.onmouseover = () => {
-          document.querySelectorAll('.cape-2d').forEach((el) => {
+          els.forEach((el) => {
             el.classList.remove('skin-button-selected');
           });
           el.classList.add('skin-button-selected');
-          currentCape = el.getAttribute('data-cape');
+          currentCape = el.getAttribute('data-cape-hash');
           nmceCape = false;
           waitForImage(() => {
             if (elytraOn === true) {
-              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
+              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape-hash')].src, {
                 backEquipment: "elytra"
               });
             } else {
-              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src);
+              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape-hash')].src);
             }
             setTimeout(createElytraBtn);
-          }, el.getAttribute('data-cape'));
+          }, el.getAttribute('data-cape-hash'));
           setTimeout(fixPauseBtn);
         }
       });

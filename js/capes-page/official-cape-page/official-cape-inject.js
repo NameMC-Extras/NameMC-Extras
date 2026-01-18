@@ -282,7 +282,7 @@ waitForSelector(".col-md-6", () => {
     const newContainer = document.createElement('canvas');
     newContainer.setAttribute('data-skin-hash', oldContainer.getAttribute('data-id'));
     newContainer.setAttribute('data-cape-hash', oldContainer.getAttribute('data-cape'));
-    newContainer.setAttribute('data-model', oldContainer.getAttribute('data-model'));
+    newContainer.setAttribute('data-model-type', oldContainer.getAttribute('data-model'));
     newContainer.classList.add('drop-shadow')
     newContainer.classList.add('auto-size')
     newContainer.classList.add('align-top')
