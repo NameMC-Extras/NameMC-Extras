@@ -38,22 +38,27 @@
         }
     };
 
-    const notFirefox = typeof browser === "undefined";
+    const notFirefox = !chrome.runtime.getURL("").startsWith("moz-extension://");;
     if (notFirefox) {
         window.top.addEventListener('visibilitychange', () => {
             let allLocalStorage = { ...localStorage };
             chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
         });
-
-        await chrome.storage.local.get("savedLocalStorage").then((result) => {
-            if (result.savedLocalStorage) {
-                for (const key in result.savedLocalStorage) {
-                    localStorage.setItem(key, result.savedLocalStorage[key]);
-                }
-            }
-            return result.savedLocalStorage || {};
+    } else {
+        window.top.addEventListener('beforeunload', () => {
+            let allLocalStorage = { ...localStorage };
+            chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
         });
     }
+
+    await chrome.storage.local.get("savedLocalStorage").then((result) => {
+        if (result.savedLocalStorage) {
+            for (const key in result.savedLocalStorage) {
+                localStorage.setItem(key, result.savedLocalStorage[key]);
+            }
+        }
+        return result.savedLocalStorage || {};
+    });
 
     var theme = localStorage.getItem("theme");
     var customThemeOn = localStorage.getItem("customTheme") === "true";
