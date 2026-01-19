@@ -23,6 +23,8 @@ function getCookie(name) {
   return cookies[name];
 }
 
+localStorage.setItem("namemc_animate", "false");
+
 const rows = 9;
 const columns = 3;
 const size = 32;
@@ -312,6 +314,10 @@ const showHidden = () => {
 };
 
 // fix bug
+waitForFunc("skin3d", () => {
+  window.skin3d.canvas = null;
+});
+
 waitForFunc("updateSkin", () => {
   window.updateSkin = () => { }
 });
@@ -648,7 +654,7 @@ waitForSelector('#uuid-select', (uuid_select) => {
 
           img.src = skin.toDataURL();
         });
-      }, skins.at(-1).getAttribute("data-id") || skins.at(-1).getAttribute("data-skin-hash"));
+      }, skins.at(-1).getAttribute("data-id"));
 
       if (skinArt) {
         skinsContainer.style.width = '312px';
@@ -859,23 +865,19 @@ waitForSelector('#uuid-select', (uuid_select) => {
       if (!hideLayers) document.querySelector("#layer-btn").onclick = toggleLayers;
 
       // skins
-      document.querySelectorAll('.skin-2d').forEach((el, _, els) => {
-        el.setAttribute('data-skin-hash', el.getAttribute('data-id'));
-        el.removeAttribute('data-id');
-        el.setAttribute('data-model-type', el.getAttribute('data-model'));
-        el.removeAttribute('data-model');
+      document.querySelectorAll('.skin-2d').forEach((el, _, els) => {;
         el.onmouseover = () => {
           els.forEach((el) => {
             el.classList.remove('skin-button-selected');
           });
           el.classList.add('skin-button-selected');
           waitForImage(() => {
-            currentSkinId = el.getAttribute('data-skin-hash');
-            currentDataModel = el.getAttribute('data-model-type');
+            currentSkinId = el.getAttribute('data-id');
+            currentDataModel = el.getAttribute('data-model');
             skinViewer.loadSkin(window.namemc.images[currentSkinId].src, {
               model: currentDataModel
             });
-          }, el.getAttribute('data-skin-hash'));
+          }, el.getAttribute('data-id'));
         }
       });
 
@@ -884,25 +886,23 @@ waitForSelector('#uuid-select', (uuid_select) => {
 
       // capes
       document.querySelectorAll('.cape-2d').forEach((el, _, els) => {
-        el.setAttribute('data-cape-hash', el.getAttribute('data-cape'));
-        el.removeAttribute('data-cape');
         el.onmouseover = () => {
           els.forEach((el) => {
             el.classList.remove('skin-button-selected');
           });
           el.classList.add('skin-button-selected');
-          currentCape = el.getAttribute('data-cape-hash');
+          currentCape = el.getAttribute('data-cape');
           nmceCape = false;
           waitForImage(() => {
             if (elytraOn === true) {
-              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape-hash')].src, {
+              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
                 backEquipment: "elytra"
               });
             } else {
-              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape-hash')].src);
+              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src);
             }
             setTimeout(createElytraBtn);
-          }, el.getAttribute('data-cape-hash'));
+          }, el.getAttribute('data-cape'));
           setTimeout(fixPauseBtn);
         }
       });
