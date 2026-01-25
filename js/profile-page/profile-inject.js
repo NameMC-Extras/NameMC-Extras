@@ -422,11 +422,11 @@ waitForSelector('#uuid-select', (uuid_select) => {
       </div>` : ''}
     `;
 
-  // BEDROCK.LOL CAPES CONTAINER
+  // BEDROCK CAPES CONTAINER
   if (enableBedrockCapes) {
     if (bedrockOnly) document.documentElement.style.setProperty("--bedrock-only", "none");
 
-    fetch(`https://bedrock.lol/api/v1/users/java/${uuid}`)
+    fetch(`https://bedrockviewer.com/api/v1/users/java/${uuid}`)
       .then(res => res.json())
       .then(data => {
         data.capes.sort((a, b) => b.user_count - a.user_count);

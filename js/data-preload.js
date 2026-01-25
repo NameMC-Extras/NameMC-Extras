@@ -21,7 +21,7 @@
 
   async function fetchSupabase(endPoints) {
     return Promise.all([...endPoints.map(async endPoint => await fetch(`https://data.faav.top/${endPoint}.json`)),
-    await fetch('https://bedrock.lol/api/v1/capes')
+    await fetch('https://bedrockviewer.com/api/v1/capes')
     ]);
   };
 

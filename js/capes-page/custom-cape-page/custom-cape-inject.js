@@ -186,7 +186,7 @@ async function loadPage() {
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
   let cape;
   if (categoryId == "bedrock") {
-    const bedrockInfo = await (await fetch(`https://bedrock.lol/api/v1/capes/${capeId}`)).json();
+    const bedrockInfo = await (await fetch(`https://bedrockviewer.com/api/v1/capes/${capeId}`)).json();
     cape = new CustomCape(bedrockInfo.name, bedrockInfo.description, bedrockInfo.image_data, bedrockInfo.users);
     cape.user_count = bedrockInfo.user_count;
   } else {
@@ -357,7 +357,7 @@ async function loadPage() {
     }).join(" ");
 
     if (isBedrock && document.querySelector('#bedrockList')) {
-      document.querySelector("#bedrockList").innerHTML = capeOwners.filter(a => !a.java_uuid).map((u, i) => {
+      document.querySelector("#bedrockList").innerHTML = capeOwners.filter(a => !a.java_uuid).map(u => {
         let userEl;
         userEl = document.createElement("span");
         userEl.textContent = u.username;
@@ -368,7 +368,7 @@ async function loadPage() {
         }
 
         return userEl.outerHTML;
-      }).join(" ");
+      }).join(" · ");
     }
 
     // create skin viewer

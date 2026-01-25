@@ -8,7 +8,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "3.9.2",
+  "version": "3.9.3",
   "content_scripts": [
     {
       "js": [
@@ -181,7 +181,7 @@
   ],
   "host_permissions": [
     "https://data.faav.top/*",
-    "https://bedrock.lol/*"
+    "https://bedrockviewer.com/*"
   ],
   "browser_specific_settings": {
     "gecko": {
