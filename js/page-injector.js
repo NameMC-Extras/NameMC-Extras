@@ -122,25 +122,29 @@
     }
 
     function setCustomTheme() {
-        var linkRgb = hexToRgb(customLink);
-        var btnRgb = hexToRgb(customBtn);
-        document.documentElement.style.setProperty("--bs-body-bg", customBg);
-        document.documentElement.style.setProperty("--bs-body-color", customText);
-        document.documentElement.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
-        document.documentElement.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
-        document.documentElement.setAttribute("data-bs-theme", customBase);
-        document.documentElement.classList.add("customTheme");
-        localStorage.theme = customBase;
+        try {
+            var linkRgb = hexToRgb(customLink);
+            var btnRgb = hexToRgb(customBtn);
+            document.documentElement.style.setProperty("--bs-body-bg", customBg);
+            document.documentElement.style.setProperty("--bs-body-color", customText);
+            document.documentElement.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
+            document.documentElement.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
+            document.documentElement.setAttribute("data-bs-theme", customBase);
+            document.documentElement.classList.add("customTheme");
+            localStorage.theme = customBase;
 
-        var bgRgb = hexToRgb(customBg);
-        let multiplier = 1.15;
-        let opacity = .5;
-        if (customBase === 'dark') {
-            multiplier = 1.35;
-            opacity = .45;
+            var bgRgb = hexToRgb(customBg);
+            let multiplier = 1.15;
+            let opacity = .5;
+            if (customBase === 'dark') {
+                multiplier = 1.35;
+                opacity = .45;
+            }
+
+            document.documentElement.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * multiplier}, ${bgRgb["g"] * multiplier}, ${bgRgb["b"] * multiplier}, ${opacity})`);
+        } catch {
+
         }
-
-        document.documentElement.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * multiplier}, ${bgRgb["g"] * multiplier}, ${bgRgb["b"] * multiplier}, ${opacity})`);
     }
 
     if (customThemeOn) setCustomTheme();
@@ -630,7 +634,9 @@
                         iframeEl.height = 0;
                         iframeEl.style.display = 'none';
                         iframeEl.srcdoc = `<script>
-                            try{
+                            try {
+                                window.top.jscolor.presets.default.format = 'hex';
+                                window.top.jscolor.presets.default.alpha = false;
                                 window.top.jscolor.init();
                             } catch {}
                         </script>`;
