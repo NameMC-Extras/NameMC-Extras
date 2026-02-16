@@ -865,7 +865,7 @@ waitForSelector('#uuid-select', (uuid_select) => {
       if (!hideLayers) document.querySelector("#layer-btn").onclick = toggleLayers;
 
       // skins
-      document.querySelectorAll('.skin-2d').forEach((el, _, els) => {;
+      document.querySelectorAll('.skin-2d').forEach((el, _, els) => {
         el.onmouseover = () => {
           els.forEach((el) => {
             el.classList.remove('skin-button-selected');
@@ -910,55 +910,79 @@ waitForSelector('#uuid-select', (uuid_select) => {
     }, skinHash);
   });
   if (pinned) {
-    // Create instance from globally available class
-    const userDataUtils = new UserDataUtils();
-
-    // Try the success dropdown button (the main follow button)
-    waitForSelector('[method=POST] div', (followBtn) => {
-      if (document.getElementById('pin-user-btn')) {
-        return;
+    if (!document.querySelector('.text-end > [method=POST]')) {
+      const username = document.querySelector('.align-items-end .col-auto');
+      if (username && !document.getElementById('pin-user-btn')) {
+        username.parentElement.insertAdjacentHTML('beforeend', `<div class="col">
+        <div class="row justify-content-end">
+          <div class="col text-end">
+            <form method="POST">
+              
+                
+            </form>
+          </div>
+        </div>
+      </div>`);
       }
-      const isPinned = userDataUtils.isPinned(uuid);
-      const pinButton = document.createElement('button');
-      pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-      pinButton.id = 'pin-user-btn';
-      pinButton.innerHTML = `<i class="fas fa-thumbtack"></i> ${isPinned ? 'Unpin' : 'Pin'}`;
-      pinButton.title = `${isPinned ? 'Remove from' : 'Add to'} pinned users`;
+    }
 
-      pinButton.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const btn = pinButton;
-        const wasUnpinning = btn.classList.contains('btn-warning');
+    waitForFunc("UserDataUtils", () => {
+      // Try the success dropdown button (the main follow button)
+      waitForSelector('.text-end > [method=POST]', (form) => {
+        // Create instance from globally available class
+        const userDataUtils = new UserDataUtils();
+        if (document.getElementById('pin-user-btn')) {
+          return;
+        }
+        const isPinned = userDataUtils.isPinned(uuid);
+        const pinButton = document.createElement('button');
+        pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+        pinButton.id = 'pin-user-btn';
+        pinButton.innerHTML = `<i class="fas fa-thumbtack"></i> ${isPinned ? 'Unpin' : 'Pin'}`;
+        pinButton.title = `${isPinned ? 'Remove from' : 'Add to'} pinned users`;
 
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        pinButton.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const btn = pinButton;
+          const wasUnpinning = btn.classList.contains('btn-warning');
 
-        try {
-          let success = false;
-          if (wasUnpinning) {
-            success = userDataUtils.unpinUser(uuid);
-          } else {
-            success = await userDataUtils.pinUser(uuid);
-          }
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-          if (success) {
-            const newIsPinned = !wasUnpinning;
-            btn.className = `btn ${newIsPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-            btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${newIsPinned ? 'Unpin' : 'Pin'}`;
-            btn.title = `${newIsPinned ? 'Remove from' : 'Add to'} pinned users`;
-          } else {
+          try {
+            let success = false;
+            if (wasUnpinning) {
+              success = userDataUtils.unpinUser(uuid);
+            } else {
+              success = await userDataUtils.pinUser(uuid);
+            }
+
+            if (success) {
+              const newIsPinned = !wasUnpinning;
+              btn.className = `btn ${newIsPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+              btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${newIsPinned ? 'Unpin' : 'Pin'}`;
+              btn.title = `${newIsPinned ? 'Remove from' : 'Add to'} pinned users`;
+            } else {
+              btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+              btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+            }
+          } catch (error) {
+            console.error('Error toggling pin status:', error);
             btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
             btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+          } finally {
+            btn.disabled = false;
           }
-        } catch (error) {
-          console.error('Error toggling pin status:', error);
-          btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-          btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
-        } finally {
-          btn.disabled = false;
-        }
+        });
+      
+      if (form.querySelector('div')) {
+        form.querySelector('div').append(pinButton);
+      } else {
+        form.innerHTML = `<div class="mb-3">${form.innerHTML}</div>`;
+        form.querySelector('button')?.classList.remove('mb-3');
+        form.querySelector('div').append(pinButton);
+      }
       });
-      followBtn.insertBefore(pinButton, followBtn.firstChild);
     });
   }
 });

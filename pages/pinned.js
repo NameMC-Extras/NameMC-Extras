@@ -343,8 +343,6 @@ const createPinnedUserCard = (userProfile) => {
     const displayBadges = userProfile.badges.slice(0, maxBadges);
     const remainingBadges = userProfile.badges.length - maxBadges;
 
-
-    
     return `
     <div class="col-lg-4 col-md-6 d-flex">
         <div class="card h-100 w-100 position-relative overflow-hidden" style="min-height: 480px;">
@@ -557,7 +555,7 @@ const updatePaginationControls = () => {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
-    document.querySelectorAll('[data-page]').forEach(el=>el.parentElement.remove());
+    document.querySelectorAll('[data-page]').forEach(el => el.parentElement.remove());
     for (let i = startPage; i <= endPage; i++) {
         const pageItem = document.createElement('li');
         pageItem.className = `page-item${i === currentPage ? ' active' : ''}`;
@@ -841,17 +839,196 @@ const waitForUserDataUtils = function (callback) {
     }
 };
 
+const urlParams = new URLSearchParams(window.location.search);
+const tierlist = urlParams.get('tierlist') === 'true';
+
+const loadTierList = async () => {
+    document.querySelector('h1').innerHTML = 'Tier List';
+            allPinnedUsers = window.pinnedUserDataUtils.getPinnedUsers();
+            const profiles = await getPaginatedUserProfiles(1, 1000);
+
+            const container = document.getElementById('pinned-users-container');
+            container.innerHTML = `<style>
+  .tier {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+  }
+
+  .tier-label {
+    width: 80px;
+    height: 80px;
+    padding: 10px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: black;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .tier-items {
+    flex: 1;
+    min-height: 80px;
+    background: #222;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 4px;
+    gap: 5px;
+    border-radius: 6px;
+  }
+
+  .item {
+    width: 72px;
+    height: 72px;
+    background: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    border-radius: 6px;
+    position: relative;
+  }
+
+  .overlay-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    text-shadow: 2px 2px #000000aa;
+    pointer-events: none;
+
+    font-size: clamp(10px, 14px, 16px); /* min 10px, preferred 14px, max 16px */
+    white-space: wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #syncButton {
+    font-size: 18px;
+  }
+</style>
+<div class="tier">
+  <div class="tier-label" style="background:#FD8082;">S</div>
+  <div class="tier-items" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+</div>
+<div class="tier">
+  <div class="tier-label" style="background:#FEBF84;">A</div>
+  <div class="tier-items" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+</div>
+<div class="tier">
+  <div class="tier-label" style="background:#FEDE86;">B</div>
+  <div class="tier-items" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+</div>
+<div class="tier">
+  <div class="tier-label" style="background:#FFFE87;">C</div>
+  <div class="tier-items" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+</div>
+<div class="tier">
+  <div class="tier-label" style="background:#C1FD86;">D</div>
+  <div class="tier-items" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+</div>
+<hr>
+<h3>Profiles <a href="javascript:loadTierList()" id="syncButton" class="color-inherit"><i class="fas fa-sync"></i></a></h3>
+<div class="tier-items" ondrop="drop(event)" ondragover="allowDrop(event)" id="profilesContainer">
+</div>`;
+
+            window.top.allowDrop = function (ev) {
+                ev.preventDefault();
+            }
+
+            window.top.drag = function (ev) {
+                ev.dataTransfer.setData("text", ev.target.closest('.item').id);
+            }
+
+            window.top.drop = function (ev) {
+                ev.preventDefault();
+
+                const data = ev.dataTransfer.getData("text");
+                const item = document.getElementById(data);
+                if (!item) return;
+
+                const dropZone = ev.target.closest('.tier-items');
+                if (dropZone) {
+                    dropZone.appendChild(item);
+                    saveTierListState();
+                }
+            };
+
+            profiles.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.draggable = true;
+                div.id = 'profile-' + user.uuid;
+                div.ondragstart = window.top.drag;
+                div.innerHTML = `<img draggable="false" src="https://nmsr.nickac.dev/bust/${user.uuid}" width="68" height="68" alt="${user.username}">
+                     <div class="overlay-text">${user.username}</div>`;
+                document.querySelector('#profilesContainer').appendChild(div);
+            });
+
+            function fitText(element, maxFont = 16, minFont = 8) {
+                let fontSize = maxFont;
+                element.style.fontSize = fontSize + 'px';
+
+                while (element.scrollWidth > element.parentElement.clientWidth && fontSize > minFont) {
+                    fontSize -= 1;
+                    element.style.fontSize = fontSize + 'px';
+                }
+            }
+
+            // Apply to all overlay-text items
+            document.querySelectorAll('.overlay-text').forEach(el => fitText(el));
+
+            function saveTierListState() {
+                const tiers = {};
+                document.querySelectorAll('.tier-items').forEach((tierContainer, index) => {
+                    const tierLabel = tierContainer.previousElementSibling?.textContent || `tier${index}`;
+                    const items = [...tierContainer.querySelectorAll('.item')].map(i => i.id); // now uses uuid-based IDs
+                    tiers[tierLabel] = items;
+                });
+
+                localStorage.setItem('tierListState', JSON.stringify(tiers));
+            }
+
+            function loadTierListState() {
+                const saved = localStorage.getItem('tierListState');
+                if (!saved) return;
+
+                const tiers = JSON.parse(saved);
+
+                Object.entries(tiers).forEach(([label, itemIds]) => {
+                    const tierContainer = [...document.querySelectorAll('.tier-items')]
+                        .find(c => c.previousElementSibling?.textContent === label);
+                    if (!tierContainer) return;
+
+                    itemIds.forEach(id => {
+                        const item = document.getElementById(id);
+                        if (item) tierContainer.appendChild(item);
+                    });
+                });
+            }
+
+            loadTierListState();
+}
+
 // Initialize the page
 waitForSelector('main', (main) => {
     main.innerHTML = pinnedPageContent;
     // Wait for UserDataUtils class to be available, then create instance and load pinned users
-    waitForUserDataUtils(() => {
+    waitForUserDataUtils(async () => {
         const userDataUtils = new UserDataUtils();
         window.pinnedUserDataUtils = userDataUtils; // Make it globally accessible for this page
 
         // Clean expired cache on page load
         cleanExpiredCache();
 
-        loadPinnedUsers();
+        if (tierlist) {
+            loadTierList();
+        } else {
+            loadPinnedUsers();
+        }
     });
 });
