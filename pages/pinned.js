@@ -198,75 +198,6 @@ const showAllBadgesModal = (userProfile) => {
     modal.show();
 };
 
-// Paginated data fetching
-const getPaginatedUserProfiles = async (page, pageSize = USERS_PER_PAGE) => {
-    // Clean expired cache before starting
-    cleanExpiredCache();
-
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, allPinnedUsers.length);
-    const usersForPage = allPinnedUsers.slice(startIndex, endIndex);
-
-    const profiles = [];
-    const totalUsers = usersForPage.length;
-
-    for (let i = 0; i < usersForPage.length; i++) {
-        const pinnedUser = usersForPage[i];
-        let profile = null;
-
-        try {
-            // Try to get from cache first
-            profile = getCachedProfile(pinnedUser.uuid);
-
-            if (profile) {
-                // Profile found in cache and still valid
-                profiles.push(profile);
-
-                // Update progress bar
-                const progressBar = document.getElementById('loading-progress-bar');
-                const progressText = document.getElementById('loading-progress-text');
-                if (progressBar && progressText) {
-                    const progress = ((i + 1) / totalUsers) * 100;
-                    progressBar.style.width = `${progress}%`;
-                    progressBar.setAttribute('aria-valuenow', progress);
-                    progressText.textContent = `Loading ${i + 1} of ${totalUsers} users... (cached)`;
-                }
-            } else {
-                // Not in cache or expired, fetch from API
-                profile = await window.pinnedUserDataUtils.fetchUserProfile(pinnedUser.uuid);
-                profiles.push(profile);
-
-                // Store in cache
-                setCachedProfile(pinnedUser.uuid, profile);
-
-                // Update progress bar
-                const progressBar = document.getElementById('loading-progress-bar');
-                const progressText = document.getElementById('loading-progress-text');
-                if (progressBar && progressText) {
-                    const progress = ((i + 1) / totalUsers) * 100;
-                    progressBar.style.width = `${progress}%`;
-                    progressBar.setAttribute('aria-valuenow', progress);
-                    progressText.textContent = `Loading ${i + 1} of ${totalUsers} users...`;
-                }
-            }
-        } catch (error) {
-            console.error(`Error fetching profile for ${pinnedUser.uuid}:`, error);
-
-            // Still update progress bar even on error
-            const progressBar = document.getElementById('loading-progress-bar');
-            const progressText = document.getElementById('loading-progress-text');
-            if (progressBar && progressText) {
-                const progress = ((i + 1) / totalUsers) * 100;
-                progressBar.style.width = `${progress}%`;
-                progressBar.setAttribute('aria-valuenow', progress);
-                progressText.textContent = `Loading ${i + 1} of ${totalUsers} users... (error)`;
-            }
-        }
-    }
-
-    return profiles;
-};
-
 // URL parameter management
 const getPageFromUrl = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -515,60 +446,6 @@ const initSkinViewer = async (userProfile) => {
     }
 };
 
-// Pagination functions
-const updatePaginationControls = () => {
-    const paginationControls = document.getElementById('pagination-controls');
-    const pageInfo = document.getElementById('page-info');
-    const prevPage = document.getElementById('prev-page');
-    const nextPage = document.getElementById('next-page');
-    const currentPageText = document.getElementById('current-page-text');
-    const totalPagesText = document.getElementById('total-pages-text');
-    const usersCountText = document.getElementById('users-count-text');
-
-    if (totalPages <= 1) {
-        paginationControls.classList.add('d-none');
-        pageInfo.classList.add('d-none');
-        return;
-    }
-
-    paginationControls.classList.remove('d-none');
-    pageInfo.classList.remove('d-none');
-
-    // Update page information
-    currentPageText.textContent = currentPage;
-    totalPagesText.textContent = totalPages;
-    usersCountText.textContent = totalUsersCount;
-
-    // Previous button
-    prevPage.classList.toggle('disabled', currentPage === 1);
-
-    // Next button
-    nextPage.classList.toggle('disabled', currentPage === totalPages);
-
-    // Generate page numbers
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    // Adjust if we're near the end
-    if (endPage - startPage < maxVisiblePages - 1) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    document.querySelectorAll('[data-page]').forEach(el => el.parentElement.remove());
-    for (let i = startPage; i <= endPage; i++) {
-        const pageItem = document.createElement('li');
-        pageItem.className = `page-item${i === currentPage ? ' active' : ''}`;
-        pageItem.innerHTML = `<button class="page-link" data-page="${i}">${i}</button>`;
-        nextPage.before(pageItem);
-
-        pageItem.addEventListener('click', () => {
-            currentPage = i;
-            displayCurrentPage();
-        });
-    }
-};
-
 const setupPaginationEvents = () => {
     const prevPage = document.getElementById('prev-page');
     const nextPage = document.getElementById('next-page');
@@ -612,130 +489,81 @@ const displayCurrentPage = async (updateUrl = true) => {
         </div>`;
 
     try {
-        // Fetch profiles for current page only
         currentPageProfiles = await getPaginatedUserProfiles(currentPage);
 
-        // Display cards
-        container.innerHTML = `<div class="row g-3" id="pinned-cards-row"></div>`;
-        const cardsRow = document.getElementById('pinned-cards-row');
+        // Use a DocumentFragment for faster DOM insertion
+        const cardsRow = document.createElement('div');
+        cardsRow.className = 'row g-3';
+        cardsRow.id = 'pinned-cards-row';
 
+        const fragment = document.createDocumentFragment();
         currentPageProfiles.forEach(userProfile => {
-            cardsRow.innerHTML += createPinnedUserCard(userProfile);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = createPinnedUserCard(userProfile);
+            fragment.appendChild(tempDiv.firstElementChild);
         });
+        cardsRow.appendChild(fragment);
+        container.innerHTML = '';
+        container.appendChild(cardsRow);
 
-        // Update pagination controls
         updatePaginationControls();
 
-        // Initialize skin viewers after DOM is updated
-        setTimeout(async () => {
-            for (const userProfile of currentPageProfiles) {
-                await initSkinViewer(userProfile);
-                // Small pause between each initialization to avoid overload
-                await new Promise(resolve => setTimeout(resolve, 100));
+        // Initialize skin viewers in parallel (with Promise.all) to speed up
+        await Promise.all(currentPageProfiles.map(userProfile => initSkinViewer(userProfile)));
+
+        // Event handlers
+        const unpinBtns = container.querySelectorAll('.unpin-btn');
+        unpinBtns.forEach(btn => btn.onclick = async () => {
+            const uuid = btn.dataset.uuid;
+            if (window.pinnedUserDataUtils.unpinUser(uuid)) {
+                allPinnedUsers = allPinnedUsers.filter(user => user.uuid !== uuid);
+                totalUsersCount = allPinnedUsers.length;
+                totalPages = Math.ceil(allPinnedUsers.length / USERS_PER_PAGE);
+                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+                if (!allPinnedUsers.length) {
+                    showEmptyState();
+                    updateUrlWithPage(1, true);
+                } else {
+                    displayCurrentPage();
+                }
+                updatePaginationControls();
             }
-        }, 200);
-
-        // Add event handlers for unpin buttons
-        document.querySelectorAll('.unpin-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const uuid = btn.dataset.uuid;
-                if (window.pinnedUserDataUtils.unpinUser(uuid)) {
-                    // Remove user from global list
-                    allPinnedUsers = allPinnedUsers.filter(user => user.uuid !== uuid);
-                    totalUsersCount = allPinnedUsers.length;
-
-                    // Recalculate pagination
-                    totalPages = Math.ceil(allPinnedUsers.length / USERS_PER_PAGE);
-
-                    // Adjust current page if necessary
-                    if (currentPage > totalPages && totalPages > 0) {
-                        currentPage = totalPages;
-                    }
-
-                    // Reload current page or show empty state
-                    if (allPinnedUsers.length === 0) {
-                        showEmptyState();
-                        // Clear page parameter from URL when no users left
-                        updateUrlWithPage(1, true);
-                    } else {
-                        displayCurrentPage();
-                    }
-
-                    updatePaginationControls();
-                }
-            });
         });
 
-        // Add event handlers for UUID copy functionality
-        document.querySelectorAll('.uuid-copy').forEach(uuidElement => {
-            uuidElement.addEventListener('click', async (e) => {
-                const uuid = e.target.dataset.uuid;
-                try {
-                    await navigator.clipboard.writeText(uuid);
-
-                    // Visual feedback
-                    const originalText = e.target.textContent;
-                    const originalTitle = e.target.title;
-                    e.target.textContent = 'Copied!';
-                    e.target.title = 'UUID copied to clipboard';
-                    e.target.style.backgroundColor = 'rgba(25, 135, 84, 0.2)';
-
-                    // Reset after 2 seconds
-                    setTimeout(() => {
-                        e.target.textContent = originalText;
-                        e.target.title = originalTitle;
-                        e.target.style.backgroundColor = 'transparent';
-                    }, 2000);
-                } catch (err) {
-                    console.error('Failed to copy UUID:', err);
-                    // Fallback for older browsers
-                    const textArea = document.createElement('textarea');
-                    textArea.value = uuid;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        // Visual feedback for fallback
-                        const originalText = e.target.textContent;
-                        const originalTitle = e.target.title;
-                        e.target.textContent = 'Copied!';
-                        e.target.title = 'UUID copied to clipboard';
-                        e.target.style.backgroundColor = 'rgba(25, 135, 84, 0.2)';
-
-                        setTimeout(() => {
-                            e.target.textContent = originalText;
-                            e.target.title = originalTitle;
-                            e.target.style.backgroundColor = 'transparent';
-                        }, 2000);
-                    } catch (fallbackErr) {
-                        console.error('Fallback copy failed:', fallbackErr);
-                    }
-                    document.body.removeChild(textArea);
-                }
-            });
+        const uuidElements = container.querySelectorAll('.uuid-copy');
+        uuidElements.forEach(el => el.onclick = async (e) => {
+            const uuid = e.target.dataset.uuid;
+            try {
+                await navigator.clipboard.writeText(uuid);
+            } catch {
+                const ta = document.createElement('textarea');
+                ta.value = uuid;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+            const originalText = e.target.textContent;
+            const originalTitle = e.target.title;
+            e.target.textContent = 'Copied!';
+            e.target.title = 'UUID copied to clipboard';
+            e.target.style.backgroundColor = 'rgba(25, 135, 84, 0.2)';
+            setTimeout(() => {
+                e.target.textContent = originalText;
+                e.target.title = originalTitle;
+                e.target.style.backgroundColor = 'transparent';
+            }, 2000);
         });
 
-        // Add event handlers for showing all badges
-        document.querySelectorAll('.show-all-badges').forEach(badgeElement => {
-            badgeElement.addEventListener('click', (e) => {
-                const userUuid = e.target.dataset.userUuid;
-                const userProfile = currentPageProfiles.find(profile => profile.uuid === userUuid);
-
-                if (userProfile && userProfile.badges) {
-                    showAllBadgesModal(userProfile);
-                }
-            });
+        const badgeElements = container.querySelectorAll('.show-all-badges');
+        badgeElements.forEach(el => el.onclick = (e) => {
+            const userUuid = e.target.dataset.userUuid;
+            const userProfile = currentPageProfiles.find(p => p.uuid === userUuid);
+            if (userProfile?.badges) showAllBadgesModal(userProfile);
         });
 
-
-
-        // Scroll to top after page change
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        if (updateUrl) {
-            updateUrlWithPage(currentPage);
-        }
-
+        if (updateUrl) updateUrlWithPage(currentPage);
     } catch (error) {
         console.error('Error loading page:', error);
         container.innerHTML = `
@@ -749,6 +577,72 @@ const displayCurrentPage = async (updateUrl = true) => {
             </div>`;
     }
 };
+
+const getPaginatedUserProfiles = async (page, pageSize = USERS_PER_PAGE) => {
+    cleanExpiredCache();
+    const startIndex = (page - 1) * pageSize;
+    const usersForPage = allPinnedUsers.slice(startIndex, startIndex + pageSize);
+
+    // Map over users and fetch profiles concurrently
+    const profiles = await Promise.all(usersForPage.map(async (user, index) => {
+        let profile = getCachedProfile(user.uuid);
+        if (!profile) {
+            try {
+                profile = await window.pinnedUserDataUtils.fetchUserProfile(user.uuid);
+                setCachedProfile(user.uuid, profile);
+            } catch (err) {
+                console.error(`Error fetching profile for ${user.uuid}`, err);
+            }
+        }
+        return profile;
+    }));
+
+    return profiles.filter(Boolean);
+};
+
+const updatePaginationControls = () => {
+    const paginationControls = document.getElementById('pagination-controls');
+    const pageInfo = document.getElementById('page-info');
+    const prevPage = document.getElementById('prev-page');
+    const nextPage = document.getElementById('next-page');
+
+    if (totalPages <= 1) {
+        paginationControls.classList.add('d-none');
+        pageInfo.classList.add('d-none');
+        return;
+    }
+    paginationControls.classList.remove('d-none');
+    pageInfo.classList.remove('d-none');
+
+    document.getElementById('current-page-text').textContent = currentPage;
+    document.getElementById('total-pages-text').textContent = totalPages;
+    document.getElementById('users-count-text').textContent = totalUsersCount;
+
+    prevPage.classList.toggle('disabled', currentPage === 1);
+    nextPage.classList.toggle('disabled', currentPage === totalPages);
+
+    // Remove old page numbers once
+    document.querySelectorAll('[data-page]').forEach(el => el.parentElement.remove());
+
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    if (endPage - startPage < maxVisiblePages - 1) startPage = Math.max(1, endPage - maxVisiblePages + 1);
+
+    const fragment = document.createDocumentFragment();
+    for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item${i === currentPage ? ' active' : ''}`;
+        li.innerHTML = `<button class="page-link" data-page="${i}">${i}</button>`;
+        li.querySelector('.page-link').onclick = () => {
+            currentPage = i;
+            displayCurrentPage();
+        };
+        fragment.appendChild(li);
+    }
+    nextPage.before(fragment);
+};
+
 
 const showEmptyState = () => {
     const container = document.getElementById('pinned-users-container');
@@ -844,11 +738,11 @@ const tierlist = urlParams.get('tierlist') === 'true';
 
 const loadTierList = async () => {
     document.querySelector('h1').innerHTML = 'Tier List';
-            allPinnedUsers = window.pinnedUserDataUtils.getPinnedUsers();
-            const profiles = await getPaginatedUserProfiles(1, 1000);
+    allPinnedUsers = window.pinnedUserDataUtils.getPinnedUsers();
+    const profiles = await getPaginatedUserProfiles(1, 1000);
 
-            const container = document.getElementById('pinned-users-container');
-            container.innerHTML = `<style>
+    const container = document.getElementById('pinned-users-container');
+    container.innerHTML = `<style>
   .tier {
     display: flex;
     align-items: center;
@@ -889,6 +783,14 @@ const loadTierList = async () => {
     cursor: grab;
     border-radius: 6px;
     position: relative;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .item * {
+    pointer-events: none;
+    touch-action: none;
+    user-select: none;
   }
 
   .overlay-text {
@@ -936,82 +838,114 @@ const loadTierList = async () => {
 <div class="tier-items" ondrop="drop(event)" ondragover="allowDrop(event)" id="profilesContainer">
 </div>`;
 
-            window.top.allowDrop = function (ev) {
-                ev.preventDefault();
-            }
+    window.top.allowDrop = function (ev) {
+        ev.preventDefault();
+    }
 
-            window.top.drag = function (ev) {
-                ev.dataTransfer.setData("text", ev.target.closest('.item').id);
-            }
+    window.top.drag = function (ev) {
+        ev.dataTransfer.setData("text", ev.target.closest('.item').id);
+    }
 
-            window.top.drop = function (ev) {
-                ev.preventDefault();
+    window.top.drop = function (ev) {
+        ev.preventDefault();
 
-                const data = ev.dataTransfer.getData("text");
-                const item = document.getElementById(data);
-                if (!item) return;
+        const data = ev.dataTransfer.getData("text");
+        const item = document.getElementById(data);
+        if (!item) return;
 
-                const dropZone = ev.target.closest('.tier-items');
-                if (dropZone) {
-                    dropZone.appendChild(item);
-                    saveTierListState();
-                }
-            };
+        const dropZone = ev.target.closest('.tier-items');
+        if (dropZone) {
+            dropZone.appendChild(item);
+            saveTierListState();
+        }
+    };
 
-            profiles.forEach(user => {
-                const div = document.createElement('div');
-                div.className = 'item';
-                div.draggable = true;
-                div.id = 'profile-' + user.uuid;
-                div.ondragstart = window.top.drag;
-                div.innerHTML = `<img draggable="false" src="https://nmsr.nickac.dev/bust/${user.uuid}" width="68" height="68" alt="${user.username}">
+    profiles.forEach(user => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.draggable = true;
+        div.id = 'profile-' + user.uuid;
+        div.ondragstart = window.top.drag;
+        div.innerHTML = `<img draggable="false" src="https://nmsr.nickac.dev/bust/${user.uuid}" width="68" height="68" alt="${user.username}">
                      <div class="overlay-text">${user.username}</div>`;
-                document.querySelector('#profilesContainer').appendChild(div);
+        document.querySelector('#profilesContainer').appendChild(div);
+    });
+
+    let touchItem = null;
+
+    document.addEventListener('touchstart', function (e) {
+        const item = e.target.closest('.item');
+        if (!item) return;
+
+        touchItem = item;
+        item.style.opacity = '0.6';
+    });
+
+    document.addEventListener('touchmove', function (e) {
+        if (!touchItem) return;
+
+        const touch = e.touches[0];
+        const dropZone = document.elementFromPoint(touch.clientX, touch.clientY)
+            ?.closest('.tier-items');
+
+        if (dropZone) {
+            dropZone.appendChild(touchItem);
+        }
+
+        e.preventDefault(); // prevents scrolling while dragging
+    }, { passive: false });
+
+    document.addEventListener('touchend', function () {
+        if (touchItem) {
+            touchItem.style.opacity = '';
+            saveTierListState();
+        }
+        touchItem = null;
+    });
+
+    function fitText(element, maxFont = 16, minFont = 8) {
+        let fontSize = maxFont;
+        element.style.fontSize = fontSize + 'px';
+
+        while (element.scrollWidth > element.parentElement.clientWidth && fontSize > minFont) {
+            fontSize -= 1;
+            element.style.fontSize = fontSize + 'px';
+        }
+    }
+
+    // Apply to all overlay-text items
+    document.querySelectorAll('.overlay-text').forEach(el => fitText(el));
+
+    function saveTierListState() {
+        const tiers = {};
+        document.querySelectorAll('.tier-items').forEach((tierContainer, index) => {
+            const tierLabel = tierContainer.previousElementSibling?.textContent || `tier${index}`;
+            const items = [...tierContainer.querySelectorAll('.item')].map(i => i.id); // now uses uuid-based IDs
+            tiers[tierLabel] = items;
+        });
+
+        localStorage.setItem('tierListState', JSON.stringify(tiers));
+    }
+
+    function loadTierListState() {
+        const saved = localStorage.getItem('tierListState');
+        if (!saved) return;
+
+        const tiers = JSON.parse(saved);
+
+        Object.entries(tiers).forEach(([label, itemIds]) => {
+            const tierContainer = [...document.querySelectorAll('.tier-items')]
+                .find(c => c.previousElementSibling?.textContent === label);
+            if (!tierContainer) return;
+
+            itemIds.forEach(id => {
+                const item = document.getElementById(id);
+                if (item) tierContainer.appendChild(item);
             });
+        });
+    }
 
-            function fitText(element, maxFont = 16, minFont = 8) {
-                let fontSize = maxFont;
-                element.style.fontSize = fontSize + 'px';
-
-                while (element.scrollWidth > element.parentElement.clientWidth && fontSize > minFont) {
-                    fontSize -= 1;
-                    element.style.fontSize = fontSize + 'px';
-                }
-            }
-
-            // Apply to all overlay-text items
-            document.querySelectorAll('.overlay-text').forEach(el => fitText(el));
-
-            function saveTierListState() {
-                const tiers = {};
-                document.querySelectorAll('.tier-items').forEach((tierContainer, index) => {
-                    const tierLabel = tierContainer.previousElementSibling?.textContent || `tier${index}`;
-                    const items = [...tierContainer.querySelectorAll('.item')].map(i => i.id); // now uses uuid-based IDs
-                    tiers[tierLabel] = items;
-                });
-
-                localStorage.setItem('tierListState', JSON.stringify(tiers));
-            }
-
-            function loadTierListState() {
-                const saved = localStorage.getItem('tierListState');
-                if (!saved) return;
-
-                const tiers = JSON.parse(saved);
-
-                Object.entries(tiers).forEach(([label, itemIds]) => {
-                    const tierContainer = [...document.querySelectorAll('.tier-items')]
-                        .find(c => c.previousElementSibling?.textContent === label);
-                    if (!tierContainer) return;
-
-                    itemIds.forEach(id => {
-                        const item = document.getElementById(id);
-                        if (item) tierContainer.appendChild(item);
-                    });
-                });
-            }
-
-            loadTierListState();
+    loadTierListState();
 }
 
 // Initialize the page

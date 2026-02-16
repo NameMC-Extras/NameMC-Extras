@@ -1,76 +1,41 @@
 console.log("Injecting capes page...");
 
-const waitForSelector = function (selector, callback) {
-  let query = document.querySelector(selector)
-  if (query) {
-    setTimeout(() => {
-      callback(query);
-    });
-  } else {
-    setTimeout(() => {
-      waitForSelector(selector, callback);
-    });
-  }
+const waitForSelector = (selector, callback) => {
+  const el = document.querySelector(selector);
+  if (el) return callback(el);
+  setTimeout(() => waitForSelector(selector, callback));
 };
 
-const waitForStorage = function (key, callback) {
-  if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForStorage(key, callback);
-    });
-  }
+const waitForStorage = (key, callback) => {
+  const value = window.localStorage.getItem(key);
+  if (value && value.length !== 0) return callback();
+  setTimeout(() => waitForStorage(key, callback));
 };
 
 /*
  * UNIVERSAL VARIABLES
  */
-
 const enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
-var hideOptifine = localStorage.getItem("hideOptifine") === "false";
-
+const hideOptifine = localStorage.getItem("hideOptifine") === "false";
 
 /*
  * FUNCTIONS
  */
+function getCapeCardHTML(cape, userCount, isBedrock = false) {
+  const href = isBedrock ? `/cape/bedrock/${encodeURIComponent(cape.id)}`
+                          : `/cape/${encodeURIComponent(cape.category)}/${encodeURIComponent(cape.id)}`;
+  const imgSrc = isBedrock ? cape.thumbnail_url : cape.image_render;
+  const imgStyle = isBedrock ? "width:100%;height:100%;object-fit:cover;margin:0 auto;" : "";
 
-/**
-  * Returns HTML code for the cape's card
-  * @param {SupabaseCape} cape
-  * @param {number} userCount 
-  * @returns {string}
-  */
-function getCapeCardHTML(cape, userCount) {
   return `
     <div class="col-4 col-md-2">
       <div class="card mb-2">
-        <a href="${`/cape/${encodeURIComponent(cape.category)}/${encodeURIComponent(cape.id)}`}">
-          ${(() => {
-      var titleEl = document.createElement("div");
-      titleEl.setAttribute("class", "card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1");
-      titleEl.translate = "no";
-      titleEl.textContent = cape.name;
-
-      return titleEl.outerHTML;
-    })()}
+        <a href="${href}">
+          <div class="card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1" translate="no">${cape.name}</div>
           <div class="card-body position-relative text-center checkered p-1">
             <div>
-              ${(() => {
-      var imageEl = document.createElement("img");
-      imageEl.classList.add("drop-shadow");
-      imageEl.classList.add("auto-size-square");
-      imageEl.loading = "lazy";
-      imageEl.width = 256;
-      imageEl.height = 256;
-      imageEl.src = cape.image_render;
-      imageEl.alt = cape.name;
-      imageEl.title = cape.name;
-
-      return imageEl.outerHTML;
-    })()}
+              <img class="drop-shadow auto-size-square" loading="lazy" width="256" height="256"
+                   src="${imgSrc}" alt="${cape.name}" title="${cape.name}" style="${imgStyle}">
             </div>
             <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${userCount}★</div>
           </div>
@@ -80,115 +45,63 @@ function getCapeCardHTML(cape, userCount) {
   `;
 }
 
-
-
 /*
  * MAIN LOGIC
  */
-
 function addCapes(mainDiv) {
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
 
   // BEDROCK
   if (enableBedrockCapes) {
-    let data = supabase_data.bedrock_capes || [];
-    let capesHTML = "";
-    data.sort((a, b) => b.user_count - a.user_count);
+    const bedrockHTML = (supabase_data.bedrock_capes || [])
+      .sort((a, b) => b.user_count - a.user_count)
+      .map(cape => getCapeCardHTML(cape, cape.user_count, true))
+      .join("");
 
-    capesHTML += data.map(cape => {
-      return `
-          <div class="col-4 col-md-2">
-            <div class="card mb-2">
-              <a href="${`/cape/bedrock/${encodeURIComponent(cape.id)}`}">
-                ${(() => {
-          var titleEl = document.createElement("div");
-          titleEl.setAttribute("class", "card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1");
-          titleEl.translate = "no";
-          titleEl.textContent = cape.name;
-
-          return titleEl.outerHTML;
-        })()}
-                <div class="card-body position-relative text-center checkered p-1">
-                  <div>
-                    ${(() => {
-          var imageEl = document.createElement("img");
-          imageEl.classList.add("drop-shadow");
-          imageEl.classList.add("auto-size-square");
-          imageEl.loading = "lazy";
-          imageEl.src = cape.thumbnail_url;
-          imageEl.alt = cape.name;
-          imageEl.title = cape.name;
-          // make entire image fit within div
-          imageEl.style.width = "100%";
-          imageEl.style.height = "100%";
-          imageEl.style.objectFit = "cover";
-          imageEl.style.margin = "0 auto";
-
-          return imageEl.outerHTML;
-        })()}
-                  </div>
-                  <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${cape.user_count}★</div>
-                </div>
-              </a>
-            </div>
+    const bedrockRange = document.createRange();
+    const bedrockFrag = bedrockRange.createContextualFragment(`
+      <div>
+        <h1 class="text-center pt-4">Bedrock Capes</h1>
+        <hr class="mt-0">
+        <div class="mb-2">
+          <div class="row gx-2 justify-content-center">
+            ${bedrockHTML}
           </div>
-        `;
-    }
-    ).join("");
-
-    // create category
-    var categoryRange = document.createRange();
-    var categoryFrag = categoryRange.createContextualFragment(`
-          <temp>
-            <h1 class="text-center pt-4">Bedrock Capes</h1>
-            <hr class="mt-0">
-            <div class="mb-2">
-              <div class="row gx-2 justify-content-center">
-                ${capesHTML}
-              </div>
-            </div>
-          </temp>
-      `);
-    mainDiv.append(categoryFrag);
+        </div>
+      </div>
+    `);
+    mainDiv.append(bedrockFrag);
   }
 
-  let categories = supabase_data.categories.filter(cat => cat.hidden === false);
-  if (hideOptifine) categories = categories.filter(cat => cat.id !== 'optifine');
+  const categories = supabase_data.categories
+    .filter(cat => !cat.hidden && (!hideOptifine || cat.id !== 'optifine'));
 
-  var categoriesHTML = categories.map(cat => {
-    const capes = supabase_data.capes.filter(cape => cape.category == cat.id)
+  const categoriesHTML = categories.map(cat => {
+    const capes = supabase_data.capes
+      .filter(cape => cape.category === cat.id)
+      .map(cape => {
+        cape.users = supabase_data.user_capes.filter(user => user.cape === cape.id);
+        return cape;
+      })
+      .sort((a, b) => b.users.length - a.users.length)
+      .map(cape => getCapeCardHTML(cape, cape.users.length))
+      .join("");
 
-    // get user count
-    const mapPromise = capes.map(cape => {
-      cape.users = supabase_data.user_capes.filter(user => user.cape == cape.id)
-      return cape;
-    });
-
-    const capeHTMLCards = [];
-    mapPromise.sort((a, b) => b.users.length - a.users.length).forEach(cape => {
-      capeHTMLCards.push(getCapeCardHTML(cape, cape.users.length));
-    });
-    // create category
-    var categoryRange = document.createRange();
-    var categoryHTML = categoryRange.createContextualFragment(`
-        <temp>
-          <h1 class="text-center pt-4"></h1>
-          <hr class="mt-0">
-          <div class="mb-2">
-            <div class="row gx-2 justify-content-center">
-              ${capeHTMLCards.join("")}
-            </div>
+    return `
+      <div>
+        <h1 class="text-center pt-4">${cat.name} Capes</h1>
+        <hr class="mt-0">
+        <div class="mb-2">
+          <div class="row gx-2 justify-content-center">
+            ${capes}
           </div>
-        </temp>
-        `);
+        </div>
+      </div>
+    `;
+  }).join("");
 
-    categoryHTML.querySelector("h1").textContent = `${cat.name} Capes`;
-
-    return categoryHTML.querySelector("temp").innerHTML;
-  });
-
-  var categoriesRange = document.createRange();
-  var categoriesFrag = categoriesRange.createContextualFragment(categoriesHTML.join(""));
+  const categoriesRange = document.createRange();
+  const categoriesFrag = categoriesRange.createContextualFragment(categoriesHTML);
   mainDiv.append(categoriesFrag);
 }
 

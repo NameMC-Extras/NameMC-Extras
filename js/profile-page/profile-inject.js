@@ -19,8 +19,10 @@ class CapeTemplate {
 
 // only use for getting animate cookie
 function getCookie(name) {
-  let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));
-  return cookies[name];
+  const match = document.cookie.match(
+    new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)')
+  );
+  return match ? decodeURIComponent(match[1]) : undefined;
 }
 
 localStorage.setItem("namemc_animate", "false");
@@ -137,20 +139,44 @@ function createCape(src, parent, name = "", description = "", redirect = "", jav
   parent.appendChild(link);
 }
 
+function replaceWithIcons() {
+  // replace (edit) and Copy with icons
+  var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
+  editLinks.forEach(editLink => {
+    editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
+    editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
+    editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
+    editLink.classList.add("color-inherit");
+    editLink.title = "Edit";
+
+    // move to far right
+    if (editLink.parentElement.tagName === "STRONG") {
+      editLink.parentElement.parentElement.append(editLink);
+      editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
+    }
+  });
+}
+
 /**
  * Attaches mouseover events to all cape canvases once.
  */
 let capeEventsAttached = false;
+let selectedCapeEl = null;
+
 function attachCapeEvents() {
   if (capeEventsAttached) return;
   capeEventsAttached = true;
 
   document.addEventListener("mouseover", function (e) {
     const target = e.target.closest(".cape-2d");
-    if (!target) return;
+    if (!target || target === selectedCapeEl) return;
 
-    document.querySelectorAll(".cape-2d").forEach(el => el.classList.remove("skin-button-selected"));
+    if (selectedCapeEl) {
+      selectedCapeEl.classList.remove("skin-button-selected");
+    }
+
     target.classList.add("skin-button-selected");
+    selectedCapeEl = target;
 
     const hash = target.dataset.capeHash;
     if (!hash) return;
@@ -158,11 +184,9 @@ function attachCapeEvents() {
     if (hash.startsWith("custom-")) {
       const options = elytraOn ? { backEquipment: "elytra" } : {};
       skinViewer.loadCape(capeDB[hash], options);
-      console.log("capeEvent: Custom");
     } else {
       const url = `https://texture.namemc.com/${hash.slice(0, 2)}/${hash.slice(2, 4)}/${hash}.png`;
       skinViewer.loadCape(url);
-      console.log("capeEvent: Mojang/Optifine");
     }
   });
 }
@@ -291,24 +315,29 @@ const createStealBtn = () => {
   });
 };
 
-// Hide elements instead of removing them
-const hideElement = el => el.classList.add("d-none");
-
 const hideHidden = () => {
-  const rows = document.querySelectorAll("tr");
-  rows.forEach((row, i) => {
-    if (!row.classList.length && row.innerText.includes("—")) {
-      hideElement(row);
-      if (rows[i + 1] && rows[i + 1].classList.length) hideElement(rows[i + 1]);
+  const rows = [...document.querySelectorAll("tr")];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+
+    if (!row.classList.length && row.textContent.includes("—")) {
+      row.classList.add("d-none");
+
+      if (rows[i + 1] && rows[i + 1].classList.length) {
+        rows[i + 1].classList.add("d-none");
+      }
     }
-  });
+  }
 
   const visibleRows = document.querySelectorAll("tr:not(.d-none)");
   visibleRows[visibleRows.length - 1]?.classList.remove("border-bottom");
 };
 
 const showHidden = () => {
-  document.querySelectorAll("tr.d-none").forEach(el => el.classList.remove("d-none"));
+  const hiddenRows = document.querySelectorAll("tr.d-none");
+  hiddenRows.forEach(el => el.classList.remove("d-none"));
+
   const rows = document.querySelectorAll("tr:not(.d-none)");
   rows[rows.length - 1]?.classList.add("border-bottom");
 };
@@ -974,14 +1003,14 @@ waitForSelector('#uuid-select', (uuid_select) => {
             btn.disabled = false;
           }
         });
-      
-      if (form.querySelector('div')) {
-        form.querySelector('div').append(pinButton);
-      } else {
-        form.innerHTML = `<div class="mb-3">${form.innerHTML}</div>`;
-        form.querySelector('button')?.classList.remove('mb-3');
-        form.querySelector('div').append(pinButton);
-      }
+
+        if (form.querySelector('div')) {
+          form.querySelector('div').append(pinButton);
+        } else {
+          form.innerHTML = `<div class="mb-3">${form.innerHTML}</div>`;
+          form.querySelector('button')?.classList.remove('mb-3');
+          form.querySelector('div').append(pinButton);
+        }
       });
     });
   }

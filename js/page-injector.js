@@ -1,5 +1,8 @@
 (async () => {
     if (!document.contentType.startsWith('text/html')) return;
+    if (window.location.hostname === 'store.namemc.com') return;
+
+    const root = document.documentElement;
 
     // bypass anti ad blocker
     var iframeEl = document.createElement("iframe");
@@ -17,7 +20,7 @@
     bypassAntiAdBlocker();
     setInterval(bypassAntiAdBlocker, 50);
     </script>`;
-    document.documentElement.append(iframeEl);
+    root.append(iframeEl);
 
     let currentUrl = location.href;
 
@@ -51,14 +54,16 @@
         });
     }
 
-    await chrome.storage.local.get("savedLocalStorage").then((result) => {
-        if (result.savedLocalStorage) {
-            for (const key in result.savedLocalStorage) {
-                localStorage.setItem(key, result.savedLocalStorage[key]);
+    const { savedLocalStorage } = await chrome.storage.local.get("savedLocalStorage");
+    if (savedLocalStorage) {
+        for (const key in savedLocalStorage) {
+            try {
+                localStorage.setItem(key, savedLocalStorage[key]);
+            } catch {
+                console.warn(`Could not restore localStorage item: ${key}`);
             }
         }
-        return result.savedLocalStorage || {};
-    });
+    }
 
     var theme = localStorage.getItem("theme");
     var customThemeOn = localStorage.getItem("customTheme") === "true";
@@ -108,7 +113,7 @@
                 this.remove();
                 resolve(false); // Default to false if script fails to load
             };
-            (document.head || document.documentElement).appendChild(inject);
+            (document.head || root).appendChild(inject);
         });
     };
 
@@ -125,12 +130,12 @@
         try {
             var linkRgb = hexToRgb(customLink);
             var btnRgb = hexToRgb(customBtn);
-            document.documentElement.style.setProperty("--bs-body-bg", customBg);
-            document.documentElement.style.setProperty("--bs-body-color", customText);
-            document.documentElement.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
-            document.documentElement.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
-            document.documentElement.setAttribute("data-bs-theme", customBase);
-            document.documentElement.classList.add("customTheme");
+            root.style.setProperty("--bs-body-bg", customBg);
+            root.style.setProperty("--bs-body-color", customText);
+            root.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
+            root.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
+            root.setAttribute("data-bs-theme", customBase);
+            root.classList.add("customTheme");
             localStorage.theme = customBase;
 
             var bgRgb = hexToRgb(customBg);
@@ -141,18 +146,18 @@
                 opacity = .45;
             }
 
-            document.documentElement.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * multiplier}, ${bgRgb["g"] * multiplier}, ${bgRgb["b"] * multiplier}, ${opacity})`);
+            root.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * multiplier}, ${bgRgb["g"] * multiplier}, ${bgRgb["b"] * multiplier}, ${opacity})`);
         } catch {
 
         }
     }
 
     if (customThemeOn) setCustomTheme();
-    if (hideHeadCmd2) document.documentElement.style.setProperty("--head-cmd", hideHeadCmd2 ? 'none' : 'flex');
-    if (hideServers) document.documentElement.style.setProperty("--servers", hideServers ? 'none' : 'flex');
-    if (hideFollowing) document.documentElement.style.setProperty("--following", hideFollowing ? 'none' : 'flex');
-    if (hideDegreesOfSep2) document.documentElement.style.setProperty("--degrees-of-sep", hideDegreesOfSep2 ? 'none' : 'flex');
-    if (hideOptifine) document.documentElement.style.setProperty("--optifine", hideOptifine ? 'none' : 'flex');
+    if (hideHeadCmd2) root.style.setProperty("--head-cmd", hideHeadCmd2 ? 'none' : 'flex');
+    if (hideServers) root.style.setProperty("--servers", hideServers ? 'none' : 'flex');
+    if (hideFollowing) root.style.setProperty("--following", hideFollowing ? 'none' : 'flex');
+    if (hideDegreesOfSep2) root.style.setProperty("--degrees-of-sep", hideDegreesOfSep2 ? 'none' : 'flex');
+    if (hideOptifine) root.style.setProperty("--optifine", hideOptifine ? 'none' : 'flex');
 
     const createSettingsButton = () => {
         const modalHTML = `
@@ -339,7 +344,7 @@
 
             waitForSelector("[href*=namemc]", () => {
                 // inject modal html
-                document.documentElement.insertAdjacentHTML('beforeend', modalHTML);
+                root.insertAdjacentHTML('beforeend', modalHTML);
 
                 // firefox support
                 var customTheme = document.querySelector("#customTheme");
@@ -366,14 +371,14 @@
                     localStorage.customTheme = false;
                     localStorage.theme = "light";
                     customThemeOn = false;
-                    document.documentElement.style.removeProperty("--bs-body-bg");
-                    document.documentElement.style.removeProperty("--bs-body-color");
-                    document.documentElement.style.removeProperty("--ne-link-rgb");
-                    document.documentElement.style.removeProperty("--ne-btn-rgb");
-                    document.documentElement.classList.remove("customTheme");
-                    document.documentElement.setAttribute("data-bs-theme", "light");
+                    root.style.removeProperty("--bs-body-bg");
+                    root.style.removeProperty("--bs-body-color");
+                    root.style.removeProperty("--ne-link-rgb");
+                    root.style.removeProperty("--ne-btn-rgb");
+                    root.classList.remove("customTheme");
+                    root.setAttribute("data-bs-theme", "light");
 
-                    document.documentElement.style.setProperty("--ne-checkered", "unset");
+                    root.style.setProperty("--ne-checkered", "unset");
 
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         var iframeEl = document.createElement("iframe");
@@ -384,7 +389,7 @@
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("#EEF0F2");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#212529");
                         </script>`;
-                        document.documentElement.append(iframeEl);
+                        root.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 1000);
 
                         localStorage.customBg = "#EEF0F2";
@@ -406,14 +411,14 @@
                     localStorage.customTheme = false;
                     localStorage.theme = "dark";
                     customThemeOn = false;
-                    document.documentElement.style.removeProperty("--bs-body-bg");
-                    document.documentElement.style.removeProperty("--bs-body-color");
-                    document.documentElement.style.removeProperty("--ne-link-rgb");
-                    document.documentElement.style.removeProperty("--ne-btn-rgb");
-                    document.documentElement.classList.remove("customTheme");
-                    document.documentElement.setAttribute("data-bs-theme", "dark");
+                    root.style.removeProperty("--bs-body-bg");
+                    root.style.removeProperty("--bs-body-color");
+                    root.style.removeProperty("--ne-link-rgb");
+                    root.style.removeProperty("--ne-btn-rgb");
+                    root.classList.remove("customTheme");
+                    root.setAttribute("data-bs-theme", "dark");
 
-                    document.documentElement.style.setProperty("--ne-checkered", "unset");
+                    root.style.setProperty("--ne-checkered", "unset");
 
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         var iframeEl = document.createElement("iframe");
@@ -424,7 +429,7 @@
                             window.top.document.querySelector("#custombgcolor").jscolor.fromString("#12161A");
                             window.top.document.querySelector("#customtextcolor").jscolor.fromString("#dee2e6");
                         </script>`;
-                        document.documentElement.append(iframeEl);
+                        root.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 1000);
 
                         localStorage.customBg = "#12161A";
@@ -443,17 +448,17 @@
                 }
 
                 custombgcolor.onchange = () => {
-                    if (customThemeOn) document.documentElement.style.setProperty("--bs-body-bg", custombgcolor.value);
+                    if (customThemeOn) root.style.setProperty("--bs-body-bg", custombgcolor.value);
                     localStorage.customBg = custombgcolor.value;
                     customBg = custombgcolor.value;
 
                     var rgbBg = hexToRgb(custombgcolor.value);
-                    document.documentElement.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
+                    root.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
                     customTheme.click();
                 }
 
                 customtextcolor.onchange = () => {
-                    if (customThemeOn) document.documentElement.style.setProperty("--bs-body-color", customtextcolor.value);
+                    if (customThemeOn) root.style.setProperty("--bs-body-color", customtextcolor.value);
                     localStorage.customText = customtextcolor.value;
                     customText = customtextcolor.value;
                     customTheme.click();
@@ -461,7 +466,7 @@
 
                 customlinkcolor.onchange = () => {
                     var linkRgb = hexToRgb(customlinkcolor.value);
-                    if (customThemeOn) document.documentElement.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
+                    if (customThemeOn) root.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
 
                     localStorage.customLink = customlinkcolor.value;
                     customLink = customlinkcolor.value;
@@ -470,7 +475,7 @@
 
                 custombtncolor.onchange = () => {
                     var btnRgb = hexToRgb(custombtncolor.value);
-                    if (customThemeOn) document.documentElement.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
+                    if (customThemeOn) root.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
 
                     localStorage.customBtn = custombtncolor.value;
                     customBtn = custombtncolor.value;
@@ -478,7 +483,7 @@
                 }
 
                 selectBase.onchange = () => {
-                    if (customThemeOn) document.documentElement.setAttribute("data-bs-theme", selectBase.value);
+                    if (customThemeOn) root.setAttribute("data-bs-theme", selectBase.value);
                     localStorage.customBase = selectBase.value;
                     localStorage.theme = selectBase.value;
                     customBase = selectBase.value;
@@ -498,7 +503,7 @@
                                 window.top.document.querySelector("#customlinkcolor").jscolor.fromString("#7ba7ce");
                                 window.top.document.querySelector("#custombtncolor").jscolor.fromString("#236DAD");
                             </script>`;
-                            document.documentElement.append(iframeEl);
+                            root.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000);
 
                             localStorage.customBg = "#12161A";
@@ -524,7 +529,7 @@
                                 window.top.document.querySelector("#customlinkcolor").jscolor.fromString("#236DAD");
                                 window.top.document.querySelector("#custombtncolor").jscolor.fromString("#236DAD");
                             </script>`;
-                            document.documentElement.append(iframeEl);
+                            root.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000);
 
                             localStorage.customBg = "#EEF0F2";
@@ -583,7 +588,7 @@
                             window.top.document.querySelector("#customlinkcolor").jscolor.fromString("${code[2].replace(/"/g, '')}");
                             window.top.document.querySelector("#custombtncolor").jscolor.fromString("${code[3].replace(/"/g, '')}");
                         </script>`;
-                            document.documentElement.append(iframeEl);
+                            root.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000);
 
                             localStorage.customBg = code[0];
@@ -620,7 +625,7 @@
                 }
 
                 if (!customThemeOn) {
-                    if (document.documentElement.getAttribute("data-bs-theme") == "dark") {
+                    if (root.getAttribute("data-bs-theme") == "dark") {
                         darkTheme.onclick();
                     } else {
                         lightTheme.onclick();
@@ -640,7 +645,7 @@
                                 window.top.jscolor.init();
                             } catch {}
                         </script>`;
-                        document.documentElement.append(iframeEl);
+                        root.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 1000);
                     }, 1000);
                 });
@@ -694,14 +699,14 @@
                 inject1.onload = function () {
                     this.remove();
                 };
-                (document.head || document.documentElement).appendChild(inject1);
+                (document.head || root).appendChild(inject1);
 
                 var inject2 = document.createElement('script');
                 inject2.src = chrome.runtime.getURL('js/skinview3d.bundle.js');
                 inject2.onload = function () {
                     this.remove();
                 };
-                (document.head || document.documentElement).appendChild(inject2);
+                (document.head || root).appendChild(inject2);
 
                 if (page === 'pinned') {
                     var inject3 = document.createElement('script');
@@ -709,7 +714,7 @@
                     inject3.onload = function () {
                         this.remove();
                     };
-                    (document.head || document.documentElement).appendChild(inject3);
+                    (document.head || root).appendChild(inject3);
                 }
 
                 waitForSelector('#faq', (faq) => {
@@ -746,27 +751,31 @@
                 inject1.onload = function () {
                     this.remove();
                 };
-                (document.head || document.documentElement).appendChild(inject1);
+                (document.head || root).appendChild(inject1);
             }
 
             dropDownMenu.insertBefore(menuItem, dropDownMenu.childNodes[location]);
         })
     }
 
-    const injectPages = (pages, i) => {
-        pages.forEach(page => setTimeout(customPage(...page), i))
-    }
+    const injectPages = (pages, delay = 0) => {
+        pages.forEach(page => {
+            setTimeout(() => customPage(...page), delay);
+        });
+    };
 
-    const injectMenus = (menus, i) => {
-        menus.forEach(menu => setTimeout(customMenuItem(...menu), i))
-    }
+    const injectMenus = (menus, delay = 0) => {
+        menus.forEach(menu => {
+            setTimeout(() => customMenuItem(...menu), delay);
+        });
+    };
 
     var inject3 = document.createElement('script');
     inject3.src = chrome.runtime.getURL('js/jscolor.min.js');
     inject3.onload = function () {
         this.remove();
     };
-    (document.head || document.documentElement).appendChild(inject3);
+    (document.head || root).appendChild(inject3);
 
     // INJECT SETTINGS BUTTON
     createSettingsButton();
@@ -779,9 +788,11 @@
             pages.push(['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']);
         }
 
-        const hasPinnedUsers = await checkPinnedUsers();
-        if (hasPinnedUsers && pinned) {
-            pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
+        if (pinned) {
+            const hasPinnedUsers = await checkPinnedUsers();
+            if (hasPinnedUsers) {
+                pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
+            }
         }
 
         if (!hideBadges2) {
@@ -801,7 +812,7 @@
         ['generate-skinart', 'Generate Skin Art', 'javascript:void(0)', 18, 'far fa-palette']
     ]);
 
-    waitForSelector("body", () => {
+    waitForSelector("body", async () => {
         // REPLACE COPY BUTTON
         setTimeout(() => {
             var copyLinks = [...document.querySelectorAll("a.copy-button[data-clipboard-text][href*='javascript:']")];
@@ -822,6 +833,23 @@
             });
         }
 
+        if (pinned) {
+            const hasPinnedUsers = await checkPinnedUsers();
+            if (hasPinnedUsers) {
+                if (location.pathname === "/search") {
+                    waitForSelector(".mono", (search) => {
+                        if (search.innerText?.trim()?.toLowerCase() === "tierlist") {
+                            search.onclick = () => {
+                                location.href = "/extras/pinned?tierlist=true";
+                            }
+                            search.style.cursor = "pointer";
+                            search.style.textDecoration = "underline";
+                        }
+                    });
+                }
+            }
+        }
+
         // MARK ALL READ
         waitForSelector('.dropdown-header:nth-child(6)', async (header) => {
             header.insertAdjacentHTML('beforeend', `<a href="javascript:void 0" id="markAllRead" class="color-inherit" title="Mark All Read"><i class="far fa-envelope-open"></i></a>`);
@@ -840,11 +868,11 @@
                 </div>
             </div>`;
 
-            document.documentElement.insertAdjacentHTML('beforeend', modalHTML);
+            root.insertAdjacentHTML('beforeend', modalHTML);
 
             const fetchAllProfiles = async () => {
                 document.querySelector('#markAllRead').classList.add('disabled');
-                document.documentElement.style.cursor = 'wait';
+                root.style.cursor = 'wait';
 
                 for (const url of profiles) {
                     await fetch(url);
@@ -864,7 +892,7 @@
                         window.top.captchaModal = new window.top.bootstrap.Modal("#captchaModal");
                         window.top.captchaModal.show();
                     </script>`;
-                    document.documentElement.append(iframeEl);
+                    root.append(iframeEl);
                     setTimeout(() => iframeEl.remove(), 1000);
 
                     setTimeout(() => {
@@ -876,7 +904,7 @@
                             iframeEl.srcdoc = `<script>
                                 window.top.captchaModal.hide();
                             </script>`;
-                            document.documentElement.append(iframeEl);
+                            root.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000);
                             await fetchAllProfiles();
                             location.reload();

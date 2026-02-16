@@ -1,15 +1,5 @@
 // Cape usage graph utilities
 
-// Debounce helper function
-function debounce(func, wait) {
-  let timeout;
-  return function(...args) {
-    const context = this;
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(context, args), wait);
-  };
-}
-
 // Function to format numbers with commas (e.g., 1000000 -> 1,000,000)
 function formatNumber(number) {
   if (typeof number !== 'number' || isNaN(number)) {

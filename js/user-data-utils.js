@@ -1,5 +1,6 @@
 (async () => {
     if (!document.contentType.startsWith('text/html')) return;
+    if (window.location.hostname === 'store.namemc.com') return;
 
     class UserEntity {
         constructor(data = {}) {
@@ -22,13 +23,9 @@
     class UserDataUtils {
         constructor() {
             this.domain = window.location.origin;
-            this.cache = new Map(); // Cache for profiles
+            this.cache = new Map();
         }
 
-        /**
-         * Retrieves Supabase data from localStorage
-         * @returns {Object} The Supabase data
-         */
         getSupabaseData() {
             try {
                 const supabaseData = localStorage.getItem('supabase_data');
@@ -39,296 +36,152 @@
             }
         }
 
-        /**
-         * Retrieves custom badges for a user
-         * @param {string} userUuid - The user's UUID
-         * @returns {Array} The user's badges
-         */
         getUserCustomBadges(userUuid) {
             if (!userUuid) return [];
-
-            const supabaseData = this.getSupabaseData();
-            const allBadges = supabaseData.badges || [];
-            const userBadges = supabaseData.user_badges || [];
-
-            // Filter badges for this user
-            const userBadgeIds = userBadges
-                .filter(ub => ub.user === userUuid)
-                .map(ub => ub.badge);
-
-            // Return complete badge data
-            return allBadges.filter(badge => userBadgeIds.includes(badge.id));
+            const { badges: allBadges = [], user_badges: userBadges = [] } = this.getSupabaseData();
+            const userBadgeIds = new Set(userBadges.filter(ub => ub.user === userUuid).map(ub => ub.badge));
+            return allBadges.filter(badge => userBadgeIds.has(badge.id));
         }
 
-        /**
-         * Retrieves custom capes for a user
-         * @param {string} userUuid - The user's UUID
-         * @returns {Object} The user's capes {capes: Array, equippedCape: Object|null}
-         */
         getUserCustomCapes(userUuid) {
             if (!userUuid) return { capes: [], equippedCape: null };
+            const { capes: allCapes = [], user_capes: userCapes = [] } = this.getSupabaseData();
 
-            const supabaseData = this.getSupabaseData();
-            const allCapes = supabaseData.capes || [];
-            const userCapes = supabaseData.user_capes || [];
-
-            // Filter capes for this user
             const userCapeAssignments = userCapes.filter(uc => uc.user === userUuid);
-            const userCapeIds = userCapeAssignments.map(uc => uc.cape);
+            const userCapeIds = new Set(userCapeAssignments.map(uc => uc.cape));
 
-            // Retrieve complete cape data
-            const userCustomCapes = allCapes
-                .filter(cape => userCapeIds.includes(cape.id))
-                .map(cape => {
-                    const assignment = userCapeAssignments.find(uc => uc.cape === cape.id);
-                    return {
-                        id: cape.id,
-                        name: cape.name,
-                        description: cape.description,
-                        imageUrl: cape.image_src,
-                        renderUrl: cape.image_render,
-                        category: cape.category,
-                        isCustom: true, // Mark as custom cape
-                        equipped: assignment ? assignment.equipped : false,
-                        note: assignment ? assignment.note : null
-                    };
+            const assignmentMap = new Map(userCapeAssignments.map(uc => [uc.cape, uc]));
+            const userCustomCapes = [];
+
+            for (const cape of allCapes) {
+                if (!userCapeIds.has(cape.id)) continue;
+                const assignment = assignmentMap.get(cape.id);
+                userCustomCapes.push({
+                    id: cape.id,
+                    name: cape.name,
+                    description: cape.description,
+                    imageUrl: cape.image_src,
+                    renderUrl: cape.image_render,
+                    category: cape.category,
+                    isCustom: true,
+                    equipped: assignment?.equipped || false,
+                    note: assignment?.note || null
                 });
+            }
 
-            // Find the equipped cape
-            const equippedCape = userCustomCapes.find(cape => cape.equipped) || null;
-
+            const equippedCape = userCustomCapes.find(c => c.equipped) || null;
             return { capes: userCustomCapes, equippedCape };
         }
 
         async fetchUUID() {
-            return await waitForProfileSelector('[value=standard]', (uuid) => {
-                return uuid.value.trim();
-            });
+            return await waitForProfileSelector('[value=standard]', uuid => uuid.value.trim());
         }
 
-        /**
-         * Parse the HTML of a profile and return a UserEntity object
-         * @param {string} html - The profile HTML
-         * @param {string} uuid - The uuid
-         * @returns {UserEntity} The parsed profile data
-         */
         parseUserProfile(html, uuid) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const username = doc.querySelector('h1')?.innerText || '';
 
-            // UUID
-            const username = doc.querySelector('h1').innerText;
-
-            // Views
-            let views = null;
             const rows = doc.querySelectorAll('.card-body .row');
+            let views = null, bio = null, rank = null;
             for (const row of rows) {
-                const strongElement = row.querySelector('strong');
-                if (strongElement && strongElement.textContent.trim() === 'Views') {
-                    const viewsElement = row.querySelector('.col-auto');
-                    if (viewsElement && viewsElement.textContent.includes('/ month')) {
-                        // Extract all numbers from the string and convert to integer
-                        const numbersOnly = viewsElement.textContent.replace(/[^\d]/g, '');
-                        views = numbersOnly ? parseInt(numbersOnly, 10) : null;
-                        break;
+                const strongText = row.querySelector('strong')?.textContent.trim();
+                if (!strongText) continue;
+
+                if (strongText === 'Views') {
+                    const el = row.querySelector('.col-auto');
+                    if (el && el.textContent.includes('/ month')) {
+                        const numbers = el.textContent.replace(/[^\d]/g, '');
+                        views = numbers ? parseInt(numbers, 10) : null;
                     }
+                } else if (strongText === 'Bio') {
+                    bio = row.querySelector('.col-12.order-lg-2.col-lg')?.textContent.trim() || null;
+                } else if (strongText === 'Rank') {
+                    rank = row.querySelector('.namemc-rank')?.textContent.trim() || null;
                 }
             }
 
-            // Bio
-            let bio = null;
-            for (const row of rows) {
-                const strongElement = row.querySelector('strong');
-                if (strongElement && strongElement.textContent.trim() === 'Bio') {
-                    const bioElement = row.querySelector('.col-12.order-lg-2.col-lg');
-                    if (bioElement) {
-                        bio = bioElement.textContent.trim();
-                        break;
-                    }
-                }
-            }
-
-            // Rank
-            let rank = null;
-            for (const row of rows) {
-                const strongElement = row.querySelector('strong');
-                if (strongElement && strongElement.textContent.trim() === 'Rank') {
-                    const rankElement = row.querySelector('.namemc-rank');
-                    if (rankElement) {
-                        rank = rankElement.textContent.trim();
-                        break;
-                    }
-                }
-            }
-
-            // Information (social networks, country, etc.)
             const information = {};
-            const infoLinks = doc.querySelectorAll('.card-body .row .col .d-inline-block');
-
-            infoLinks.forEach(link => {
-                const popoverContent = link.getAttribute('data-bs-content');
+            for (const link of doc.querySelectorAll('.card-body .row .col .d-inline-block')) {
+                const popover = link.getAttribute('data-bs-content');
                 const href = link.getAttribute('href');
                 const imgSrc = link.querySelector('img')?.getAttribute('src');
+                if (!imgSrc) continue;
 
-                if (!imgSrc) return;
-
-                // Country detection via emoji
-                if (imgSrc.includes('/emoji/twitter/') && popoverContent && popoverContent.match(/^[A-Za-z\s]+$/) && (!href || href === 'javascript:void(0)')) {
-                    information.country = popoverContent.trim();
-                    return;
+                if (imgSrc.includes('/emoji/twitter/') && popover?.match(/^[A-Za-z\s]+$/) && (!href || href === 'javascript:void(0)')) {
+                    information.country = popover.trim();
+                    continue;
                 }
 
-                // Automatic service detection via image URL
                 if (imgSrc.includes('/service/')) {
-                    // Extract service name from image URL
-                    const serviceMatch = imgSrc.match(/\/service\/([^\.]+)\.svg/);
-                    if (serviceMatch) {
-                        const serviceName = serviceMatch[1];
-
-                        // If there's a valid href link, use it
-                        if (href && href !== 'javascript:void(0)') {
-                            information[serviceName] = href;
-                        }
-                        // Otherwise, use popover content if available
-                        else if (popoverContent && popoverContent.trim()) {
-                            information[serviceName] = popoverContent.trim();
-                        }
-                        // Otherwise, just indicate the service is present
-                        else {
-                            information[serviceName] = true;
-                        }
+                    const match = imgSrc.match(/\/service\/([^\.]+)\.svg/);
+                    if (match) {
+                        const serviceName = match[1];
+                        information[serviceName] = (href && href !== 'javascript:void(0)') ? href : (popover?.trim() || true);
                     }
                 }
-            });
+            }
 
-            // Following/followers counts from tabs
-            const followingTabButton = doc.querySelector('#following-tab');
-            const followersTabButton = doc.querySelector('#followers-tab');
+            const parseCount = el => parseInt((el?.textContent.match(/\(([0-9,]+)\)/)?.[1] || '0').replace(/,/g, ''), 10);
+            const followingCount = parseCount(doc.querySelector('#following-tab'));
+            const followersCount = parseCount(doc.querySelector('#followers-tab'));
 
-            const followingCount = followingTabButton ?
-                parseInt((followingTabButton.textContent.match(/\(([0-9,]+)\)/)?.[1] || '0').replace(/,/g, '')) : 0;
-            const followersCount = followersTabButton ?
-                parseInt((followersTabButton.textContent.match(/\(([0-9,]+)\)/)?.[1] || '0').replace(/,/g, '')) : 0;
-
-
-
-            // Collect skins data
             const skins = [];
             let currentSkin = null;
-            const skinElements = doc.querySelectorAll('a[href*="/skin/"] canvas.skin-2d');
-            skinElements.forEach(skinCanvas => {
-                const link = skinCanvas.closest('a');
-                const skinId = skinCanvas.getAttribute('data-id');
-                const skinUrl = link ? link.getAttribute('href') : null;
-                const isSelected = skinCanvas.classList.contains('skin-button-selected');
-
+            for (const canvas of doc.querySelectorAll('a[href*="/skin/"] canvas.skin-2d')) {
+                const link = canvas.closest('a');
+                const skinId = canvas.getAttribute('data-id');
                 const skinData = {
                     id: skinId,
-                    url: skinUrl,
+                    url: link?.getAttribute('href') || null,
                     imageUrl: skinId ? `https://s.namemc.com/i/${skinId}.png` : null,
                     faceUrl: skinId ? `https://s.namemc.com/2d/skin/face.png?id=${skinId}&scale=8` : null
                 };
-
                 skins.push(skinData);
-                if (isSelected) {
-                    currentSkin = skinData;
-                }
-            });
-
-            // Collect capes data (normal)
-            const capes = [];
-            let currentCape = null;
-            const capeElements = doc.querySelectorAll('a[href*="/cape/"] canvas, a[href*="/cape/"] img');
-            capeElements.forEach(capeElement => {
-                const link = capeElement.closest('a');
-                const capeUrl = link ? link.getAttribute('href') : null;
-                const isSelected = capeElement.classList.toString().includes('-selected');
-
-                // Extract cape ID from URL
-                let capeId = null;
-                if (capeUrl) {
-                    const capeIdMatch = capeUrl.match(/\/cape\/([^\/]+)/);
-                    capeId = capeIdMatch ? capeIdMatch[1] : null;
-                }
-
-                const capeData = {
-                    id: capeId,
-                    url: capeUrl,
-                    imageUrl: capeId ? `https://s.namemc.com/i/${capeId}.png` : null,
-                    isCustom: false // Mark as normal cape
-                };
-                capes.push(capeData);
-                if (isSelected) {
-                    currentCape = capeData;
-                }
-            });
-
-            // Retrieve and add custom capes
-            const customCapesData = this.getUserCustomCapes(uuid);
-            capes.push(...customCapesData.capes);
-
-            // If no normal cape is equipped, check custom capes
-            if (!currentCape && customCapesData.equippedCape) {
-                currentCape = customCapesData.equippedCape;
+                if (canvas.classList.contains('skin-button-selected')) currentSkin = skinData;
             }
 
+            const capes = [];
+            let currentCape = null;
+            for (const el of doc.querySelectorAll('a[href*="/cape/"] canvas, a[href*="/cape/"] img')) {
+                const link = el.closest('a');
+                const capeUrl = link?.getAttribute('href') || null;
+                const capeId = capeUrl?.match(/\/cape\/([^\/]+)/)?.[1] || null;
+                const isSelected = [...el.classList].some(c => c.includes('-selected'));
+
+                const capeData = { id: capeId, url: capeUrl, imageUrl: capeId ? `https://s.namemc.com/i/${capeId}.png` : null, isCustom: false };
+                capes.push(capeData);
+                if (isSelected) currentCape = capeData;
+            }
+
+            const customCapes = this.getUserCustomCapes(uuid);
+            capes.push(...customCapes.capes);
+            if (!currentCape && customCapes.equippedCape) currentCape = customCapes.equippedCape;
+
             return new UserEntity({
-                username,
-                uuid,
-                views,
-                bio,
-                rank,
-                information,
-                followingCount,
-                followersCount,
-                skins,
-                capes,
-                currentSkin,
-                currentCape,
-                badges: this.getUserCustomBadges(uuid)
+                username, uuid, views, bio, rank, information, followingCount, followersCount,
+                skins, capes, currentSkin, currentCape, badges: this.getUserCustomBadges(uuid)
             });
         }
 
-        /**
-         * Fetch user profile page and return a parsed UserEntity object
-         * @param {string} uuid - The uuid
-         * @returns {Promise<UserEntity>} The parsed profile data
-         */
         async fetchUserProfile(uuid) {
-            // Check cache first
-            if (this.cache.has(uuid)) {
-                console.log(`Profile for ${uuid} found in cache`);
-                return this.cache.get(uuid);
-            }
-
+            if (this.cache.has(uuid)) return this.cache.get(uuid);
             try {
                 const response = await fetch(`/profile/${uuid}`);
-
                 if (!document.querySelector('#captchaIf2')) {
-                    const iframeHTML = `<iframe src="/profile/${uuid}" id="captchaIf2" style="display:none"></iframe>`;
-
-                    document.documentElement.insertAdjacentHTML('beforeend', iframeHTML);
+                    document.documentElement.insertAdjacentHTML('beforeend', `<iframe src="/profile/${uuid}" id="captchaIf2" style="display:none"></iframe>`);
                 }
 
                 if (response.status === 403) {
-                    document.querySelector('#captchaIf2').style.display = 'block';
-                    setTimeout(() => {
-                        document.querySelector('#captchaIf2').contentWindow.addEventListener('visibilitychange', async () => {
-                            location.reload();
-                        });
-                    }, 1000);
+                    const iframe = document.querySelector('#captchaIf2');
+                    iframe.style.display = 'block';
+                    setTimeout(() => iframe.contentWindow.addEventListener('visibilitychange', () => location.reload()), 1000);
                     return;
-                } else if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
                 const html = await response.text();
                 const userEntity = this.parseUserProfile(html, uuid);
-
-                // Cache the result
                 this.cache.set(uuid, userEntity);
-                console.log(`Profile for ${uuid} cached`);
-
                 return userEntity;
             } catch (error) {
                 console.error(`Error fetching profile for ${uuid}:`, error);
@@ -336,7 +189,6 @@
             }
         }
 
-        // Pinning system methods
         getPinnedUsers() {
             try {
                 const pinnedData = localStorage.getItem('namemc_pinned_users');
@@ -348,21 +200,17 @@
         }
 
         isPinned(uuid) {
-            const pinnedUsers = this.getPinnedUsers();
-            return pinnedUsers.some(user => user.uuid === uuid);
+            const pinned = this.getPinnedUsers();
+            return pinned.some(u => u.uuid === uuid);
         }
 
         async pinUser(uuid) {
             try {
                 const userProfile = await this.fetchUserProfile(uuid);
-                const pinnedUsers = this.getPinnedUsers();
-
+                const pinned = this.getPinnedUsers();
                 if (!this.isPinned(uuid)) {
-                    pinnedUsers.push({
-                        uuid: userProfile.uuid,
-                        pinnedAt: Date.now()
-                    });
-                    localStorage.setItem('namemc_pinned_users', JSON.stringify(pinnedUsers));
+                    pinned.push({ uuid: userProfile.uuid, pinnedAt: Date.now() });
+                    localStorage.setItem('namemc_pinned_users', JSON.stringify(pinned));
                     return true;
                 }
                 return false;
@@ -374,9 +222,8 @@
 
         unpinUser(uuid) {
             try {
-                const pinnedUsers = this.getPinnedUsers();
-                const filteredUsers = pinnedUsers.filter(user => user.uuid !== uuid);
-                localStorage.setItem('namemc_pinned_users', JSON.stringify(filteredUsers));
+                const filtered = this.getPinnedUsers().filter(u => u.uuid !== uuid);
+                localStorage.setItem('namemc_pinned_users', JSON.stringify(filtered));
                 return true;
             } catch (error) {
                 console.error('Error unpinning user:', error);
@@ -385,37 +232,25 @@
         }
 
         async getPinnedUserProfiles() {
-            const pinnedUsers = this.getPinnedUsers();
             const profiles = [];
-
-            for (const pinnedUser of pinnedUsers) {
+            for (const u of this.getPinnedUsers()) {
                 try {
-                    const profile = await this.fetchUserProfile(pinnedUser.uuid);
-                    profiles.push(profile);
-                } catch (error) {
-                    console.error(`Error fetching profile for ${pinnedUser.uuid}:`, error);
+                    profiles.push(await this.fetchUserProfile(u.uuid));
+                } catch (e) {
+                    console.error(`Error fetching profile for ${u.uuid}:`, e);
                 }
             }
-
             return profiles;
         }
-
     }
 
-    const waitForProfileSelector = function (selector, callback) {
-        return new Promise((resolve, reject) => {
-            const checkElement = () => {
-                let query = document.querySelector(selector);
-                if (query) {
-                    resolve(callback(query));
-                } else {
-                    setTimeout(checkElement, 100);
-                }
-            };
-            checkElement();
-        });
-    };
+    const waitForProfileSelector = (selector, callback) => new Promise(resolve => {
+        const check = () => {
+            const el = document.querySelector(selector);
+            el ? resolve(callback(el)) : setTimeout(check, 100);
+        };
+        check();
+    });
 
-    // Export class globally
     window.UserDataUtils = UserDataUtils;
-})()
+})();

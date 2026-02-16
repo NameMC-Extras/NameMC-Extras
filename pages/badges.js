@@ -1,75 +1,62 @@
-const waitForSelector = function (selector, callback) {
-  let query = document.querySelector(selector)
-  if (query) {
-    setTimeout(() => {
-      callback(query);
-    });
-  } else {
-    setTimeout(() => {
-      waitForSelector(selector, callback);
-    });
-  }
+const waitForSelector = (selector, callback) => {
+  const el = document.querySelector(selector);
+  if (el) return callback(el);
+
+  const observer = new MutationObserver(() => {
+    const el = document.querySelector(selector);
+    if (el) {
+      observer.disconnect();
+      callback(el);
+    }
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
 };
 
-const waitForStorage = function (key, callback) {
-  if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
-    setTimeout(() => {
-      callback();
-    });
+const waitForStorage = (key, callback) => {
+  const value = window.localStorage.getItem(key);
+  if (value && value.length !== 0) {
+    callback();
   } else {
-    setTimeout(() => {
-      waitForStorage(key, callback);
-    });
+    requestAnimationFrame(() => waitForStorage(key, callback)); // faster polling
   }
 };
-
-/*
- * FUNCTIONS
- */
 
 /**
-  * Returns HTML code for the badge's card
-  * @param {SupabaseBadge} badge
-  * @param {number} userCount 
-  * @returns {string}
-  */
+ * Returns HTML code for the badge's card
+ * @param {SupabaseBadge} badge
+ * @param {number} userCount 
+ * @returns {string}
+ */
 function getBadgeCardHTML(badge, userCount) {
+  const badgeName = badge.name;
+  const badgeID = encodeURIComponent(badge.id);
+  const badgeImage = badge.image;
+
   return `
-      <div class="col-4 col-md-2">
-        <div class="card mb-2">
-          <a href="${`/extras/badge/${encodeURIComponent(badge.id)}`}">
-            ${(() => {
-      var titleEl = document.createElement("div");
-      titleEl.setAttribute("class", "card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1");
-      titleEl.translate = "no";
-      titleEl.textContent = badge.name;
-
-      return titleEl.outerHTML;
-    })()}
-            <div class="card-body position-relative text-center checkered p-1">
-              <div>
-                ${(() => {
-      var imageEl = document.createElement("img");
-      imageEl.classList.add("drop-shadow");
-      imageEl.classList.add("auto-size-square");
-      imageEl.loading = "lazy";
-      imageEl.width = 136;
-      imageEl.height = 136;
-      imageEl.style.padding = "9px";
-      imageEl.style["image-rendering"] = "pixelated";
-      imageEl.src = badge.image;
-      imageEl.alt = badge.name;
-      imageEl.title = badge.name;
-
-      return imageEl.outerHTML;
-    })()}
-              </div>
-              <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${userCount}★</div>
+    <div class="col-4 col-md-2">
+      <div class="card mb-2">
+        <a href="/extras/badge/${badgeID}">
+          <div class="card-header text-center text-nowrap text-ellipsis small-xs normal-sm p-1" translate="no">${badgeName}</div>
+          <div class="card-body position-relative text-center checkered p-1">
+            <div>
+              <img class="drop-shadow auto-size-square"
+                   loading="lazy"
+                   width="136" height="136"
+                   style="padding:9px; image-rendering: pixelated;"
+                   src="${badgeImage}"
+                   alt="${badgeName}"
+                   title="${badgeName}">
             </div>
-          </a>
-        </div>
+            <div class="position-absolute bottom-0 right-0 text-muted mx-1 small-xs normal-sm">${userCount}★</div>
+          </div>
+        </a>
       </div>
-    `;
+    </div>
+  `;
 }
 
 
@@ -80,32 +67,29 @@ function getBadgeCardHTML(badge, userCount) {
 
 function addBadges(main) {
   const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
-
   main.innerHTML = "";
 
   // get user count
-  const mapPromise = supabase_data.badges.map(badge => {
-    badge.users = supabase_data.user_badges.filter(user => user.badge == badge.id)
+  const badges = supabase_data.badges.map(badge => {
+    badge.usersCount = supabase_data.user_badges.reduce((count, user) => user.badge === badge.id ? count + 1 : count, 0);
     return badge;
   });
 
-  const badgeHTMLCards = [];
-  mapPromise.sort((a, b) => b.users.length - a.users.length).forEach(badge => {
-    badgeHTMLCards.push(getBadgeCardHTML(badge, badge.users.length));
-  });
+  badges.sort((a, b) => b.usersCount - a.usersCount);
 
-  var badgesRange = document.createRange();
-  var badgesHTML = badgesRange.createContextualFragment(`
-            <h1 class="text-center">Extras Badges</h1>
-            <hr class="mt-0">
-            <div class="mb-2">
-              <div class="row gx-2 justify-content-center">
-                ${badgeHTMLCards.join("")}
-              </div>
-            </div>
-          `);
+  const badgeHTMLCards = badges.map(b => getBadgeCardHTML(b, b.usersCount)).join("");
 
-  main.append(badgesHTML)
+  const badgesHTML = document.createRange().createContextualFragment(`
+    <h1 class="text-center">Extras Badges</h1>
+    <hr class="mt-0">
+    <div class="mb-2">
+      <div class="row gx-2 justify-content-center">
+        ${badgeHTMLCards}
+      </div>
+    </div>
+  `);
+
+  main.append(badgesHTML);
 }
 
 waitForStorage("supabase_data", () => waitForSelector("main", addBadges));

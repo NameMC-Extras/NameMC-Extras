@@ -1,10 +1,12 @@
 // only use for getting animate cookie
 function getCookie(name) {
-    let cookies = Object.fromEntries(document.cookie.split(';').map(e => e.split('=').map(e => decodeURIComponent(e.trim()))));
-    return cookies[name];
+  const match = document.cookie.match(
+    new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)')
+  );
+  return match ? decodeURIComponent(match[1]) : undefined;
 }
 
-var paused = (getCookie("animate") === "false");
+var paused = getCookie("animate") === "false";
 var elytraOn = false;
 var layer = true;
 var currentCape = null;
@@ -12,7 +14,7 @@ var currentOptifineMode = "steal";
 var officialCapes = {};
 var officialCapesCategoryOrder = [];
 var specialCapes = {};
-const noElytra = [
+const noElytra = new Set([
     "fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc",
     "2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211",
     "d1f20f8534f9f58a3a0a26586d5615f513add564809986334b7f247593425ee3",
@@ -30,7 +32,7 @@ const noElytra = [
     "5e8f3740ec1aabc872d8149c5e00b5b739cce63971db6edab30f94ccffed9d37",
     "b69e02edd267ea9bd7bf3f67f2a5cfff0f5aa8caf7c081e2d7221ac78277970a",
     "b698cefe18ac367f930332dd77f4a6d390be7adb36380e568761df4683562f84"
-]
+]);
 const UUIDRegex = /([0-9a-f]{8})(?:-|)([0-9a-f]{4})(?:-|)(4[0-9a-f]{3})(?:-|)([89ab][0-9a-f]{3})(?:-|)([0-9a-f]{12})/;
 var model = "auto-detect";
 
@@ -48,7 +50,8 @@ const waitForFunc = (funcName, callback) =>
 
 const waitForSupabase = (callback) =>
     waitFor(() => !!window.localStorage.getItem("supabase_data"), () =>
-        callback(JSON.parse(window.localStorage.getItem("supabase_data"))));
+        callback(JSON.parse(window.localStorage.getItem("supabase_data")))
+    );
 
 // toggle skin layers
 const toggleLayers = () => {
@@ -56,6 +59,7 @@ const toggleLayers = () => {
     const icon = document.querySelector("#layer-btn i");
     icon.className = layer ? "fas fa-clone" : "far fa-clone";
     icon.parentElement.title = layer ? "No Layers" : "Layers";
+
     const parts = skinViewer.playerObject.skin;
     ["head", "body", "rightArm", "leftArm", "rightLeg", "leftLeg"].forEach(part => {
         parts[part].outerLayer.visible = layer;
@@ -78,8 +82,8 @@ const fixPauseBtn = () => {
 
 /** Create elytra toggle button */
 const createElytraBtn = () => {
-    waitFor(() => document.querySelector('#play-pause-btn'), () => {
-        if (document.querySelector('#elytra-btn')) return; // prevent duplicates
+    waitForSelector('#play-pause-btn', () => {
+        if (document.querySelector('#elytra-btn')) return;
 
         const pauseBtn = document.querySelector('#play-pause-btn');
         const elytraBtn = document.createElement('button');
@@ -89,7 +93,7 @@ const createElytraBtn = () => {
         elytraBtn.title = "Elytra";
 
         const elytraIcon = document.createElement('i');
-        elytraIcon.classList.add('fas', 'fa-dove');
+        elytraIcon.className = 'fas fa-dove';
 
         elytraBtn.appendChild(elytraIcon);
         pauseBtn.insertAdjacentElement('afterend', elytraBtn);
@@ -352,7 +356,7 @@ waitForSelector('main', (main) => {
 
         apply.onclick = async () => {
             const isNameMCID = /^[a-f0-9]{16}$/i;
-            if (elytraOn && !noElytra.includes(currentCape.split("/").at(-1))) {
+            if (elytraOn && !noElytra.has(currentCape.split("/").at(-1))) {
                 try {
                     await skinViewer.loadCape(currentCape, {
                         backEquipment: "elytra"
@@ -401,7 +405,7 @@ waitForSelector('main', (main) => {
                 });
             }
 
-            if (currentCape && !noElytra.includes(currentCape.split("/").at(-1))) {
+            if (currentCape && !noElytra.has(currentCape.split("/").at(-1))) {
                 if (document.querySelector("#elytra-btn")) {
                     document.querySelector("#elytra-btn").style.display = "block";
                 } else {

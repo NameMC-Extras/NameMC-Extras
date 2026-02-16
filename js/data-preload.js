@@ -1,47 +1,47 @@
 (async () => {
   const endPoints = {
-    "badges": "badges",
-    "capes": "capes",
-    "nmc_capes": "capes_nmc",
-    "categories": "cape_categories",
-    "tester_categories": "tester_categories",
-    "tester_capes": "tester_capes",
-    "user_badges": "user_badges",
-    "user_capes": "user_capes",
-    "user_emoji_overrides": "user_emoji_overrides",
-    "announcements": "announcements",
-    "emojis_disabled": "emojis_disabled",
-    "emojis_free": "emojis_free"
+    badges: "badges",
+    capes: "capes",
+    nmc_capes: "capes_nmc",
+    categories: "cape_categories",
+    tester_categories: "tester_categories",
+    tester_capes: "tester_capes",
+    user_badges: "user_badges",
+    user_capes: "user_capes",
+    user_emoji_overrides: "user_emoji_overrides",
+    announcements: "announcements",
+    emojis_disabled: "emojis_disabled",
+    emojis_free: "emojis_free"
   };
 
   try {
-    const supabase_data = JSON.parse(localStorage.getItem('supabase_data'));
-    if (Object.keys(supabase_data).length === Object.keys(endPoints).length + 1 && new Date(Number(localStorage.getItem("supabase_expires"))).valueOf() > new Date().valueOf()) return;
-  } catch { }
-
-  async function fetchSupabase(endPoints) {
-    return Promise.all([...endPoints.map(async endPoint => await fetch(`https://data.faav.top/${endPoint}.json`)),
-    await fetch('https://bedrockviewer.com/api/v1/capes')
-    ]);
-  };
+    const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
+    const expires = Number(localStorage.getItem("supabase_expires"));
+    if (supabase_data && Object.keys(supabase_data).length === Object.keys(endPoints).length + 1 && expires > Date.now()) return;
+  } catch {}
 
   function initBooleanKey(key) {
-    if (!localStorage.getItem(key) || localStorage.getItem(key) === "false") localStorage.setItem(key, "false");
+    if (!localStorage.getItem(key)) localStorage.setItem(key, "false");
+  }
+
+  async function fetchSupabase(endPoints) {
+    // fetch all endpoints + bedrock_capes in parallel
+    const promises = endPoints.map(ep => fetch(`https://data.faav.top/${ep}.json`));
+    promises.push(fetch("https://bedrockviewer.com/api/v1/capes"));
+    return Promise.all(promises);
   }
 
   async function storeResults(results) {
-    var datas = Promise.all(results.map(async (result, i) => {
-      let keyName = Object.keys(endPoints)[i];
-      if (!keyName) keyName = "bedrock_capes";
-      return [keyName, await result.json()];
-    }));
-
-    localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(await datas)));
-    localStorage.setItem("supabase_expires", new Date().valueOf() + (300 * 1000))
+    const keys = [...Object.keys(endPoints), "bedrock_capes"];
+    const dataEntries = await Promise.all(
+      results.map((res, i) => res.json().then(json => [keys[i], json]))
+    );
+    localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(dataEntries)));
+    localStorage.setItem("supabase_expires", Date.now() + 300_000);
   }
 
-  fetchSupabase(Object.values(endPoints)).then(results => storeResults(results));
+  fetchSupabase(Object.values(endPoints)).then(storeResults);
 
   initBooleanKey("skinArt");
   initBooleanKey("customTheme");
-})()
+})();
