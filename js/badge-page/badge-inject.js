@@ -81,7 +81,7 @@ async function loadPage(mainDiv) {
       imageEl.classList.add("auto-size-square");
       imageEl.loading = "lazy";
       imageEl.width = 300;
-      imageEl.height = 450;
+      imageEl.height = 300;
       imageEl.style.padding = "56px";
       imageEl.style["image-rendering"] = "pixelated";
       imageEl.src = badge.image;
