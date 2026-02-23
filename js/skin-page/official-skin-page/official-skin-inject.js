@@ -70,13 +70,14 @@ const waitForFunc = function (func, callback) {
 };
 
 const addHolidayTools = () => {
-  const hasTools = document.querySelector('[value="hat-santa"]') || document.querySelector('[value="hat-pumpkin-mask-1"]');
-  if (!hasTools) {
-    waitForSelector('[action="/transform-skin"]', (form) => {
-      const skinId = form.querySelector('canvas[data-id]')?.getAttribute('data-id');
+  waitForSelector('[action*="/transform-skin"]', (form) => {
+    const hasHolidayTools = document.querySelectorAll('[action*="/transform-skin"]').length > 1;
+    if (hasHolidayTools) document.querySelector('[action*="/transform-skin"]').remove();
 
-      form.insertAdjacentHTML('beforebegin', `
-      <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="https://namemc.com/transform-skin">
+    const skinId = form.querySelector('canvas[data-id]')?.getAttribute('data-id');
+
+    form.insertAdjacentHTML('beforebegin', `
+      <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="/transform-skin">
         <input type="hidden" name="skin" value="${skinId}">
         <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-pumpkin" title="Pumpkin Head">
             <img class="skin-2d" src="https://s.namemc.com/2d/skin/face.png?id=dcec6ffd1405d8cb&scale=4" width="32" height="32">
@@ -112,17 +113,16 @@ const addHolidayTools = () => {
       </form>
       <hr class="my-0">
     `);
-    });
+  });
 
-    waitForFunc('nmci', () => {
-      [...document.querySelectorAll('[data-head]')].forEach(head => {
-        const script = document.createElement("script");
-        script.src = "https://s.namemc.com/i/" + head.getAttribute("data-head") + ".js";
-        script.defer = true;
-        document.head.appendChild(script);
-      });
+  waitForFunc('nmci', () => {
+    [...document.querySelectorAll('[data-head]')].forEach(head => {
+      const script = document.createElement("script");
+      script.src = "https://s.namemc.com/i/" + head.getAttribute("data-head") + ".js";
+      script.defer = true;
+      document.head.appendChild(script);
     });
-  }
+  });
 }
 
 addHolidayTools();
