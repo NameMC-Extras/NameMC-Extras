@@ -60,7 +60,7 @@ waitForStorage(() => {
   var linksTextArea = superStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
   var bedrockOnly = superStorage.getItem("bedrockOnly") !== "false";
   var pinned = superStorage.getItem("pinned") === "true";
-  var uuidFormat2 = superStorage.getItem("uuid-format") || "standard";
+  var uuidFormat2 = localStorage.getItem("uuid-format") || "standard";
 
   var currentSkinId = null;
   var currentDataModel = "classic";
@@ -151,24 +151,6 @@ waitForStorage(() => {
 
     link.appendChild(canvas);
     parent.appendChild(link);
-  }
-
-  function replaceWithIcons() {
-    // replace (edit) and Copy with icons
-    var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
-    editLinks.forEach(editLink => {
-      editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
-      editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
-      editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
-      editLink.classList.add("color-inherit");
-      editLink.title = "Edit";
-
-      // move to far right
-      if (editLink.parentElement.tagName === "STRONG") {
-        editLink.parentElement.parentElement.append(editLink);
-        editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
-      }
-    });
   }
 
   /**
@@ -415,8 +397,7 @@ waitForStorage(() => {
       if (e.pointerType === 0 || e.target.tagName === "OPTION") document.querySelector("#uuid-select").blur();
     }
 
-    var cardBody = uuid_select.parentElement.parentElement.parentElement;
-    var views = cardBody.querySelector('.card-body > :nth-child(2)');
+    var profileBody = uuid_select.parentElement.parentElement.parentElement;
 
     // create layer buttons
     setTimeout(createLayerBtn);
@@ -454,7 +435,8 @@ waitForStorage(() => {
       linksTextArea = descText;
     }
 
-    views.outerHTML += `
+    waitForSelector('.card-body.py-1 > div:nth-child(2)', (views) => {
+      views.outerHTML += `
       ${!hideCreatedAt ? `<div class="row g-0" id="created-at-section">
         <div class="col col-lg-3"><strong>Created At</strong></div>
         <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
@@ -464,6 +446,7 @@ waitForStorage(() => {
         <div class="col-12 order-lg-2 col-lg">${linksTextArea}</div>
       </div>` : ''}
     `;
+    });
 
     // BEDROCK CAPES CONTAINER
     if (enableBedrockCapes) {
@@ -533,7 +516,7 @@ waitForStorage(() => {
           const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
           var hrEl = document.createElement("hr");
           hrEl.classList.add("my-1");
-          if (!socialsTitle) cardBody.append(hrEl)
+          if (!socialsTitle) profileBody.append(hrEl)
 
           const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
           let badgeCardRange = document.createRange();
@@ -563,7 +546,7 @@ waitForStorage(() => {
 
           badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
 
-          cardBody.append(badgeCardHTML)
+          profileBody.append(badgeCardHTML)
 
           waitForTooltip(() => {
             $('#badgestitle').tooltip({

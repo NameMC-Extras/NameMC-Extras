@@ -43,17 +43,6 @@
         }
     };
 
-    // Run this on extension/page load
-    chrome.storage.local.get("superStorage_migration_done", (res) => {
-        if (!res.superStorage_migration_done) {
-            // Remove old key if it exists
-            chrome.storage.local.remove("savedLocalStorage");
-
-            // Mark migration as done
-            chrome.storage.local.set({ superStorage_migration_done: true });
-        }
-    });
-
     var theme = superStorage.getItem("theme");
     var customThemeOn = superStorage.getItem("customTheme") === "true";
     var customBg = superStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
