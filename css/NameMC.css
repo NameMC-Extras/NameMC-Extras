@@ -192,7 +192,7 @@ body main {
 }
 
 .customTheme a[class="px-1"],
-.customTheme .btn-link {
+.customTheme .btn-link:not(.dropdown-item) {
     color: rgba(var(--ne-btn-rgb), 1) !important;
     transition: color 200ms linear;
 }
