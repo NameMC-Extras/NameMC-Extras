@@ -178,8 +178,7 @@
     }
   ],
   "permissions": [
-    "storage",
-    "unlimitedStorage"
+    "storage"
   ],
   "host_permissions": [
     "https://data.faav.top/*",
