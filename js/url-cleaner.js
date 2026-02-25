@@ -1,6 +1,4 @@
 (function() {
-    'use strict';
-
     if (!document.contentType.startsWith('text/html')) return;
     if (window.location.hostname === 'store.namemc.com') return;
 

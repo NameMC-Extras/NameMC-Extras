@@ -1,4 +1,6 @@
 (async () => {
+  await superStorage._ready;
+
   const endPoints = {
     badges: "badges",
     capes: "capes",
@@ -15,13 +17,13 @@
   };
 
   try {
-    const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
-    const expires = Number(localStorage.getItem("supabase_expires"));
+    const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
+    const expires = Number(superStorage.getItem("supabase_expires"));
     if (supabase_data && Object.keys(supabase_data).length === Object.keys(endPoints).length + 1 && expires > Date.now()) return;
   } catch {}
 
   function initBooleanKey(key) {
-    if (!localStorage.getItem(key)) localStorage.setItem(key, "false");
+    if (!superStorage.getItem(key)) superStorage.setItem(key, "false");
   }
 
   async function fetchSupabase(endPoints) {
@@ -36,8 +38,8 @@
     const dataEntries = await Promise.all(
       results.map((res, i) => res.json().then(json => [keys[i], json]))
     );
-    localStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(dataEntries)));
-    localStorage.setItem("supabase_expires", Date.now() + 300_000);
+    superStorage.setItem("supabase_data", JSON.stringify(Object.fromEntries(dataEntries)));
+    superStorage.setItem("supabase_expires", Date.now() + 300_000);
   }
 
   fetchSupabase(Object.values(endPoints)).then(storeResults);

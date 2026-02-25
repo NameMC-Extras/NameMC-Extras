@@ -8,10 +8,11 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "3.9.7",
+  "version": "3.9.8",
   "content_scripts": [
     {
       "js": [
+        "js/superStorage.js",
         "js/url-cleaner.js",
         "js/data-preload.js",
         "js/user-data-utils.js",
@@ -177,7 +178,8 @@
     }
   ],
   "permissions": [
-    "storage"
+    "storage",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "https://data.faav.top/*",

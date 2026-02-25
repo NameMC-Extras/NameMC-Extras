@@ -2,6 +2,8 @@
     if (!document.contentType.startsWith('text/html')) return;
     if (window.location.hostname === 'store.namemc.com') return;
 
+    await superStorage._ready;
+
     const root = document.documentElement;
 
     // bypass anti ad blocker
@@ -41,52 +43,39 @@
         }
     };
 
-    const notFirefox = !chrome.runtime.getURL("").startsWith("moz-extension://");;
-    if (notFirefox) {
-        window.top.addEventListener('visibilitychange', () => {
-            let allLocalStorage = { ...localStorage };
-            chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
-        });
-    } else {
-        window.top.addEventListener('beforeunload', () => {
-            let allLocalStorage = { ...localStorage };
-            chrome.storage.local.set({ savedLocalStorage: allLocalStorage });
-        });
-    }
+    // Run this on extension/page load
+    chrome.storage.local.get("superStorage_migration_done", (res) => {
+        if (!res.superStorage_migration_done) {
+            // Remove old key if it exists
+            chrome.storage.local.remove("savedLocalStorage");
 
-    const { savedLocalStorage } = await chrome.storage.local.get("savedLocalStorage");
-    if (savedLocalStorage) {
-        for (const key in savedLocalStorage) {
-            try {
-                localStorage.setItem(key, savedLocalStorage[key]);
-            } catch {
-                console.warn(`Could not restore localStorage item: ${key}`);
-            }
+            // Mark migration as done
+            chrome.storage.local.set({ superStorage_migration_done: true });
         }
-    }
+    });
 
-    var theme = localStorage.getItem("theme");
-    var customThemeOn = localStorage.getItem("customTheme") === "true";
-    var customBg = localStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
-    var customText = localStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
-    var customLink = localStorage.getItem("customLink") || (theme == "dark" ? "#7ba7ce" : "#236dad");
-    var customBtn = localStorage.getItem("customBtn") || "#236dad";
-    var customBase = localStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
-    var hideHeadCmd2 = localStorage.getItem("hideHeadCmd2") === "false";
-    var hideDegreesOfSep2 = localStorage.getItem("hideDegreesOfSep2") === "false";
-    var hideBadges2 = localStorage.getItem("hideBadges2") === "false";
-    var pinned = localStorage.getItem("pinned") === "true";
-    var hideSkinTester = localStorage.getItem("hideSkinTester") === "false";
+    var theme = superStorage.getItem("theme");
+    var customThemeOn = superStorage.getItem("customTheme") === "true";
+    var customBg = superStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
+    var customText = superStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
+    var customLink = superStorage.getItem("customLink") || (theme == "dark" ? "#7ba7ce" : "#236dad");
+    var customBtn = superStorage.getItem("customBtn") || "#236dad";
+    var customBase = superStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
+    var hideHeadCmd2 = superStorage.getItem("hideHeadCmd2") === "false";
+    var hideDegreesOfSep2 = superStorage.getItem("hideDegreesOfSep2") === "false";
+    var hideBadges2 = superStorage.getItem("hideBadges2") === "false";
+    var pinned = superStorage.getItem("pinned") === "true";
+    var hideSkinTester = superStorage.getItem("hideSkinTester") === "false";
 
-    var bedrockCapes = localStorage.getItem("bedrockCapes") === "true";
-    var linksTextArea = localStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
-    var hideCreatedAt = localStorage.getItem("hideCreatedAt") === "false";
-    var hideElytra = localStorage.getItem("hideElytra") === "false";
-    var hideLayers = localStorage.getItem("hideLayers") === "false";
-    var hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
-    var hideServers = localStorage.getItem("hideServers") === "false";
-    var hideFollowing = localStorage.getItem("hideFollowing") === "false";
-    var hideOptifine = localStorage.getItem("hideOptifine") === "false";
+    var bedrockCapes = superStorage.getItem("bedrockCapes") === "true";
+    var linksTextArea = superStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
+    var hideCreatedAt = superStorage.getItem("hideCreatedAt") === "false";
+    var hideElytra = superStorage.getItem("hideElytra") === "false";
+    var hideLayers = superStorage.getItem("hideLayers") === "false";
+    var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
+    var hideServers = superStorage.getItem("hideServers") === "false";
+    var hideFollowing = superStorage.getItem("hideFollowing") === "false";
+    var hideOptifine = superStorage.getItem("hideOptifine") === "false";
 
     // Function to inject user-data-utils and check for pinned users
     const checkPinnedUsers = () => {
@@ -136,7 +125,7 @@
             root.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
             root.setAttribute("data-bs-theme", customBase);
             root.classList.add("customTheme");
-            localStorage.theme = customBase;
+            superStorage.theme = customBase;
 
             var bgRgb = hexToRgb(customBg);
             let multiplier = 1.15;
@@ -221,22 +210,22 @@
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Background</span>
-                                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
+                                                <input type="text" class="form-control" placeholder="#FFFFFF" value="${customBg}" aria-label="Custom Background Color" id="custombgcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(superStorage['customTheme'] === "true" && superStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Main background color for the website</div>
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Text</span>
-                                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
+                                                <input type="text" class="form-control" placeholder="#000000" value="${customText}" aria-label="Custom Text Color" id="customtextcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(superStorage['customTheme'] === "true" && superStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Primary text color used throughout the site</div>
                                             </div>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Links</span>
-                                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
+                                                <input type="text" class="form-control" placeholder="#7ba7ce" value="${customLink}" aria-label="Custom Link Color" id="customlinkcolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(superStorage['customTheme'] === "true" && superStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Color for clickable links and hover states</div>
                                             </div>
                                             <div class="input-group">
                                                 <span class="input-group-text">Buttons</span>
-                                                <input type="text" class="form-control" placeholder="#236DAD" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(localStorage['customTheme'] === "true" && localStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
+                                                <input type="text" class="form-control" placeholder="#236DAD" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right',borderColor:'#ffffff40',backgroundColor:'${(superStorage['customTheme'] === "true" && superStorage['customBg']) || theme === 'dark' ? '#12161A' : '#EEF0F2'}'}">
                                                 <div class="form-text w-100">Color for interactive buttons and controls</div>
                                             </div>
                                         </div>
@@ -328,13 +317,13 @@
 
         const createSettingsToggle = (name) => {
             var settingEl = document.querySelector(`#${name}`);
-            if (typeof localStorage[name] == "undefined") {
-                if (name.startsWith('hide')) localStorage[name] = true;
-                else localStorage[name] = false;
+            if (typeof superStorage[name] == "undefined") {
+                if (name.startsWith('hide')) superStorage[name] = true;
+                else superStorage[name] = false;
             }
             settingEl.onclick = () => {
                 settingEl.classList.toggle('active');
-                localStorage[name] = settingEl.classList.contains('active');
+                superStorage[name] = settingEl.classList.contains('active');
                 globalThis[name] = settingEl.classList.contains('active');
             }
         }
@@ -359,17 +348,17 @@
                 var exportcustom = document.querySelector("#exportcustom");
                 var importcustom = document.querySelector("#importcustom");
 
-                if (typeof localStorage.customBase == "undefined") localStorage.customBase = customBase;
+                if (typeof superStorage.customBase == "undefined") superStorage.customBase = customBase;
 
                 customTheme.onclick = () => {
-                    localStorage.customTheme = true;
+                    superStorage.customTheme = true;
                     customThemeOn = true;
                     setCustomTheme();
                 }
 
                 lightTheme.onclick = () => {
-                    localStorage.customTheme = false;
-                    localStorage.theme = "light";
+                    superStorage.customTheme = false;
+                    superStorage.theme = "light";
                     customThemeOn = false;
                     root.style.removeProperty("--bs-body-bg");
                     root.style.removeProperty("--bs-body-color");
@@ -392,10 +381,10 @@
                         root.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 1000);
 
-                        localStorage.customBg = "#EEF0F2";
-                        localStorage.customText = "#212529";
-                        localStorage.customBase = "light";
-                        localStorage.customLink = "#236dad";
+                        superStorage.customBg = "#EEF0F2";
+                        superStorage.customText = "#212529";
+                        superStorage.customBase = "light";
+                        superStorage.customLink = "#236dad";
                         customBg = "#EEF0F2";
                         customText = "#212529";
                         customBase = "light";
@@ -408,8 +397,8 @@
                 }
 
                 darkTheme.onclick = () => {
-                    localStorage.customTheme = false;
-                    localStorage.theme = "dark";
+                    superStorage.customTheme = false;
+                    superStorage.theme = "dark";
                     customThemeOn = false;
                     root.style.removeProperty("--bs-body-bg");
                     root.style.removeProperty("--bs-body-color");
@@ -432,10 +421,10 @@
                         root.append(iframeEl);
                         setTimeout(() => iframeEl.remove(), 1000);
 
-                        localStorage.customBg = "#12161A";
-                        localStorage.customText = "#dee2e6";
-                        localStorage.customBase = "dark";
-                        localStorage.customLink = "#7ba7ce";
+                        superStorage.customBg = "#12161A";
+                        superStorage.customText = "#dee2e6";
+                        superStorage.customBase = "dark";
+                        superStorage.customLink = "#7ba7ce";
                         customBg = "#12161A";
                         customText = "#dee2e6";
                         customBase = "dark";
@@ -449,7 +438,7 @@
 
                 custombgcolor.onchange = () => {
                     if (customThemeOn) root.style.setProperty("--bs-body-bg", custombgcolor.value);
-                    localStorage.customBg = custombgcolor.value;
+                    superStorage.customBg = custombgcolor.value;
                     customBg = custombgcolor.value;
 
                     var rgbBg = hexToRgb(custombgcolor.value);
@@ -459,7 +448,7 @@
 
                 customtextcolor.onchange = () => {
                     if (customThemeOn) root.style.setProperty("--bs-body-color", customtextcolor.value);
-                    localStorage.customText = customtextcolor.value;
+                    superStorage.customText = customtextcolor.value;
                     customText = customtextcolor.value;
                     customTheme.click();
                 }
@@ -468,7 +457,7 @@
                     var linkRgb = hexToRgb(customlinkcolor.value);
                     if (customThemeOn) root.style.setProperty("--ne-link-rgb", `${linkRgb["r"]}, ${linkRgb["g"]}, ${linkRgb["b"]}`);
 
-                    localStorage.customLink = customlinkcolor.value;
+                    superStorage.customLink = customlinkcolor.value;
                     customLink = customlinkcolor.value;
                     customTheme.click();
                 }
@@ -477,15 +466,15 @@
                     var btnRgb = hexToRgb(custombtncolor.value);
                     if (customThemeOn) root.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
 
-                    localStorage.customBtn = custombtncolor.value;
+                    superStorage.customBtn = custombtncolor.value;
                     customBtn = custombtncolor.value;
                     customTheme.click();
                 }
 
                 selectBase.onchange = () => {
                     if (customThemeOn) root.setAttribute("data-bs-theme", selectBase.value);
-                    localStorage.customBase = selectBase.value;
-                    localStorage.theme = selectBase.value;
+                    superStorage.customBase = selectBase.value;
+                    superStorage.theme = selectBase.value;
                     customBase = selectBase.value;
                     customTheme.click();
                 }
@@ -506,10 +495,10 @@
                             root.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000);
 
-                            localStorage.customBg = "#12161A";
-                            localStorage.customText = "#dee2e6";
-                            localStorage.customLink = "#7ba7ce";
-                            localStorage.customBtn = "#236DAD";
+                            superStorage.customBg = "#12161A";
+                            superStorage.customText = "#dee2e6";
+                            superStorage.customLink = "#7ba7ce";
+                            superStorage.customBtn = "#236DAD";
                             customBg = "#12161A";
                             customText = "#dee2e6";
                             customLink = "#7ba7ce";
@@ -532,10 +521,10 @@
                             root.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000);
 
-                            localStorage.customBg = "#EEF0F2";
-                            localStorage.customText = "#212529";
-                            localStorage.customLink = "#236DAD";
-                            localStorage.customBtn = "#236DAD";
+                            superStorage.customBg = "#EEF0F2";
+                            superStorage.customText = "#212529";
+                            superStorage.customLink = "#236DAD";
+                            superStorage.customBtn = "#236DAD";
                             customBg = "#EEF0F2";
                             customText = "#212529";
                             customLink = "#236DAD";
@@ -591,10 +580,10 @@
                             root.append(iframeEl);
                             setTimeout(() => iframeEl.remove(), 1000);
 
-                            localStorage.customBg = code[0];
-                            localStorage.customText = code[1];
-                            localStorage.customLink = code[2];
-                            localStorage.customBtn = code[3];
+                            superStorage.customBg = code[0];
+                            superStorage.customText = code[1];
+                            superStorage.customLink = code[2];
+                            superStorage.customBtn = code[3];
                             customBg = code[0];
                             customText = code[1];
                             customLink = code[2];
@@ -606,11 +595,11 @@
 
                             if (code[4] && code[4].length > 0) {
                                 if (code[4] == "1") {
-                                    localStorage.customBase = "dark";
+                                    superStorage.customBase = "dark";
                                     customBase = "dark";
                                     selectBase.value = "dark";
                                 } else {
-                                    localStorage.customBase = "light";
+                                    superStorage.customBase = "light";
                                     customBase = "light";
                                     selectBase.value = "light";
                                 }
@@ -655,9 +644,9 @@
 
                 var linksTextAreaEl = document.querySelector("#linksTextArea");
                 var linksTextBtn = document.querySelector("#linksTextBtn");
-                if (typeof localStorage.linksTextArea == "undefined") localStorage.linksTextArea = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
+                if (typeof superStorage.linksTextArea == "undefined") superStorage.linksTextArea = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
                 linksTextBtn.onclick = () => {
-                    localStorage.linksTextArea = linksTextAreaEl.value;
+                    superStorage.linksTextArea = linksTextAreaEl.value;
                     linksTextArea = linksTextAreaEl.value;
                 }
             });

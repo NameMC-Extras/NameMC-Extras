@@ -2,6 +2,8 @@
     if (!document.contentType.startsWith('text/html')) return;
     if (window.location.hostname === 'store.namemc.com') return;
 
+    if (typeof superStorage !== 'undefined' && superStorage._ready) await superStorage._ready;
+
     class UserEntity {
         constructor(data = {}) {
             this.username = data.username || null;
@@ -28,7 +30,7 @@
 
         getSupabaseData() {
             try {
-                const supabaseData = localStorage.getItem('supabase_data');
+                const supabaseData = superStorage.getItem('supabase_data');
                 return supabaseData ? JSON.parse(supabaseData) : {};
             } catch (error) {
                 console.error('Error retrieving Supabase data:', error);
@@ -191,7 +193,7 @@
 
         getPinnedUsers() {
             try {
-                const pinnedData = localStorage.getItem('namemc_pinned_users');
+                const pinnedData = superStorage.getItem('namemc_pinned_users');
                 return pinnedData ? JSON.parse(pinnedData) : [];
             } catch (error) {
                 console.error('Error retrieving pinned users:', error);
@@ -210,7 +212,7 @@
                 const pinned = this.getPinnedUsers();
                 if (!this.isPinned(uuid)) {
                     pinned.push({ uuid: userProfile.uuid, pinnedAt: Date.now() });
-                    localStorage.setItem('namemc_pinned_users', JSON.stringify(pinned));
+                    superStorage.setItem('namemc_pinned_users', JSON.stringify(pinned));
                     return true;
                 }
                 return false;
@@ -223,7 +225,7 @@
         unpinUser(uuid) {
             try {
                 const filtered = this.getPinnedUsers().filter(u => u.uuid !== uuid);
-                localStorage.setItem('namemc_pinned_users', JSON.stringify(filtered));
+                superStorage.setItem('namemc_pinned_users', JSON.stringify(filtered));
                 return true;
             } catch (error) {
                 console.error('Error unpinning user:', error);

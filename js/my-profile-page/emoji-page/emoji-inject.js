@@ -12,7 +12,7 @@ const waitForSelector = function (selector, callback) {
 };
 
 const waitForStorage = function (key, callback) {
-    if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
+    if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
         setTimeout(() => {
             callback();
         });
@@ -48,7 +48,7 @@ const blacklist = [
 var isFree = false;
 
 waitForStorage('supabase_data', () => waitForSelector('.nav.mt-3', async (navEl) => {
-    const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
+    const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
     const disabled = supabase_data['emojis_disabled'];
     const free = supabase_data['emojis_free'];
     const noEmerald = !!document.querySelector('.alert');

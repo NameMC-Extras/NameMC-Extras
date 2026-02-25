@@ -1,82 +1,95 @@
 console.log("Injecting skin page...");
-
-/*
- * UNIVERSAL VARIABLES
- */
-const hideSkinStealer = localStorage.getItem("hideSkinStealer") === "false";
-
-/*
- * HELPERS
- */
-const waitForSelector = (selector, callback) => {
-  const check = () => {
-    const el = document.querySelector(selector);
-    if (el) {
-      callback(el);
-    } else {
-      requestAnimationFrame(check);
-    }
-  };
-  check();
-};
-
-/*
- * MAIN
- */
-const createStealBtn = () => {
-  if (hideSkinStealer) return;
-
-  waitForSelector('a > .fa-arrow-alt-to-bottom', (likeIcon) => {
-    if (document.getElementById("steal-btn")) return;
-
-    const stealBtn = document.createElement('button');
-    stealBtn.id = 'steal-btn';
-    stealBtn.className = 'btn btn-secondary p-0 m-1';
-    stealBtn.style.width = '36px';
-    stealBtn.style.height = '36px';
-    stealBtn.title = "Steal Skin";
-
-    const stealIcon = document.createElement('i');
-    stealIcon.className = 'fas fa-user-secret';
-    stealBtn.appendChild(stealIcon);
-
-    likeIcon.parentElement.parentElement.before(stealBtn);
-
-    const skinCanvas = document.querySelector('canvas');
-    const currentSkinId = skinCanvas?.dataset.id;
-    const currentDataModel = skinCanvas?.dataset.model;
-
-    stealBtn.onclick = () => {
-      const queryParams = [];
-      if (currentSkinId) queryParams.push(`skin=${currentSkinId}`);
-      if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
-
-      const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
-      window.location.href = url;
-    };
-  });
-};
-
-const waitForFunc = function (func, callback) {
-  if (window[func] ?? window.wrappedJSObject?.[func]) {
+const waitForStorage = function (callback) {
+  if (window.superStorage) {
     setTimeout(() => {
-      callback(window[func] ?? window.wrappedJSObject?.[func]);
+      callback();
     });
   } else {
     setTimeout(() => {
-      waitForFunc(func, callback);
+      waitForStorage(callback);
     });
   }
 };
 
-const addHolidayTools = () => {
-  waitForSelector('[action*="/transform-skin"]', (form) => {
-    const hasHolidayTools = document.querySelectorAll('[action*="/transform-skin"]').length > 1;
-    if (hasHolidayTools) document.querySelector('[action*="/transform-skin"]').remove();
+waitForStorage(() => {
+  /*
+   * UNIVERSAL VARIABLES
+   */
+  const hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
 
-    const skinId = form.querySelector('canvas[data-id]')?.getAttribute('data-id');
+  /*
+   * HELPERS
+   */
+  const waitForSelector = function (selector, callback) {
+    let query = document.querySelector(selector)
+    if (query) {
+      setTimeout((query) => {
+        callback(query);
+      }, null, query);
+    } else {
+      setTimeout(() => {
+        waitForSelector(selector, callback);
+      });
+    }
+  };
 
-    form.insertAdjacentHTML('beforebegin', `
+  /*
+   * MAIN
+   */
+  const createStealBtn = () => {
+    if (hideSkinStealer) return;
+
+    waitForSelector('a > .fa-arrow-alt-to-bottom', (likeIcon) => {
+      if (document.getElementById("steal-btn")) return;
+
+      const stealBtn = document.createElement('button');
+      stealBtn.id = 'steal-btn';
+      stealBtn.className = 'btn btn-secondary p-0 m-1';
+      stealBtn.style.width = '36px';
+      stealBtn.style.height = '36px';
+      stealBtn.title = "Steal Skin";
+
+      const stealIcon = document.createElement('i');
+      stealIcon.className = 'fas fa-user-secret';
+      stealBtn.appendChild(stealIcon);
+
+      likeIcon.parentElement.parentElement.before(stealBtn);
+
+      const skinCanvas = document.querySelector('canvas');
+      const currentSkinId = skinCanvas?.dataset.id;
+      const currentDataModel = skinCanvas?.dataset.model;
+
+      stealBtn.onclick = () => {
+        const queryParams = [];
+        if (currentSkinId) queryParams.push(`skin=${currentSkinId}`);
+        if (currentDataModel) queryParams.push(`model=${currentDataModel}`);
+
+        const url = `${location.origin}/extras/skin-cape-test?${queryParams.join('&')}`;
+        window.location.href = url;
+      };
+    });
+  };
+
+  const waitForFunc = function (func, callback) {
+    if (window[func] ?? window.wrappedJSObject?.[func]) {
+      setTimeout(() => {
+        callback(window[func] ?? window.wrappedJSObject?.[func]);
+      });
+    } else {
+      setTimeout(() => {
+        waitForFunc(func, callback);
+      });
+    }
+  };
+
+  const addHolidayTools = () => {
+    waitForSelector('[action*="/transform-skin"]', (form) => {
+      const hasHolidayTools = document.querySelectorAll('[action*="/transform-skin"]').length > 1;
+      if (hasHolidayTools) document.querySelector('[action*="/transform-skin"]').remove();
+
+      const skinId = form.querySelector('canvas[data-id]')?.getAttribute('data-id');
+
+      form.insertAdjacentHTML('beforebegin', `
       <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="/transform-skin">
         <input type="hidden" name="skin" value="${skinId}">
         <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-pumpkin" title="Pumpkin Head">
@@ -107,23 +120,40 @@ const addHolidayTools = () => {
         <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-spider-mask-1" title="Spider Mask">
             <img class="skin-2d" src="https://s.namemc.com/2d/skin/face.png?id=a89342a07fe40015&scale=4" width="32" height="32">
         </button>
-        <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa" title="Santa Hat">
-          <canvas class="skin-2d d-block" data-id="${skinId}" data-head="659771ecfb902f62" width="32" height="32"></canvas>
-        </button>
+      </form>
+      <hr class="my-0">
+      <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="/transform-skin">
+          <input type="hidden" name="skin" value="${skinId}">
+          <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa" title="Santa Hat">
+              <canvas class="skin-2d d-block" data-id="${skinId}" data-head="659771ecfb902f62" width="32" height="32"></canvas>
+          </button>
+          <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa-red" title="Red Santa Hat">
+              <canvas class="skin-2d d-block" data-id="${skinId}" data-head="f5a6f022f84361ce" width="32" height="32"></canvas>
+          </button>
+          <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa-red-side" title="Red Santa Hat (Side)">
+              <canvas class="skin-2d d-block" data-id="${skinId}" data-head="e8116988f107376c" width="32" height="32"></canvas>
+          </button>
+          <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa-green" title="Green Santa Hat">
+              <canvas class="skin-2d d-block" data-id="${skinId}" data-head="35a2eed82baa3e72" width="32" height="32"></canvas>
+          </button>
+          <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa-green-side" title="Green Santa Hat (Side)">
+              <canvas class="skin-2d d-block" data-id="${skinId}" data-head="cdba23ad864c8992" width="32" height="32"></canvas>
+          </button>
       </form>
       <hr class="my-0">
     `);
-  });
-
-  waitForFunc('nmci', () => {
-    [...document.querySelectorAll('[data-head]')].forEach(head => {
-      const script = document.createElement("script");
-      script.src = "https://s.namemc.com/i/" + head.getAttribute("data-head") + ".js";
-      script.defer = true;
-      document.head.appendChild(script);
     });
-  });
-}
 
-addHolidayTools();
-createStealBtn();
+    waitForFunc('nmci', () => {
+      [...document.querySelectorAll('[data-head]')].forEach(head => {
+        const script = document.createElement("script");
+        script.src = "https://s.namemc.com/i/" + head.getAttribute("data-head") + ".js";
+        script.defer = true;
+        document.head.appendChild(script);
+      });
+    });
+  }
+
+  addHolidayTools();
+  createStealBtn();
+});

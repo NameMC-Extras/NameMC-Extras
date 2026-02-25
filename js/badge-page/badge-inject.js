@@ -12,9 +12,8 @@ const waitForSelector = function (selector, callback) {
     });
   }
 };
-
 const waitForStorage = function (key, callback) {
-  if (window.localStorage.getItem(key) && window.localStorage.getItem(key).length != 0) {
+  if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
     setTimeout(() => {
       callback();
     });
@@ -45,7 +44,7 @@ async function loadPage(mainDiv) {
   mainDiv.innerHTML = "";
 
   // get badge and update page title
-  const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
+  const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
   const badge = supabase_data.badges.filter(badge => badge.id == badgeId)[0];
   if (!badge) return;
   document.title = `${badge.name} | Badge | NameMC Extras`

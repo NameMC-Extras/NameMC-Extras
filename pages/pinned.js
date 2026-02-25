@@ -1,4 +1,7 @@
-const pinnedPageContent = `
+(async () => {
+    await superStorage._ready;
+
+    const pinnedPageContent = `
 <h1 class="text-center">Pinned Users</h1>
 <hr class="mt-0">
 <div id="pinned-users-container">
@@ -43,142 +46,142 @@ const pinnedPageContent = `
     </div>
 </div>`;
 
-// Pagination configuration
-const USERS_PER_PAGE = 9; // 3x3 grid
-let currentPage = 1;
-let totalPages = 1;
-let allPinnedUsers = []; // Store just the UUID/pinnedAt data
-let currentPageProfiles = []; // Store detailed profiles for current page only
-let totalUsersCount = 0;
+    // Pagination configuration
+    const USERS_PER_PAGE = 9; // 3x3 grid
+    let currentPage = 1;
+    let totalPages = 1;
+    let allPinnedUsers = []; // Store just the UUID/pinnedAt data
+    let currentPageProfiles = []; // Store detailed profiles for current page only
+    let totalUsersCount = 0;
 
-// Cache management for user profiles
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
-const CACHE_KEY = 'namemc_pinned_profiles_cache';
+    // Cache management for user profiles
+    const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+    const CACHE_KEY = 'namemc_pinned_profiles_cache';
 
-const getCachedProfile = (uuid) => {
-    try {
-        const cache = localStorage.getItem(CACHE_KEY);
-        if (!cache) return null;
+    const getCachedProfile = (uuid) => {
+        try {
+            const cache = superStorage.getItem(CACHE_KEY);
+            if (!cache) return null;
 
-        const cacheData = JSON.parse(cache);
-        const userCache = cacheData[uuid];
+            const cacheData = JSON.parse(cache);
+            const userCache = cacheData[uuid];
 
-        if (!userCache) return null;
+            if (!userCache) return null;
 
-        // Check if cache is still valid (within 10 minutes)
-        const now = Date.now();
-        if (now - userCache.timestamp > CACHE_DURATION) {
-            // Cache expired, remove it
-            delete cacheData[uuid];
-            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+            // Check if cache is still valid (within 10 minutes)
+            const now = Date.now();
+            if (now - userCache.timestamp > CACHE_DURATION) {
+                // Cache expired, remove it
+                delete cacheData[uuid];
+                superStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+                return null;
+            }
+
+            return userCache.profile;
+        } catch (error) {
+            console.error('Error reading profile cache:', error);
             return null;
         }
+    };
 
-        return userCache.profile;
-    } catch (error) {
-        console.error('Error reading profile cache:', error);
-        return null;
-    }
-};
+    const setCachedProfile = (uuid, profile) => {
+        try {
+            const cache = superStorage.getItem(CACHE_KEY);
+            const cacheData = cache ? JSON.parse(cache) : {};
 
-const setCachedProfile = (uuid, profile) => {
-    try {
-        const cache = localStorage.getItem(CACHE_KEY);
-        const cacheData = cache ? JSON.parse(cache) : {};
+            cacheData[uuid] = {
+                profile: profile,
+                timestamp: Date.now()
+            };
 
-        cacheData[uuid] = {
-            profile: profile,
-            timestamp: Date.now()
-        };
+            superStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+        } catch (error) {
+            console.error('Error writing profile cache:', error);
+        }
+    };
 
-        localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-    } catch (error) {
-        console.error('Error writing profile cache:', error);
-    }
-};
+    const cleanExpiredCache = () => {
+        try {
+            const cache = superStorage.getItem(CACHE_KEY);
+            if (!cache) return;
 
-const cleanExpiredCache = () => {
-    try {
-        const cache = localStorage.getItem(CACHE_KEY);
-        if (!cache) return;
+            const cacheData = JSON.parse(cache);
+            const now = Date.now();
+            let hasExpired = false;
 
-        const cacheData = JSON.parse(cache);
-        const now = Date.now();
-        let hasExpired = false;
-
-        // Remove expired entries
-        for (const uuid in cacheData) {
-            if (now - cacheData[uuid].timestamp > CACHE_DURATION) {
-                delete cacheData[uuid];
-                hasExpired = true;
+            // Remove expired entries
+            for (const uuid in cacheData) {
+                if (now - cacheData[uuid].timestamp > CACHE_DURATION) {
+                    delete cacheData[uuid];
+                    hasExpired = true;
+                }
             }
-        }
 
-        // Update cache if we removed any expired entries
-        if (hasExpired) {
-            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-        }
-    } catch (error) {
-        console.error('Error cleaning expired cache:', error);
-    }
-};
-
-// Cache utility functions
-const getCacheStats = () => {
-    try {
-        const cache = localStorage.getItem(CACHE_KEY);
-        if (!cache) return { total: 0, expired: 0, valid: 0 };
-
-        const cacheData = JSON.parse(cache);
-        const now = Date.now();
-        let expired = 0;
-        let valid = 0;
-
-        for (const uuid in cacheData) {
-            if (now - cacheData[uuid].timestamp > CACHE_DURATION) {
-                expired++;
-            } else {
-                valid++;
+            // Update cache if we removed any expired entries
+            if (hasExpired) {
+                superStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
             }
+        } catch (error) {
+            console.error('Error cleaning expired cache:', error);
         }
+    };
 
-        return {
-            total: expired + valid,
-            expired: expired,
-            valid: valid
-        };
-    } catch (error) {
-        console.error('Error getting cache stats:', error);
-        return { total: 0, expired: 0, valid: 0 };
-    }
-};
+    // Cache utility functions
+    const getCacheStats = () => {
+        try {
+            const cache = superStorage.getItem(CACHE_KEY);
+            if (!cache) return { total: 0, expired: 0, valid: 0 };
 
-const clearAllCache = () => {
-    try {
-        localStorage.removeItem(CACHE_KEY);
-        console.log('Profile cache cleared');
-    } catch (error) {
-        console.error('Error clearing cache:', error);
-    }
-};
+            const cacheData = JSON.parse(cache);
+            const now = Date.now();
+            let expired = 0;
+            let valid = 0;
 
-// Make cache functions available globally for debugging
-window.pinnedCacheUtils = {
-    getCacheStats,
-    clearAllCache,
-    cleanExpiredCache
-};
+            for (const uuid in cacheData) {
+                if (now - cacheData[uuid].timestamp > CACHE_DURATION) {
+                    expired++;
+                } else {
+                    valid++;
+                }
+            }
 
-// Function to show all badges in a modal
-const showAllBadgesModal = (userProfile) => {
-    const modalTitle = document.getElementById('badgesModalLabel');
-    const modalBody = document.getElementById('badgesModalBody');
+            return {
+                total: expired + valid,
+                expired: expired,
+                valid: valid
+            };
+        } catch (error) {
+            console.error('Error getting cache stats:', error);
+            return { total: 0, expired: 0, valid: 0 };
+        }
+    };
 
-    // Set modal title
-    modalTitle.textContent = `${userProfile.username}'s Badges (${userProfile.badges.length})`;
+    const clearAllCache = () => {
+        try {
+            superStorage.removeItem(CACHE_KEY);
+            console.log('Profile cache cleared');
+        } catch (error) {
+            console.error('Error clearing cache:', error);
+        }
+    };
 
-    // Create badges grid
-    const badgesGrid = userProfile.badges.map(badge => `
+    // Make cache functions available globally for debugging
+    window.pinnedCacheUtils = {
+        getCacheStats,
+        clearAllCache,
+        cleanExpiredCache
+    };
+
+    // Function to show all badges in a modal
+    const showAllBadgesModal = (userProfile) => {
+        const modalTitle = document.getElementById('badgesModalLabel');
+        const modalBody = document.getElementById('badgesModalBody');
+
+        // Set modal title
+        modalTitle.textContent = `${userProfile.username}'s Badges (${userProfile.badges.length})`;
+
+        // Create badges grid
+        const badgesGrid = userProfile.badges.map(badge => `
         <div class="col-6 col-md-4 col-lg-3 mb-3">
             <div class="text-center p-2 border rounded bg-body-tertiary">
                 <img src="${badge.image}" alt="${badge.name}" width="32" height="32" class="mb-2" style="image-rendering: pixelated;">
@@ -187,94 +190,94 @@ const showAllBadgesModal = (userProfile) => {
         </div>
     `).join('');
 
-    modalBody.innerHTML = `
+        modalBody.innerHTML = `
         <div class="row g-2">
             ${badgesGrid}
         </div>
     `;
 
-    // Show the modal
-    const modal = new bootstrap.Modal(document.getElementById('badgesModal'));
-    modal.show();
-};
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('badgesModal'));
+        modal.show();
+    };
 
-// URL parameter management
-const getPageFromUrl = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pageParam = urlParams.get('page');
-    if (pageParam) {
-        const page = parseInt(pageParam);
-        if (page > 0) {
-            return page;
+    // URL parameter management
+    const getPageFromUrl = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pageParam = urlParams.get('page');
+        if (pageParam) {
+            const page = parseInt(pageParam);
+            if (page > 0) {
+                return page;
+            }
         }
-    }
-    return 1;
-};
+        return 1;
+    };
 
-const updateUrlWithPage = (page, replace = false) => {
-    const url = new URL(window.location);
-    if (page === 1) {
-        url.searchParams.delete('page');
-    } else {
-        url.searchParams.set('page', page.toString());
-    }
-
-    if (replace) {
-        window.history.replaceState({}, '', url);
-    } else {
-        window.history.pushState({}, '', url);
-    }
-};
-
-const setupPopstateHandler = () => {
-    window.addEventListener('popstate', () => {
-        const newPage = getPageFromUrl();
-        if (newPage !== currentPage && newPage <= totalPages) {
-            currentPage = newPage;
-            displayCurrentPage(false); // Don't update URL since we're responding to URL change
+    const updateUrlWithPage = (page, replace = false) => {
+        const url = new URL(window.location);
+        if (page === 1) {
+            url.searchParams.delete('page');
+        } else {
+            url.searchParams.set('page', page.toString());
         }
-    });
-};
 
-// Function to get skin texture from UUID
-const getSkinFromId = async (uuid) => {
-    try {
-        const sessionAPI = await fetch("https://api.gapple.pw/cors/sessionserver/" + encodeURIComponent(uuid));
-        if (sessionAPI.status == 200) {
-            const sessionJSON = await sessionAPI.json();
-            const sessionData = JSON.parse(atob(sessionJSON.properties[0].value));
-            const skinTextureURL = sessionData.textures.SKIN?.url;
-            return skinTextureURL?.replace('http:', 'https:');
+        if (replace) {
+            window.history.replaceState({}, '', url);
+        } else {
+            window.history.pushState({}, '', url);
         }
-    } catch (error) {
-        console.error('Error fetching skin from UUID:', error);
-        return null;
-    }
-};
+    };
 
-// Function to wait for skinview3d to be available
-const waitForSkinview3d = function (callback) {
-    if (window.skinview3d) {
-        setTimeout(() => {
-            callback(window.skinview3d);
+    const setupPopstateHandler = () => {
+        window.addEventListener('popstate', () => {
+            const newPage = getPageFromUrl();
+            if (newPage !== currentPage && newPage <= totalPages) {
+                currentPage = newPage;
+                displayCurrentPage(false); // Don't update URL since we're responding to URL change
+            }
         });
-    } else {
-        setTimeout(() => {
-            waitForSkinview3d(callback);
-        }, 100);
-    }
-};
+    };
 
-const createPinnedUserCard = (userProfile) => {
-    // Keep full bio without truncation
-    const fullBio = userProfile.bio;
+    // Function to get skin texture from UUID
+    const getSkinFromId = async (uuid) => {
+        try {
+            const sessionAPI = await fetch("https://api.gapple.pw/cors/sessionserver/" + encodeURIComponent(uuid));
+            if (sessionAPI.status == 200) {
+                const sessionJSON = await sessionAPI.json();
+                const sessionData = JSON.parse(atob(sessionJSON.properties[0].value));
+                const skinTextureURL = sessionData.textures.SKIN?.url;
+                return skinTextureURL?.replace('http:', 'https:');
+            }
+        } catch (error) {
+            console.error('Error fetching skin from UUID:', error);
+            return null;
+        }
+    };
 
-    // Limit number of badges displayed
-    const maxBadges = 4;
-    const displayBadges = userProfile.badges.slice(0, maxBadges);
-    const remainingBadges = userProfile.badges.length - maxBadges;
+    // Function to wait for skinview3d to be available
+    const waitForSkinview3d = function (callback) {
+        if (window.skinview3d) {
+            setTimeout(() => {
+                callback(window.skinview3d);
+            });
+        } else {
+            setTimeout(() => {
+                waitForSkinview3d(callback);
+            }, 100);
+        }
+    };
 
-    return `
+    const createPinnedUserCard = (userProfile) => {
+        // Keep full bio without truncation
+        const fullBio = userProfile.bio;
+
+        // Limit number of badges displayed
+        const maxBadges = 4;
+        const displayBadges = userProfile.badges.slice(0, maxBadges);
+        const remainingBadges = userProfile.badges.length - maxBadges;
+
+        return `
     <div class="col-lg-4 col-md-6 d-flex">
         <div class="card h-100 w-100 position-relative overflow-hidden" style="min-height: 480px;">
             <!-- Header with username and unpin button -->
@@ -366,115 +369,115 @@ const createPinnedUserCard = (userProfile) => {
             </div>
         </div>
     </div>`;
-};
+    };
 
-const initSkinViewer = async (userProfile) => {
-    const canvas = document.getElementById(`skin-viewer-${userProfile.uuid}`);
-    const loadingElement = document.getElementById(`loading-${userProfile.uuid}`);
+    const initSkinViewer = async (userProfile) => {
+        const canvas = document.getElementById(`skin-viewer-${userProfile.uuid}`);
+        const loadingElement = document.getElementById(`loading-${userProfile.uuid}`);
 
-    if (!canvas) return;
+        if (!canvas) return;
 
-    try {
-        // Wait for skinview3d to be available
-        await new Promise((resolve) => {
-            waitForSkinview3d(resolve);
-        });
+        try {
+            // Wait for skinview3d to be available
+            await new Promise((resolve) => {
+                waitForSkinview3d(resolve);
+            });
 
-        // Get skin URL
-        let skinUrl = null;
-        if (userProfile.currentSkin && userProfile.currentSkin.imageUrl) {
-            skinUrl = userProfile.currentSkin.imageUrl;
-        } else {
-            // Try to fetch skin from UUID
-            skinUrl = await getSkinFromId(userProfile.uuid);
-        }
+            // Get skin URL
+            let skinUrl = null;
+            if (userProfile.currentSkin && userProfile.currentSkin.imageUrl) {
+                skinUrl = userProfile.currentSkin.imageUrl;
+            } else {
+                // Try to fetch skin from UUID
+                skinUrl = await getSkinFromId(userProfile.uuid);
+            }
 
-        // Create skin viewer
-        const skinViewer = new window.skinview3d.SkinViewer({
-            canvas: canvas,
-            width: canvas.clientWidth,
-            height: canvas.clientHeight,
-            skin: skinUrl?.replace('.png', '')?.replace('https://s.namemc.com/i/', 'https://cors.faav.top/namemc/texture/'),
-            cape: userProfile.currentCape ? userProfile.currentCape.imageUrl?.replace('.png', '')?.replace('https://s.namemc.com/i/', 'https://cors.faav.top/namemc/texture/') : null,
-            model: 'auto-detect'
-        });
+            // Create skin viewer
+            const skinViewer = new window.skinview3d.SkinViewer({
+                canvas: canvas,
+                width: canvas.clientWidth,
+                height: canvas.clientHeight,
+                skin: skinUrl?.replace('.png', '')?.replace('https://s.namemc.com/i/', 'https://cors.faav.top/namemc/texture/'),
+                cape: userProfile.currentCape ? userProfile.currentCape.imageUrl?.replace('.png', '')?.replace('https://s.namemc.com/i/', 'https://cors.faav.top/namemc/texture/') : null,
+                model: 'auto-detect'
+            });
 
-        // Configure viewer controls
-        skinViewer.controls.enableRotate = true;
-        skinViewer.controls.enableZoom = false;
-        skinViewer.controls.enablePan = false;
+            // Configure viewer controls
+            skinViewer.controls.enableRotate = true;
+            skinViewer.controls.enableZoom = false;
+            skinViewer.controls.enablePan = false;
 
-        // Setup animation
-        skinViewer.animation = new window.skinview3d.WalkingAnimation();
-        skinViewer.animation.speed = 0.5;
-        skinViewer.animation.headBobbing = false;
+            // Setup animation
+            skinViewer.animation = new window.skinview3d.WalkingAnimation();
+            skinViewer.animation.speed = 0.5;
+            skinViewer.animation.headBobbing = false;
 
-        // Configure camera and lighting (similar to skin-cape-test.js)
-        skinViewer.fov = 40;
-        skinViewer.camera.position.y = 22 * Math.cos(.01);
-        skinViewer.playerWrapper.rotation.y = .53;
-        skinViewer.globalLight.intensity = .65;
-        skinViewer.cameraLight.intensity = .38;
-        skinViewer.cameraLight.position.set(12, 25, 0);
-        skinViewer.zoom = 0.86;
+            // Configure camera and lighting (similar to skin-cape-test.js)
+            skinViewer.fov = 40;
+            skinViewer.camera.position.y = 22 * Math.cos(.01);
+            skinViewer.playerWrapper.rotation.y = .53;
+            skinViewer.globalLight.intensity = .65;
+            skinViewer.cameraLight.intensity = .38;
+            skinViewer.cameraLight.position.set(12, 25, 0);
+            skinViewer.zoom = 0.86;
 
-        canvas.addEventListener(
-            "contextmenu",
-            (event) => event.stopImmediatePropagation(),
-            true
-        );
+            canvas.addEventListener(
+                "contextmenu",
+                (event) => event.stopImmediatePropagation(),
+                true
+            );
 
-        // Hide loading indicator
-        if (loadingElement) {
-            loadingElement.classList.add('d-none');
-        }
+            // Hide loading indicator
+            if (loadingElement) {
+                loadingElement.classList.add('d-none');
+            }
 
-        return skinViewer;
-    } catch (error) {
-        console.error('Error initializing skin viewer for', userProfile.username, ':', error);
+            return skinViewer;
+        } catch (error) {
+            console.error('Error initializing skin viewer for', userProfile.username, ':', error);
 
-        // Show error message
-        if (loadingElement) {
-            loadingElement.innerHTML = `
+            // Show error message
+            if (loadingElement) {
+                loadingElement.innerHTML = `
                 <i class="fas fa-exclamation-triangle text-warning"></i>
                 <br>
                 <small class="text-muted">Unable to load skin</small>
             `;
+            }
+
+            return null;
         }
+    };
 
-        return null;
-    }
-};
+    const setupPaginationEvents = () => {
+        const prevPage = document.getElementById('prev-page');
+        const nextPage = document.getElementById('next-page');
 
-const setupPaginationEvents = () => {
-    const prevPage = document.getElementById('prev-page');
-    const nextPage = document.getElementById('next-page');
+        // Previous button
+        prevPage.querySelector('.page-link').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                displayCurrentPage();
+            }
+        });
 
-    // Previous button
-    prevPage.querySelector('.page-link').addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            displayCurrentPage();
-        }
-    });
+        // Next button
+        nextPage.querySelector('.page-link').addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayCurrentPage();
+            }
+        });
 
-    // Next button
-    nextPage.querySelector('.page-link').addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            displayCurrentPage();
-        }
-    });
+        // Setup browser back/forward navigation
+        setupPopstateHandler();
+    };
 
-    // Setup browser back/forward navigation
-    setupPopstateHandler();
-};
+    const displayCurrentPage = async (updateUrl = true) => {
+        const container = document.getElementById('pinned-users-container');
 
-const displayCurrentPage = async (updateUrl = true) => {
-    const container = document.getElementById('pinned-users-container');
-
-    // Show loading state
-    container.innerHTML = `
+        // Show loading state
+        container.innerHTML = `
         <div class="text-center py-4">
             <div class="spinner-border mb-3" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -488,85 +491,85 @@ const displayCurrentPage = async (updateUrl = true) => {
             <p id="loading-progress-text" class="text-muted small">Preparing to load users...</p>
         </div>`;
 
-    try {
-        currentPageProfiles = await getPaginatedUserProfiles(currentPage);
+        try {
+            currentPageProfiles = await getPaginatedUserProfiles(currentPage);
 
-        // Use a DocumentFragment for faster DOM insertion
-        const cardsRow = document.createElement('div');
-        cardsRow.className = 'row g-3';
-        cardsRow.id = 'pinned-cards-row';
+            // Use a DocumentFragment for faster DOM insertion
+            const cardsRow = document.createElement('div');
+            cardsRow.className = 'row g-3';
+            cardsRow.id = 'pinned-cards-row';
 
-        const fragment = document.createDocumentFragment();
-        currentPageProfiles.forEach(userProfile => {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = createPinnedUserCard(userProfile);
-            fragment.appendChild(tempDiv.firstElementChild);
-        });
-        cardsRow.appendChild(fragment);
-        container.innerHTML = '';
-        container.appendChild(cardsRow);
+            const fragment = document.createDocumentFragment();
+            currentPageProfiles.forEach(userProfile => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = createPinnedUserCard(userProfile);
+                fragment.appendChild(tempDiv.firstElementChild);
+            });
+            cardsRow.appendChild(fragment);
+            container.innerHTML = '';
+            container.appendChild(cardsRow);
 
-        updatePaginationControls();
+            updatePaginationControls();
 
-        // Initialize skin viewers in parallel (with Promise.all) to speed up
-        await Promise.all(currentPageProfiles.map(userProfile => initSkinViewer(userProfile)));
+            // Initialize skin viewers in parallel (with Promise.all) to speed up
+            await Promise.all(currentPageProfiles.map(userProfile => initSkinViewer(userProfile)));
 
-        // Event handlers
-        const unpinBtns = container.querySelectorAll('.unpin-btn');
-        unpinBtns.forEach(btn => btn.onclick = async () => {
-            const uuid = btn.dataset.uuid;
-            if (window.pinnedUserDataUtils.unpinUser(uuid)) {
-                allPinnedUsers = allPinnedUsers.filter(user => user.uuid !== uuid);
-                totalUsersCount = allPinnedUsers.length;
-                totalPages = Math.ceil(allPinnedUsers.length / USERS_PER_PAGE);
-                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-                if (!allPinnedUsers.length) {
-                    showEmptyState();
-                    updateUrlWithPage(1, true);
-                } else {
-                    displayCurrentPage();
+            // Event handlers
+            const unpinBtns = container.querySelectorAll('.unpin-btn');
+            unpinBtns.forEach(btn => btn.onclick = async () => {
+                const uuid = btn.dataset.uuid;
+                if (window.pinnedUserDataUtils.unpinUser(uuid)) {
+                    allPinnedUsers = allPinnedUsers.filter(user => user.uuid !== uuid);
+                    totalUsersCount = allPinnedUsers.length;
+                    totalPages = Math.ceil(allPinnedUsers.length / USERS_PER_PAGE);
+                    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+                    if (!allPinnedUsers.length) {
+                        showEmptyState();
+                        updateUrlWithPage(1, true);
+                    } else {
+                        displayCurrentPage();
+                    }
+                    updatePaginationControls();
                 }
-                updatePaginationControls();
-            }
-        });
+            });
 
-        const uuidElements = container.querySelectorAll('.uuid-copy');
-        uuidElements.forEach(el => el.onclick = async (e) => {
-            const uuid = e.target.dataset.uuid;
-            try {
-                await navigator.clipboard.writeText(uuid);
-            } catch {
-                const ta = document.createElement('textarea');
-                ta.value = uuid;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-            }
-            const originalText = e.target.textContent;
-            const originalTitle = e.target.title;
-            e.target.textContent = 'Copied!';
-            e.target.title = 'UUID copied to clipboard';
-            e.target.style.backgroundColor = 'rgba(25, 135, 84, 0.2)';
-            setTimeout(() => {
-                e.target.textContent = originalText;
-                e.target.title = originalTitle;
-                e.target.style.backgroundColor = 'transparent';
-            }, 2000);
-        });
+            const uuidElements = container.querySelectorAll('.uuid-copy');
+            uuidElements.forEach(el => el.onclick = async (e) => {
+                const uuid = e.target.dataset.uuid;
+                try {
+                    await navigator.clipboard.writeText(uuid);
+                } catch {
+                    const ta = document.createElement('textarea');
+                    ta.value = uuid;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+                const originalText = e.target.textContent;
+                const originalTitle = e.target.title;
+                e.target.textContent = 'Copied!';
+                e.target.title = 'UUID copied to clipboard';
+                e.target.style.backgroundColor = 'rgba(25, 135, 84, 0.2)';
+                setTimeout(() => {
+                    e.target.textContent = originalText;
+                    e.target.title = originalTitle;
+                    e.target.style.backgroundColor = 'transparent';
+                }, 2000);
+            });
 
-        const badgeElements = container.querySelectorAll('.show-all-badges');
-        badgeElements.forEach(el => el.onclick = (e) => {
-            const userUuid = e.target.dataset.userUuid;
-            const userProfile = currentPageProfiles.find(p => p.uuid === userUuid);
-            if (userProfile?.badges) showAllBadgesModal(userProfile);
-        });
+            const badgeElements = container.querySelectorAll('.show-all-badges');
+            badgeElements.forEach(el => el.onclick = (e) => {
+                const userUuid = e.target.dataset.userUuid;
+                const userProfile = currentPageProfiles.find(p => p.uuid === userUuid);
+                if (userProfile?.badges) showAllBadgesModal(userProfile);
+            });
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (updateUrl) updateUrlWithPage(currentPage);
-    } catch (error) {
-        console.error('Error loading page:', error);
-        container.innerHTML = `
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (updateUrl) updateUrlWithPage(currentPage);
+        } catch (error) {
+            console.error('Error loading page:', error);
+            container.innerHTML = `
             <div class="text-center py-5">
                 <i class="fas fa-exclamation-triangle fa-4x text-warning mb-4"></i>
                 <h3 class="text-warning">Error Loading Page</h3>
@@ -575,81 +578,81 @@ const displayCurrentPage = async (updateUrl = true) => {
                     <i class="fas fa-redo"></i> Retry
                 </button>
             </div>`;
-    }
-};
-
-const getPaginatedUserProfiles = async (page, pageSize = USERS_PER_PAGE) => {
-    cleanExpiredCache();
-    const startIndex = (page - 1) * pageSize;
-    const usersForPage = allPinnedUsers.slice(startIndex, startIndex + pageSize);
-
-    // Map over users and fetch profiles concurrently
-    const profiles = await Promise.all(usersForPage.map(async (user, index) => {
-        let profile = getCachedProfile(user.uuid);
-        if (!profile) {
-            try {
-                profile = await window.pinnedUserDataUtils.fetchUserProfile(user.uuid);
-                setCachedProfile(user.uuid, profile);
-            } catch (err) {
-                console.error(`Error fetching profile for ${user.uuid}`, err);
-            }
         }
-        return profile;
-    }));
+    };
 
-    return profiles.filter(Boolean);
-};
+    const getPaginatedUserProfiles = async (page, pageSize = USERS_PER_PAGE) => {
+        cleanExpiredCache();
+        const startIndex = (page - 1) * pageSize;
+        const usersForPage = allPinnedUsers.slice(startIndex, startIndex + pageSize);
 
-const updatePaginationControls = () => {
-    const paginationControls = document.getElementById('pagination-controls');
-    const pageInfo = document.getElementById('page-info');
-    const prevPage = document.getElementById('prev-page');
-    const nextPage = document.getElementById('next-page');
+        // Map over users and fetch profiles concurrently
+        const profiles = await Promise.all(usersForPage.map(async (user, index) => {
+            let profile = getCachedProfile(user.uuid);
+            if (!profile) {
+                try {
+                    profile = await window.pinnedUserDataUtils.fetchUserProfile(user.uuid);
+                    setCachedProfile(user.uuid, profile);
+                } catch (err) {
+                    console.error(`Error fetching profile for ${user.uuid}`, err);
+                }
+            }
+            return profile;
+        }));
 
-    if (totalPages <= 1) {
-        paginationControls.classList.add('d-none');
-        pageInfo.classList.add('d-none');
-        return;
-    }
-    paginationControls.classList.remove('d-none');
-    pageInfo.classList.remove('d-none');
+        return profiles.filter(Boolean);
+    };
 
-    document.getElementById('current-page-text').textContent = currentPage;
-    document.getElementById('total-pages-text').textContent = totalPages;
-    document.getElementById('users-count-text').textContent = totalUsersCount;
+    const updatePaginationControls = () => {
+        const paginationControls = document.getElementById('pagination-controls');
+        const pageInfo = document.getElementById('page-info');
+        const prevPage = document.getElementById('prev-page');
+        const nextPage = document.getElementById('next-page');
 
-    prevPage.classList.toggle('disabled', currentPage === 1);
-    nextPage.classList.toggle('disabled', currentPage === totalPages);
+        if (totalPages <= 1) {
+            paginationControls.classList.add('d-none');
+            pageInfo.classList.add('d-none');
+            return;
+        }
+        paginationControls.classList.remove('d-none');
+        pageInfo.classList.remove('d-none');
 
-    // Remove old page numbers once
-    document.querySelectorAll('[data-page]').forEach(el => el.parentElement.remove());
+        document.getElementById('current-page-text').textContent = currentPage;
+        document.getElementById('total-pages-text').textContent = totalPages;
+        document.getElementById('users-count-text').textContent = totalUsersCount;
 
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    if (endPage - startPage < maxVisiblePages - 1) startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        prevPage.classList.toggle('disabled', currentPage === 1);
+        nextPage.classList.toggle('disabled', currentPage === totalPages);
 
-    const fragment = document.createDocumentFragment();
-    for (let i = startPage; i <= endPage; i++) {
-        const li = document.createElement('li');
-        li.className = `page-item${i === currentPage ? ' active' : ''}`;
-        li.innerHTML = `<button class="page-link" data-page="${i}">${i}</button>`;
-        li.querySelector('.page-link').onclick = () => {
-            currentPage = i;
-            displayCurrentPage();
-        };
-        fragment.appendChild(li);
-    }
-    nextPage.before(fragment);
-};
+        // Remove old page numbers once
+        document.querySelectorAll('[data-page]').forEach(el => el.parentElement.remove());
+
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        if (endPage - startPage < maxVisiblePages - 1) startPage = Math.max(1, endPage - maxVisiblePages + 1);
+
+        const fragment = document.createDocumentFragment();
+        for (let i = startPage; i <= endPage; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item${i === currentPage ? ' active' : ''}`;
+            li.innerHTML = `<button class="page-link" data-page="${i}">${i}</button>`;
+            li.querySelector('.page-link').onclick = () => {
+                currentPage = i;
+                displayCurrentPage();
+            };
+            fragment.appendChild(li);
+        }
+        nextPage.before(fragment);
+    };
 
 
-const showEmptyState = () => {
-    const container = document.getElementById('pinned-users-container');
-    const paginationControls = document.getElementById('pagination-controls');
-    const pageInfo = document.getElementById('page-info');
+    const showEmptyState = () => {
+        const container = document.getElementById('pinned-users-container');
+        const paginationControls = document.getElementById('pagination-controls');
+        const pageInfo = document.getElementById('page-info');
 
-    container.innerHTML = `
+        container.innerHTML = `
         <div class="text-center py-5">
             <i class="fas fa-thumbtack fa-4x text-muted mb-4"></i>
             <h3 class="text-muted">No Pinned Users</h3>
@@ -657,44 +660,44 @@ const showEmptyState = () => {
             <p class="text-muted small">Pinned users will appear here for quick access.</p>
         </div>`;
 
-    paginationControls.classList.add('d-none');
-    pageInfo.classList.add('d-none');
-};
+        paginationControls.classList.add('d-none');
+        pageInfo.classList.add('d-none');
+    };
 
-const loadPinnedUsers = async () => {
-    const container = document.getElementById('pinned-users-container');
+    const loadPinnedUsers = async () => {
+        const container = document.getElementById('pinned-users-container');
 
-    try {
-        // Get list of pinned users (UUIDs only, fast operation)
-        allPinnedUsers = window.pinnedUserDataUtils.getPinnedUsers();
-        totalUsersCount = allPinnedUsers.length;
+        try {
+            // Get list of pinned users (UUIDs only, fast operation)
+            allPinnedUsers = window.pinnedUserDataUtils.getPinnedUsers();
+            totalUsersCount = allPinnedUsers.length;
 
-        if (allPinnedUsers.length === 0) {
-            showEmptyState();
-            return;
-        }
+            if (allPinnedUsers.length === 0) {
+                showEmptyState();
+                return;
+            }
 
-        // Calculate pagination
-        totalPages = Math.ceil(allPinnedUsers.length / USERS_PER_PAGE);
+            // Calculate pagination
+            totalPages = Math.ceil(allPinnedUsers.length / USERS_PER_PAGE);
 
-        // Get initial page from URL or default to 1
-        const urlPage = getPageFromUrl();
-        currentPage = (urlPage <= totalPages) ? urlPage : 1;
+            // Get initial page from URL or default to 1
+            const urlPage = getPageFromUrl();
+            currentPage = (urlPage <= totalPages) ? urlPage : 1;
 
-        // Update URL if page was adjusted
-        if (urlPage > totalPages && totalPages > 0) {
-            updateUrlWithPage(currentPage, true); // Replace state to avoid broken history
-        }
+            // Update URL if page was adjusted
+            if (urlPage > totalPages && totalPages > 0) {
+                updateUrlWithPage(currentPage, true); // Replace state to avoid broken history
+            }
 
-        // Setup pagination events
-        setupPaginationEvents();
+            // Setup pagination events
+            setupPaginationEvents();
 
-        // Display current page (this will fetch the profiles for current page)
-        displayCurrentPage(false); // Don't update URL since we're initializing from URL
+            // Display current page (this will fetch the profiles for current page)
+            displayCurrentPage(false); // Don't update URL since we're initializing from URL
 
-    } catch (error) {
-        console.error('Error loading pinned users:', error);
-        container.innerHTML = `
+        } catch (error) {
+            console.error('Error loading pinned users:', error);
+            container.innerHTML = `
             <div class="text-center py-5">
                 <i class="fas fa-exclamation-triangle fa-4x text-warning mb-4"></i>
                 <h3 class="text-warning">Error Loading Pinned Users</h3>
@@ -703,46 +706,46 @@ const loadPinnedUsers = async () => {
                     <i class="fas fa-redo"></i> Retry
                 </button>
             </div>`;
-    }
-};
+        }
+    };
 
-// Selector waiting function
-const waitForSelector = function (selector, callback) {
-    let query = document.querySelector(selector);
-    if (query) {
-        setTimeout((query) => {
-            callback(query);
-        }, null, query);
-    } else {
-        setTimeout(() => {
-            waitForSelector(selector, callback);
-        });
-    }
-};
+    // Selector waiting function
+    const waitForSelector = function (selector, callback) {
+        let query = document.querySelector(selector);
+        if (query) {
+            setTimeout((query) => {
+                callback(query);
+            }, null, query);
+        } else {
+            setTimeout(() => {
+                waitForSelector(selector, callback);
+            });
+        }
+    };
 
-// Function to wait for UserDataUtils class to be available, shitty for now
-const waitForUserDataUtils = function (callback) {
-    if (window.UserDataUtils) {
-        setTimeout(() => {
-            callback();
-        });
-    } else {
-        setTimeout(() => {
-            waitForUserDataUtils(callback);
-        }, 100);
-    }
-};
+    // Function to wait for UserDataUtils class to be available, shitty for now
+    const waitForUserDataUtils = function (callback) {
+        if (window.UserDataUtils) {
+            setTimeout(() => {
+                callback();
+            });
+        } else {
+            setTimeout(() => {
+                waitForUserDataUtils(callback);
+            }, 100);
+        }
+    };
 
-const urlParams = new URLSearchParams(window.location.search);
-const tierlist = urlParams.get('tierlist') === 'true';
+    const urlParams = new URLSearchParams(window.location.search);
+    const tierlist = urlParams.get('tierlist') === 'true';
 
-const loadTierList = async () => {
-    document.querySelector('h1').innerHTML = 'Tier List';
-    allPinnedUsers = window.pinnedUserDataUtils.getPinnedUsers();
-    const profiles = await getPaginatedUserProfiles(1, 1000);
+    const loadTierList = async () => {
+        document.querySelector('h1').innerHTML = 'Tier List';
+        allPinnedUsers = window.pinnedUserDataUtils.getPinnedUsers();
+        const profiles = await getPaginatedUserProfiles(1, 1000);
 
-    const container = document.getElementById('pinned-users-container');
-    container.innerHTML = `<style>
+        const container = document.getElementById('pinned-users-container');
+        container.innerHTML = `<style>
   .tier {
     display: flex;
     align-items: center;
@@ -838,131 +841,132 @@ const loadTierList = async () => {
 <div class="tier-items" ondrop="drop(event)" ondragover="allowDrop(event)" id="profilesContainer">
 </div>`;
 
-    window.top.allowDrop = function (ev) {
-        ev.preventDefault();
-    }
-
-    window.top.drag = function (ev) {
-        ev.dataTransfer.setData("text", ev.target.closest('.item').id);
-    }
-
-    window.top.drop = function (ev) {
-        ev.preventDefault();
-
-        const data = ev.dataTransfer.getData("text");
-        const item = document.getElementById(data);
-        if (!item) return;
-
-        const dropZone = ev.target.closest('.tier-items');
-        if (dropZone) {
-            dropZone.appendChild(item);
-            saveTierListState();
+        window.top.allowDrop = function (ev) {
+            ev.preventDefault();
         }
-    };
 
-    profiles.forEach(user => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.draggable = true;
-        div.id = 'profile-' + user.uuid;
-        div.ondragstart = window.top.drag;
-        div.innerHTML = `<img draggable="false" src="https://nmsr.nickac.dev/bust/${user.uuid}" width="68" height="68" alt="${user.username}">
+        window.top.drag = function (ev) {
+            ev.dataTransfer.setData("text", ev.target.closest('.item').id);
+        }
+
+        window.top.drop = function (ev) {
+            ev.preventDefault();
+
+            const data = ev.dataTransfer.getData("text");
+            const item = document.getElementById(data);
+            if (!item) return;
+
+            const dropZone = ev.target.closest('.tier-items');
+            if (dropZone) {
+                dropZone.appendChild(item);
+                saveTierListState();
+            }
+        };
+
+        profiles.forEach(user => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.draggable = true;
+            div.id = 'profile-' + user.uuid;
+            div.ondragstart = window.top.drag;
+            div.innerHTML = `<img draggable="false" src="https://nmsr.nickac.dev/bust/${user.uuid}" width="68" height="68" alt="${user.username}">
                      <div class="overlay-text">${user.username}</div>`;
-        document.querySelector('#profilesContainer').appendChild(div);
-    });
+            document.querySelector('#profilesContainer').appendChild(div);
+        });
 
-    let touchItem = null;
+        let touchItem = null;
 
-    document.addEventListener('touchstart', function (e) {
-        const item = e.target.closest('.item');
-        if (!item) return;
+        document.addEventListener('touchstart', function (e) {
+            const item = e.target.closest('.item');
+            if (!item) return;
 
-        touchItem = item;
-        item.style.opacity = '0.6';
-    });
+            touchItem = item;
+            item.style.opacity = '0.6';
+        });
 
-    document.addEventListener('touchmove', function (e) {
-        if (!touchItem) return;
+        document.addEventListener('touchmove', function (e) {
+            if (!touchItem) return;
 
-        const touch = e.touches[0];
-        const dropZone = document.elementFromPoint(touch.clientX, touch.clientY)
-            ?.closest('.tier-items');
+            const touch = e.touches[0];
+            const dropZone = document.elementFromPoint(touch.clientX, touch.clientY)
+                ?.closest('.tier-items');
 
-        if (dropZone) {
-            dropZone.appendChild(touchItem);
-        }
+            if (dropZone) {
+                dropZone.appendChild(touchItem);
+            }
 
-        e.preventDefault(); // prevents scrolling while dragging
-    }, { passive: false });
+            e.preventDefault(); // prevents scrolling while dragging
+        }, { passive: false });
 
-    document.addEventListener('touchend', function () {
-        if (touchItem) {
-            touchItem.style.opacity = '';
-            saveTierListState();
-        }
-        touchItem = null;
-    });
+        document.addEventListener('touchend', function () {
+            if (touchItem) {
+                touchItem.style.opacity = '';
+                saveTierListState();
+            }
+            touchItem = null;
+        });
 
-    function fitText(element, maxFont = 16, minFont = 8) {
-        let fontSize = maxFont;
-        element.style.fontSize = fontSize + 'px';
-
-        while (element.scrollWidth > element.parentElement.clientWidth && fontSize > minFont) {
-            fontSize -= 1;
+        function fitText(element, maxFont = 16, minFont = 8) {
+            let fontSize = maxFont;
             element.style.fontSize = fontSize + 'px';
+
+            while (element.scrollWidth > element.parentElement.clientWidth && fontSize > minFont) {
+                fontSize -= 1;
+                element.style.fontSize = fontSize + 'px';
+            }
         }
-    }
 
-    // Apply to all overlay-text items
-    document.querySelectorAll('.overlay-text').forEach(el => fitText(el));
+        // Apply to all overlay-text items
+        document.querySelectorAll('.overlay-text').forEach(el => fitText(el));
 
-    function saveTierListState() {
-        const tiers = {};
-        document.querySelectorAll('.tier-items').forEach((tierContainer, index) => {
-            const tierLabel = tierContainer.previousElementSibling?.textContent || `tier${index}`;
-            const items = [...tierContainer.querySelectorAll('.item')].map(i => i.id); // now uses uuid-based IDs
-            tiers[tierLabel] = items;
-        });
-
-        localStorage.setItem('tierListState', JSON.stringify(tiers));
-    }
-
-    function loadTierListState() {
-        const saved = localStorage.getItem('tierListState');
-        if (!saved) return;
-
-        const tiers = JSON.parse(saved);
-
-        Object.entries(tiers).forEach(([label, itemIds]) => {
-            const tierContainer = [...document.querySelectorAll('.tier-items')]
-                .find(c => c.previousElementSibling?.textContent === label);
-            if (!tierContainer) return;
-
-            itemIds.forEach(id => {
-                const item = document.getElementById(id);
-                if (item) tierContainer.appendChild(item);
+        function saveTierListState() {
+            const tiers = {};
+            document.querySelectorAll('.tier-items').forEach((tierContainer, index) => {
+                const tierLabel = tierContainer.previousElementSibling?.textContent || `tier${index}`;
+                const items = [...tierContainer.querySelectorAll('.item')].map(i => i.id); // now uses uuid-based IDs
+                tiers[tierLabel] = items;
             });
-        });
+
+            superStorage.setItem('tierListState', JSON.stringify(tiers));
+        }
+
+        function loadTierListState() {
+            const saved = superStorage.getItem('tierListState');
+            if (!saved) return;
+
+            const tiers = JSON.parse(saved);
+
+            Object.entries(tiers).forEach(([label, itemIds]) => {
+                const tierContainer = [...document.querySelectorAll('.tier-items')]
+                    .find(c => c.previousElementSibling?.textContent === label);
+                if (!tierContainer) return;
+
+                itemIds.forEach(id => {
+                    const item = document.getElementById(id);
+                    if (item) tierContainer.appendChild(item);
+                });
+            });
+        }
+
+        loadTierListState();
     }
 
-    loadTierListState();
-}
+    // Initialize the page
+    waitForSelector('main', (main) => {
+        main.innerHTML = pinnedPageContent;
+        // Wait for UserDataUtils class to be available, then create instance and load pinned users
+        waitForUserDataUtils(async () => {
+            const userDataUtils = new UserDataUtils();
+            window.pinnedUserDataUtils = userDataUtils; // Make it globally accessible for this page
 
-// Initialize the page
-waitForSelector('main', (main) => {
-    main.innerHTML = pinnedPageContent;
-    // Wait for UserDataUtils class to be available, then create instance and load pinned users
-    waitForUserDataUtils(async () => {
-        const userDataUtils = new UserDataUtils();
-        window.pinnedUserDataUtils = userDataUtils; // Make it globally accessible for this page
+            // Clean expired cache on page load
+            cleanExpiredCache();
 
-        // Clean expired cache on page load
-        cleanExpiredCache();
-
-        if (tierlist) {
-            loadTierList();
-        } else {
-            loadPinnedUsers();
-        }
+            if (tierlist) {
+                loadTierList();
+            } else {
+                loadPinnedUsers();
+            }
+        });
     });
-});
+})();

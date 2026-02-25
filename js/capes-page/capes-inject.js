@@ -7,27 +7,29 @@ const waitForSelector = (selector, callback) => {
 };
 
 const waitForStorage = (key, callback) => {
-  const value = window.localStorage.getItem(key);
-  if (value && value.length !== 0) return callback();
+  if (!window.superStorage) return setTimeout(() => waitForStorage(key, callback));
+  const value = window.superStorage.getItem(key);
+  if (value && value.length !== 0) return callback(value);
   setTimeout(() => waitForStorage(key, callback));
 };
 
-/*
- * UNIVERSAL VARIABLES
- */
-const enableBedrockCapes = localStorage.getItem("bedrockCapes") === "true";
-const hideOptifine = localStorage.getItem("hideOptifine") === "false";
+waitForStorage("supabase_data", () => {
+  /*
+   * UNIVERSAL VARIABLES
+   */
+  const enableBedrockCapes = superStorage.getItem("bedrockCapes") === "true";
+  const hideOptifine = superStorage.getItem("hideOptifine") === "false";
 
-/*
- * FUNCTIONS
- */
-function getCapeCardHTML(cape, userCount, isBedrock = false) {
-  const href = isBedrock ? `/cape/bedrock/${encodeURIComponent(cape.id)}`
-                          : `/cape/${encodeURIComponent(cape.category)}/${encodeURIComponent(cape.id)}`;
-  const imgSrc = isBedrock ? cape.thumbnail_url : cape.image_render;
-  const imgStyle = isBedrock ? "width:100%;height:100%;object-fit:cover;margin:0 auto;" : "";
+  /*
+   * FUNCTIONS
+   */
+  function getCapeCardHTML(cape, userCount, isBedrock = false) {
+    const href = isBedrock ? `/cape/bedrock/${encodeURIComponent(cape.id)}`
+      : `/cape/${encodeURIComponent(cape.category)}/${encodeURIComponent(cape.id)}`;
+    const imgSrc = isBedrock ? cape.thumbnail_url : cape.image_render;
+    const imgStyle = isBedrock ? "width:100%;height:100%;object-fit:cover;margin:0 auto;" : "";
 
-  return `
+    return `
     <div class="col-4 col-md-2">
       <div class="card mb-2">
         <a href="${href}">
@@ -43,23 +45,23 @@ function getCapeCardHTML(cape, userCount, isBedrock = false) {
       </div>
     </div>
   `;
-}
+  }
 
-/*
- * MAIN LOGIC
- */
-function addCapes(mainDiv) {
-  const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
+  /*
+   * MAIN LOGIC
+   */
+  function addCapes(mainDiv) {
+    const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
 
-  // BEDROCK
-  if (enableBedrockCapes) {
-    const bedrockHTML = (supabase_data.bedrock_capes || [])
-      .sort((a, b) => b.user_count - a.user_count)
-      .map(cape => getCapeCardHTML(cape, cape.user_count, true))
-      .join("");
+    // BEDROCK
+    if (enableBedrockCapes) {
+      const bedrockHTML = (supabase_data.bedrock_capes || [])
+        .sort((a, b) => b.user_count - a.user_count)
+        .map(cape => getCapeCardHTML(cape, cape.user_count, true))
+        .join("");
 
-    const bedrockRange = document.createRange();
-    const bedrockFrag = bedrockRange.createContextualFragment(`
+      const bedrockRange = document.createRange();
+      const bedrockFrag = bedrockRange.createContextualFragment(`
       <div>
         <h1 class="text-center pt-4">Bedrock Capes</h1>
         <hr class="mt-0">
@@ -70,24 +72,24 @@ function addCapes(mainDiv) {
         </div>
       </div>
     `);
-    mainDiv.append(bedrockFrag);
-  }
+      mainDiv.append(bedrockFrag);
+    }
 
-  const categories = supabase_data.categories
-    .filter(cat => !cat.hidden && (!hideOptifine || cat.id !== 'optifine'));
+    const categories = supabase_data.categories
+      .filter(cat => !cat.hidden && (!hideOptifine || cat.id !== 'optifine'));
 
-  const categoriesHTML = categories.map(cat => {
-    const capes = supabase_data.capes
-      .filter(cape => cape.category === cat.id)
-      .map(cape => {
-        cape.users = supabase_data.user_capes.filter(user => user.cape === cape.id);
-        return cape;
-      })
-      .sort((a, b) => b.users.length - a.users.length)
-      .map(cape => getCapeCardHTML(cape, cape.users.length))
-      .join("");
+    const categoriesHTML = categories.map(cat => {
+      const capes = supabase_data.capes
+        .filter(cape => cape.category === cat.id)
+        .map(cape => {
+          cape.users = supabase_data.user_capes.filter(user => user.cape === cape.id);
+          return cape;
+        })
+        .sort((a, b) => b.users.length - a.users.length)
+        .map(cape => getCapeCardHTML(cape, cape.users.length))
+        .join("");
 
-    return `
+      return `
       <div>
         <h1 class="text-center pt-4">${cat.name} Capes</h1>
         <hr class="mt-0">
@@ -98,11 +100,12 @@ function addCapes(mainDiv) {
         </div>
       </div>
     `;
-  }).join("");
+    }).join("");
 
-  const categoriesRange = document.createRange();
-  const categoriesFrag = categoriesRange.createContextualFragment(categoriesHTML);
-  mainDiv.append(categoriesFrag);
-}
+    const categoriesRange = document.createRange();
+    const categoriesFrag = categoriesRange.createContextualFragment(categoriesHTML);
+    mainDiv.append(categoriesFrag);
+  }
 
-waitForStorage("supabase_data", () => waitForSelector("main", addCapes));
+  waitForSelector("main", addCapes);
+});

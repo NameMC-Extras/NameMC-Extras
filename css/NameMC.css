@@ -27,6 +27,7 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
 [class*=ads_]:not(#test),
 [id*=gpt_]:not(#test),
 [class*=gpt_]:not(#test),
+[class*=publift]:not(#test),
 .notranslate:has(iframe) {
     display: none !important;
     visibility: hidden !important;

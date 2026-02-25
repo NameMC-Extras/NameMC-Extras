@@ -1,42 +1,38 @@
-const waitForSelector = (selector, callback) => {
-  const el = document.querySelector(selector);
-  if (el) return callback(el);
+(async () => {
+  await superStorage._ready;
 
-  const observer = new MutationObserver(() => {
-    const el = document.querySelector(selector);
-    if (el) {
-      observer.disconnect();
-      callback(el);
+  const waitForSelector = function (selector, callback) {
+    let query = document.querySelector(selector)
+    if (query) {
+      setTimeout((query) => {
+        callback(query);
+      }, null, query);
+    } else {
+      setTimeout(() => {
+        waitForSelector(selector, callback);
+      });
     }
-  });
+  };
 
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true
-  });
-};
+  const waitForStorage = (key, callback) => {
+    if (!window.superStorage) return setTimeout(() => waitForStorage(key, callback));
+    const value = window.superStorage.getItem(key);
+    if (value && value.length !== 0) return callback(value);
+    setTimeout(() => waitForStorage(key, callback));
+  };
 
-const waitForStorage = (key, callback) => {
-  const value = window.localStorage.getItem(key);
-  if (value && value.length !== 0) {
-    callback();
-  } else {
-    requestAnimationFrame(() => waitForStorage(key, callback)); // faster polling
-  }
-};
+  /**
+   * Returns HTML code for the badge's card
+   * @param {SupabaseBadge} badge
+   * @param {number} userCount 
+   * @returns {string}
+   */
+  function getBadgeCardHTML(badge, userCount) {
+    const badgeName = badge.name;
+    const badgeID = encodeURIComponent(badge.id);
+    const badgeImage = badge.image;
 
-/**
- * Returns HTML code for the badge's card
- * @param {SupabaseBadge} badge
- * @param {number} userCount 
- * @returns {string}
- */
-function getBadgeCardHTML(badge, userCount) {
-  const badgeName = badge.name;
-  const badgeID = encodeURIComponent(badge.id);
-  const badgeImage = badge.image;
-
-  return `
+    return `
     <div class="col-4 col-md-2">
       <div class="card mb-2">
         <a href="/extras/badge/${badgeID}">
@@ -57,29 +53,29 @@ function getBadgeCardHTML(badge, userCount) {
       </div>
     </div>
   `;
-}
+  }
 
 
 
-/*
- * MAIN LOGIC
- */
+  /*
+   * MAIN LOGIC
+   */
 
-function addBadges(main) {
-  const supabase_data = JSON.parse(localStorage.getItem("supabase_data"));
-  main.innerHTML = "";
+  function addBadges(main) {
+    const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
+    main.innerHTML = "";
 
-  // get user count
-  const badges = supabase_data.badges.map(badge => {
-    badge.usersCount = supabase_data.user_badges.reduce((count, user) => user.badge === badge.id ? count + 1 : count, 0);
-    return badge;
-  });
+    // get user count
+    const badges = supabase_data.badges.map(badge => {
+      badge.usersCount = supabase_data.user_badges.reduce((count, user) => user.badge === badge.id ? count + 1 : count, 0);
+      return badge;
+    });
 
-  badges.sort((a, b) => b.usersCount - a.usersCount);
+    badges.sort((a, b) => b.usersCount - a.usersCount);
 
-  const badgeHTMLCards = badges.map(b => getBadgeCardHTML(b, b.usersCount)).join("");
+    const badgeHTMLCards = badges.map(b => getBadgeCardHTML(b, b.usersCount)).join("");
 
-  const badgesHTML = document.createRange().createContextualFragment(`
+    const badgesHTML = document.createRange().createContextualFragment(`
     <h1 class="text-center">Extras Badges</h1>
     <hr class="mt-0">
     <div class="mb-2">
@@ -89,7 +85,8 @@ function addBadges(main) {
     </div>
   `);
 
-  main.append(badgesHTML);
-}
+    main.append(badgesHTML);
+  }
 
-waitForStorage("supabase_data", () => waitForSelector("main", addBadges));
+  waitForStorage("supabase_data", () => waitForSelector("main", addBadges));
+})();

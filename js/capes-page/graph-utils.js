@@ -53,9 +53,9 @@ class CapeUsageGraph {
     this.data = [];
     this.options = Object.assign({
       timeframe: 'week', // day, week, month, year, all
-      lineColor: (localStorage['customTheme'] === "true" && localStorage['customBtn']) || '#236dad',
+      lineColor: (superStorage['customTheme'] === "true" && superStorage['customBtn']) || '#236dad',
       gridColor: '#e9ecef80',
-      textColor: (localStorage['customTheme'] === "true" && localStorage['customText']) || getComputedStyle(document.documentElement).getPropertyValue("--bs-body-color"),
+      textColor: (superStorage['customTheme'] === "true" && superStorage['customText']) || getComputedStyle(document.documentElement).getPropertyValue("--bs-body-color"),
       padding: 40,
       animationDuration: 500,
       pointRadius: 3,
@@ -111,7 +111,7 @@ class CapeUsageGraph {
       tooltipContainer.className = 'graph-tooltip';
       tooltipContainer.style.position = 'absolute';
       tooltipContainer.style.backgroundColor = 'rgba(0,0,0,0.8)';
-      tooltipContainer.style.color = (localStorage['customTheme'] === "true" && localStorage['customText']) || '#DEE2E6';
+      tooltipContainer.style.color = (superStorage['customTheme'] === "true" && superStorage['customText']) || '#DEE2E6';
       tooltipContainer.style.padding = '5px 10px';
       tooltipContainer.style.borderRadius = '4px';
       tooltipContainer.style.fontSize = '12px';
@@ -1719,7 +1719,7 @@ class CapeUsageGraph {
 // Expose the class globally
 window.CapeUsageGraph = CapeUsageGraph;
 
-// Cape Data Cache to store cape data in localStorage
+// Cape Data Cache to store cape data in superStorage
 class CapeDataCache {
   constructor() {
     this.CACHE_PREFIX = 'cape_data_';
@@ -1730,7 +1730,7 @@ class CapeDataCache {
   getCachedData(capeId) {
     try {
       const cacheKey = this.CACHE_PREFIX + capeId;
-      const cachedData = localStorage.getItem(cacheKey);
+      const cachedData = superStorage.getItem(cacheKey);
       
       if (!cachedData) return null;
       
@@ -1738,7 +1738,7 @@ class CapeDataCache {
       
       // Check if cache has expired
       if (Date.now() - timestamp > this.CACHE_EXPIRATION) {
-        localStorage.removeItem(cacheKey);
+        superStorage.removeItem(cacheKey);
         return null;
       }
       
@@ -1761,7 +1761,7 @@ class CapeDataCache {
         data: data,
         timestamp: Date.now()
       };
-      localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      superStorage.setItem(cacheKey, JSON.stringify(cacheData));
     } catch (error) {
       console.error('Error writing to cache:', error);
     }
@@ -1770,12 +1770,12 @@ class CapeDataCache {
   // Clear expired cache entries
   clearExpiredCache() {
     try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
+      for (let i = 0; i < superStorage.length; i++) {
+        const key = superStorage.key(i);
         if (key.startsWith(this.CACHE_PREFIX)) {
-          const cachedData = JSON.parse(localStorage.getItem(key));
+          const cachedData = JSON.parse(superStorage.getItem(key));
           if (Date.now() - cachedData.timestamp > this.CACHE_EXPIRATION) {
-            localStorage.removeItem(key);
+            superStorage.removeItem(key);
           }
         }
       }

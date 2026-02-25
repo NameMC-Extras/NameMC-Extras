@@ -11,7 +11,7 @@ class AnnouncementManager {
         if (window.location.hostname === 'store.namemc.com') return;
 
         const interval = setInterval(() => {
-            const supabaseDataRaw = localStorage.getItem('supabase_data');
+            const supabaseDataRaw = superStorage.getItem('supabase_data');
             if (supabaseDataRaw) {
                 clearInterval(interval);
                 try {
@@ -31,7 +31,7 @@ class AnnouncementManager {
 
     isDismissed(id) {
         if (!this.dismissedCache) {
-            const dismissed = localStorage.getItem(this.storageKey);
+            const dismissed = superStorage.getItem(this.storageKey);
             this.dismissedCache = dismissed ? JSON.parse(dismissed) : [];
         }
         return this.dismissedCache.includes(id);
@@ -40,7 +40,7 @@ class AnnouncementManager {
     saveDismissedAnnouncement(id) {
         if (!this.dismissedCache) this.dismissedCache = this.getDismissedAnnouncements();
         this.dismissedCache.push(id);
-        localStorage.setItem(this.storageKey, JSON.stringify(this.dismissedCache));
+        superStorage.setItem(this.storageKey, JSON.stringify(this.dismissedCache));
     }
 
     dismissAnnouncement() {
@@ -56,7 +56,7 @@ class AnnouncementManager {
 
     getDismissedAnnouncements() {
         if (!this.dismissedCache) {
-            const dismissed = localStorage.getItem(this.storageKey);
+            const dismissed = superStorage.getItem(this.storageKey);
             this.dismissedCache = dismissed ? JSON.parse(dismissed) : [];
         }
         return this.dismissedCache;
@@ -100,6 +100,7 @@ class AnnouncementManager {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await superStorage._ready;
     new AnnouncementManager().initialize();
 });
