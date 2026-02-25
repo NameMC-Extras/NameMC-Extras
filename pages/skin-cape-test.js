@@ -213,15 +213,15 @@
                       </div>
                       <div class="mt-2 d-flex gap-3">
                         <div class="d-flex gap-2 align-items-center">
-                          <input type="radio" id="auto" name="modelRadio" onchange="model='auto-detect'"${!modelParam ? ' checked' : ''}>
+                          <input type="radio" id="auto" name="modelRadio"${!modelParam ? ' checked' : ''}>
                           <label for="auto">Auto</label>
                         </div>
                         <div class="d-flex gap-2 align-items-center">
-                          <input type="radio" id="classic" name="modelRadio" onchange="model='default'"${modelParam === 'classic' ? ' checked' : ''}>
+                          <input type="radio" id="classic" name="modelRadio"${modelParam === 'classic' ? ' checked' : ''}>
                           <label for="classic">Classic</label>
                         </div>
                         <div class="d-flex gap-2 align-items-center">
-                          <input type="radio" id="slim" name="modelRadio" onchange="model='slim'"${modelParam === 'slim' ? ' checked' : ''}>
+                          <input type="radio" id="slim" name="modelRadio"${modelParam === 'slim' ? ' checked' : ''}>
                           <label for="slim">Slim</label>
                         </div>
                       </div>
@@ -330,6 +330,10 @@
                 a.setAttribute("download", "skin");
                 a.click();
             }
+
+            auto.onclick = () => model = "auto-detect";
+            classic.onclick = () => model = "default";
+            slim.onclick = () => model = "slim";
 
             capture.onclick = captureSkin;
             download.onclick = downloadSkin;
