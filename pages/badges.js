@@ -1,6 +1,4 @@
 (async () => {
-  await superStorage._ready;
-
   const waitForSelector = function (selector, callback) {
     let query = document.querySelector(selector)
     if (query) {
@@ -88,5 +86,6 @@
     main.append(badgesHTML);
   }
 
+  await superStorage._ready;
   waitForStorage("supabase_data", () => waitForSelector("main", addBadges));
 })();

@@ -13,7 +13,7 @@ const waitForStorage = (key, callback) => {
   setTimeout(() => waitForStorage(key, callback));
 };
 
-waitForStorage("supabase_data", () => {
+window.addEventListener("superstorage-ready", async () => {
   /*
    * UNIVERSAL VARIABLES
    */
@@ -107,5 +107,6 @@ waitForStorage("supabase_data", () => {
     mainDiv.append(categoriesFrag);
   }
 
-  waitForSelector("main", addCapes);
-});
+  waitForStorage("supabase_data", () => waitForSelector("main", addCapes));
+}, { once: true });
+if (typeof superStorage !== "undefined") window.dispatchEvent(new Event("superstorage-ready"));

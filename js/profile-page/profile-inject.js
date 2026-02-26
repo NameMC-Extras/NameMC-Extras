@@ -25,20 +25,7 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[1]) : undefined;
 }
 
-
-const waitForStorage = function (callback) {
-  if (window.superStorage) {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForStorage(callback);
-    });
-  }
-};
-
-waitForStorage(() => {
+window.addEventListener("superstorage-ready", async () => {
   superStorage.setItem("namemc_animate", "false");
 
   const rows = 9;
@@ -190,7 +177,7 @@ waitForStorage(() => {
   /** Utility waiters */
   const waitFor = (conditionFn, callback) => {
     if (conditionFn()) return setTimeout(callback);
-    setTimeout(() => waitFor(conditionFn, callback), 50);
+    setTimeout(() => waitFor(conditionFn, callback));
   };
 
   const waitForSelector = (selector, callback) =>
@@ -448,6 +435,48 @@ waitForStorage(() => {
     `;
     });
 
+    // replace (edit) and Copy with icons
+    waitForSelector("a[href*='/my-profile/switch']:not([class])", () => {
+      var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
+      editLinks.forEach(editLink => {
+        editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
+        editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
+        editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
+        editLink.classList.add("color-inherit");
+        editLink.title = "Edit";
+
+        // move to far right
+        if (editLink.parentElement.tagName === "STRONG") {
+          editLink.parentElement.parentElement.append(editLink);
+          editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
+        }
+      });
+    });
+
+    var gadgetIf = document.createElement('iframe');
+    gadgetIf.width = 0;
+    gadgetIf.height = 0;
+    gadgetIf.style.display = 'none';
+    gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
+    gadgetIf.onload = () => {
+      gadgetIf.remove();
+    };
+
+    document.documentElement.append(gadgetIf);
+
+    // give developers verification
+    if (uuid === '1cf1a286-acbd-4810-8137-0fcd7a0969f2' || uuid === 'd76ca44e-af76-41ad-8b24-d012673ac436') {
+      [...document.querySelectorAll(".service-icon:not([src*=badges])")].forEach(el => {
+        var verifyEl = document.createElement("img");
+        verifyEl.width = 15;
+        verifyEl.height = 15;
+        verifyEl.className = 'position-absolute bottom-0 end-0';
+        verifyEl.src = 'https://s.namemc.com/img/verification-badge.svg';
+        verifyEl.title = "Verified";
+        el.parentElement.appendChild(verifyEl);
+      })
+    }
+
     // BEDROCK CAPES CONTAINER
     if (enableBedrockCapes) {
       if (bedrockOnly) document.documentElement.style.setProperty("--bedrock-only", "none");
@@ -564,46 +593,6 @@ waitForStorage(() => {
       });
     }
 
-    // replace (edit) and Copy with icons
-    var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
-    editLinks.forEach(editLink => {
-      editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
-      editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
-      editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
-      editLink.classList.add("color-inherit");
-      editLink.title = "Edit";
-
-      // move to far right
-      if (editLink.parentElement.tagName === "STRONG") {
-        editLink.parentElement.parentElement.append(editLink);
-        editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
-      }
-    });
-
-    var gadgetIf = document.createElement('iframe');
-    gadgetIf.width = 0;
-    gadgetIf.height = 0;
-    gadgetIf.style.display = 'none';
-    gadgetIf.src = `https://gadgets.faav.top/namemc-info/${uuid}?url=${location.href}`;
-    gadgetIf.onload = () => {
-      gadgetIf.remove();
-    };
-
-    document.documentElement.append(gadgetIf);
-
-    // give developers verification
-    if (uuid === '1cf1a286-acbd-4810-8137-0fcd7a0969f2' || uuid === 'd76ca44e-af76-41ad-8b24-d012673ac436') {
-      [...document.querySelectorAll(".service-icon:not([src*=badges])")].forEach(el => {
-        var verifyEl = document.createElement("img");
-        verifyEl.width = 15;
-        verifyEl.height = 15;
-        verifyEl.className = 'position-absolute bottom-0 end-0';
-        verifyEl.src = 'https://s.namemc.com/img/verification-badge.svg';
-        verifyEl.title = "Verified";
-        el.parentElement.appendChild(verifyEl);
-      })
-    }
-
     waitForSVSelector('.skin-2d.skin-button', () => {
       setTimeout(createStealBtn);
 
@@ -691,7 +680,7 @@ waitForStorage(() => {
         }
 
         borderBtn.onclick = () => {
-          if (skinArt === false) {
+          if (!skinArt) {
             skinsContainer.style.width = '312px';
             skinsContainer.style.margin = '6px auto';
             document.querySelectorAll('.skin-2d.skin-button').forEach(skin => {
@@ -732,7 +721,7 @@ waitForStorage(() => {
         </div>`;
 
         histBtn.onclick = () => {
-          if (isHidden === true) {
+          if (isHidden) {
             showHidden();
             isHidden = false;
             superStorage.setItem("isHidden", "false");
@@ -859,7 +848,7 @@ waitForStorage(() => {
         }
 
         waitForSupabase(async (supabase_data) => {
-          const userCapeIds = supabase_data.user_capes.filter(obj => obj.user === uuid).filter(obj => typeof obj.equipped === "undefined" || obj.equipped === true).map(v => v.cape);
+          const userCapeIds = supabase_data.user_capes.filter(obj => obj.user === uuid).filter(obj => typeof obj.equipped === "undefined" || obj.equipped).map(v => v.cape);
           if (userCapeIds.length > 0) {
             document.querySelectorAll('.cape-2d').forEach((el) => {
               el.classList.remove('skin-button-selected');
@@ -880,7 +869,7 @@ waitForStorage(() => {
         }
 
         // deadmau5 ears
-        if (hasEars === true) {
+        if (hasEars) {
           skinViewer.playerWrapper.translateY(-3); // move player down
           skinViewer.zoom = 0.76; // zoom out
         } else {
@@ -920,7 +909,7 @@ waitForStorage(() => {
             currentCape = el.getAttribute('data-cape');
             nmceCape = false;
             waitForImage(() => {
-              if (elytraOn === true) {
+              if (elytraOn) {
                 skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
                   backEquipment: "elytra"
                 });
@@ -1012,4 +1001,5 @@ waitForStorage(() => {
       });
     }
   });
-});
+}, { once: true });
+if (typeof superStorage !== "undefined") window.dispatchEvent(new Event("superstorage-ready"));

@@ -13,7 +13,7 @@ const waitForSelector = function (selector, callback) {
 
 waitForSelector('.card.mt-3', (historyEl) => {
     let history = [...historyEl.querySelectorAll('[class*=fa-toggle-]')].map(a => a.classList.contains('fa-toggle-on'));
-    let hasTrue = history.some(a => a === true);
+    let hasTrue = history.some(a => a);
     historyEl.insertAdjacentHTML('afterbegin', `<div class="card-header py-1">
         <div class="row">
             <div class="col">

@@ -8,19 +8,8 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[1]) : undefined;
 }
 
-const waitForStorage = function (key, callback) {
-  if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForStorage(key, callback);
-    });
-  }
-};
+window.addEventListener("superstorage-ready", async () => {
 
-waitForStorage("supabase_data", () => {
   /*
    * UNIVERSAL VARIABLES
    */
@@ -79,6 +68,18 @@ waitForStorage("supabase_data", () => {
     }
   };
 
+  const waitForStorage = function (key, callback) {
+    if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
+      setTimeout(() => {
+        callback();
+      });
+    } else {
+      setTimeout(() => {
+        waitForStorage(key, callback);
+      });
+    }
+  };
+
   const waitForCape = function (callback) {
     if (skinViewer.capeTexture) {
       setTimeout(() => {
@@ -96,7 +97,7 @@ waitForStorage("supabase_data", () => {
     setTimeout(() => {
       var pauseBtn = document.querySelector('#play-pause-btn');
       var pauseIcon = pauseBtn.querySelector('i');
-      if (paused == true) {
+      if (paused) {
         pauseIcon.classList.remove('fa-pause');
         pauseIcon.classList.add('fa-play');
       } else {
@@ -105,7 +106,7 @@ waitForStorage("supabase_data", () => {
       }
       pauseBtn.setAttribute('onclick', '');
       pauseBtn.onclick = () => {
-        if (paused == false) {
+        if (!paused) {
           paused = true;
           pauseIcon.classList.remove('fa-pause');
           pauseIcon.classList.add('fa-play');
@@ -194,8 +195,6 @@ waitForStorage("supabase_data", () => {
     }
   }
 
-
-
   // fix bug
   waitForFunc("updateSkin", () => {
     window.updateSkin = () => { }
@@ -231,43 +230,44 @@ waitForStorage("supabase_data", () => {
       }, 100);
     }
 
-
-    // get cape data from supabase
-    const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
-    let cape = supabase_data.nmc_capes.filter(cape => cape.id == capeHash)[0];
-    if (!cape) {
-      cape = {
-        "description": "Hmm... we haven't seen this cape just yet...\n\nPlease contact a NameMC Extras developer to fix this!"
-      }
-    };
-
-    var descText = cape.description.toString();
-    var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
-
-    description.innerHTML = descText;
-
-    if (hasMdLink) {
-      var textAreaTag = document.createElement("textarea");
-      textAreaTag.textContent = descText;
-      descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
-
-      var elements = descText.match(/\[.*?\)/g);
-      if (elements && elements.length > 0) {
-        for (el of elements) {
-          let text = el.match(/\[(.*?)\]/)[1];
-          let url = el.match(/\((.*?)\)/)[1];
-          let aTag = document.createElement("a");
-          let urlHref = new URL(url);
-          urlHref.protocol = "https:";
-          aTag.href = urlHref;
-          aTag.textContent = text;
-          aTag.target = '_blank';
-          descText = descText.replace(el, aTag.outerHTML)
+    waitForStorage("supabase_data", () => {
+      // get cape data from supabase
+      const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
+      let cape = supabase_data.nmc_capes.filter(cape => cape.id == capeHash)[0];
+      if (!cape) {
+        cape = {
+          "description": "Hmm... we haven't seen this cape just yet...\n\nPlease contact a NameMC Extras developer to fix this!"
         }
-      }
+      };
+
+      var descText = cape.description.toString();
+      var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
 
       description.innerHTML = descText;
-    }
+
+      if (hasMdLink) {
+        var textAreaTag = document.createElement("textarea");
+        textAreaTag.textContent = descText;
+        descText = textAreaTag.innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
+        var elements = descText.match(/\[.*?\)/g);
+        if (elements && elements.length > 0) {
+          for (el of elements) {
+            let text = el.match(/\[(.*?)\]/)[1];
+            let url = el.match(/\((.*?)\)/)[1];
+            let aTag = document.createElement("a");
+            let urlHref = new URL(url);
+            urlHref.protocol = "https:";
+            aTag.href = urlHref;
+            aTag.textContent = text;
+            aTag.target = '_blank';
+            descText = descText.replace(el, aTag.outerHTML)
+          }
+        }
+
+        description.innerHTML = descText;
+      }
+    });
 
     // create skin viewer
     waitForSVSelector('.skin-3d', () => {
@@ -363,4 +363,5 @@ waitForStorage("supabase_data", () => {
       fixPauseBtn()
     });
   });
-});
+}, { once: true });
+if (typeof superStorage !== "undefined") window.dispatchEvent(new Event("superstorage-ready"));

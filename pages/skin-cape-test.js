@@ -1,6 +1,4 @@
 (async () => {
-    await superStorage._ready;
-
     // only use for getting animate cookie
     function getCookie(name) {
         const match = document.cookie.match(
@@ -42,7 +40,7 @@
     /** Utility waiters */
     const waitFor = (conditionFn, callback) => {
         if (conditionFn()) return setTimeout(callback);
-        setTimeout(() => waitFor(conditionFn, callback), 50);
+        setTimeout(() => waitFor(conditionFn, callback));
     };
 
     const waitForSelector = (selector, callback) =>
@@ -52,7 +50,7 @@
         waitFor(() => window[funcName] || window.wrappedJSObject?.[funcName], () => callback(window[funcName] || window.wrappedJSObject?.[funcName]));
 
     const waitForSupabase = (callback) =>
-        waitFor(() => !!window.superStorage.getItem("supabase_data"), () =>
+        waitFor(() => window.superStorage && window.superStorage.getItem("supabase_data"), () =>
             callback(JSON.parse(window.superStorage.getItem("supabase_data")))
         );
 
@@ -425,14 +423,14 @@
             }
 
             none.onchange = () => {
-                if (none.checked == true) {
+                if (none.checked) {
                     currentCape = null;
                     capemenu.style.display = 'none';
                 }
             }
 
             optifine.onchange = () => {
-                if (optifine.checked == true) {
+                if (optifine.checked) {
                     capemenu.innerHTML = `<hr style="margin: 0.7rem 0;">
             <label class="col-4 col-form-label" for="optifinecape"><strong>OptiFine Cape:</strong></label>
             <div class="form-group" id="optifinecape">
@@ -467,7 +465,7 @@
                     capemenu.style.display = 'unset';
 
                     stealopti.onchange = () => {
-                        if (stealopti.checked == true) {
+                        if (stealopti.checked) {
                             currentOptifineMode = "steal";
                             optimenus.innerHTML = `<label for="opticapestealuser">Steal the OptiFine Cape design
                         from:</label><input type="text" class="form-control input-dark" id="opticapestealuser"
@@ -485,7 +483,7 @@
                     }
 
                     ofdesign.onchange = () => {
-                        if (ofdesign.checked == true) {
+                        if (ofdesign.checked) {
                             currentOptifineMode = "of";
                             optimenus.innerHTML = `<div class="form-inline skinforminline"> <label for="ofcapetop">Top: </label> <input id="ofcapetop" minlength="1"
                         maxlength="16" name="skin" placeholder="Top color" type="text" class="form-control" style="width: 150px;"
@@ -526,7 +524,7 @@
                     }
 
                     banner.onchange = () => {
-                        if (banner.checked == true) {
+                        if (banner.checked) {
                             currentOptifineMode = "banner";
                             optimenus.innerHTML = `<div class="form-inline skinforminline"> <label for="optibanner">Banner: </label> <input id="optibanner" minlength="1"
                         maxlength="128" name="skin" placeholder="Banner pattern" type="text" class="form-control input-dark"
@@ -567,7 +565,7 @@
             }
 
             upload.onchange = () => {
-                if (upload.checked == true) {
+                if (upload.checked) {
                     capemenu.innerHTML = `<label class="col-4 col-form-label" for="uploadcape"><strong>Upload Cape:</strong></label>
                 <div class="form-group">
                     <div class="input-group">

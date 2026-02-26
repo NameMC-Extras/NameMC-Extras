@@ -8,22 +8,12 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[1]) : undefined;
 }
 
-const waitForStorage = function (key, callback) {
-  if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForStorage(key, callback);
-    });
-  }
-};
+window.addEventListener("superstorage-ready", async () => {
 
-waitForStorage("supabase_data", () => {
   /*
    * UNIVERSAL VARIABLES
    */
+
   const categoryId = location.pathname.split("/")[2];
   const capeId = location.pathname.split("/")[3];
   var paused = (getCookie("animate") === "false");
@@ -52,6 +42,18 @@ waitForStorage("supabase_data", () => {
     } else {
       setTimeout(() => {
         waitForFunc(func, callback);
+      });
+    }
+  };
+
+  const waitForStorage = function (key, callback) {
+    if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
+      setTimeout(() => {
+        callback();
+      });
+    } else {
+      setTimeout(() => {
+        waitForStorage(key, callback);
       });
     }
   };
@@ -91,7 +93,7 @@ waitForStorage("supabase_data", () => {
     setTimeout(() => {
       var pauseBtn = document.querySelector('#play-pause-btn');
       var pauseIcon = pauseBtn.querySelector('i');
-      if (paused == true) {
+      if (paused) {
         pauseIcon.classList.remove('fa-pause');
         pauseIcon.classList.add('fa-play');
       } else {
@@ -100,7 +102,7 @@ waitForStorage("supabase_data", () => {
       }
       pauseBtn.setAttribute('onclick', '');
       pauseBtn.onclick = () => {
-        if (paused == false) {
+        if (!paused) {
           paused = true;
           pauseIcon.classList.remove('fa-pause');
           pauseIcon.classList.add('fa-play');
@@ -185,23 +187,24 @@ waitForStorage("supabase_data", () => {
     console.log("Loading page!")
 
     // get cape and update page title
-    const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
+    let capeCategory;
+    let capeOwners;
     let cape;
     if (categoryId == "bedrock") {
       const bedrockInfo = await (await fetch(`https://bedrockviewer.com/api/v1/capes/${capeId}`)).json();
       cape = new CustomCape(bedrockInfo.name, bedrockInfo.description, bedrockInfo.image_data, bedrockInfo.users);
       cape.user_count = bedrockInfo.user_count;
+      capeCategory = "Bedrock";
+      capeOwners = cape.users;
     } else {
+      const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
       cape = supabase_data.capes.filter(cape => cape.id == capeId)[0];
+      capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name;
+      capeOwners = supabase_data.user_capes.filter(user => user.cape == capeId)
     }
     if (!cape) return;
-    const capeCategory = supabase_data.categories.filter(a => a.id == cape.category)[0]?.name ?? "Bedrock";
-    const isBedrock = capeCategory === "Bedrock";
+    const isBedrock = categoryId === "bedrock";
     document.title = `${cape.name} | ${capeCategory} Cape | NameMC Extras`
-    let capeOwners = supabase_data.user_capes.filter(user => user.cape == capeId);
-    if (capeOwners.length == 0) {
-      capeOwners = cape.users;
-    }
     // update page
     var capeRange = document.createRange();
     var capeHTML = capeRange.createContextualFragment(`
@@ -317,11 +320,11 @@ waitForStorage("supabase_data", () => {
         }, 100);
       }
 
-      let badgeOwnerNames;
+      let capeOwnerNames;
       if (isBedrock) {
         //capeOwners.push({ username: "..." });
-        badgeOwnerNames = (await Promise.all(capeOwners.filter(a => a.java_uuid).map(async badge => {
-          const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.java_uuid);
+        capeOwnerNames = (await Promise.all(capeOwners.filter(a => a.java_uuid).map(async cape => {
+          const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + cape.java_uuid);
           try {
             return await resp.json();
           } catch {
@@ -329,8 +332,8 @@ waitForStorage("supabase_data", () => {
           }
         }))).map(a => a.name);
       } else {
-        badgeOwnerNames = (await Promise.all(capeOwners.map(async badge => {
-          const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
+        capeOwnerNames = (await Promise.all(capeOwners.map(async cape => {
+          const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + cape.user);
           try {
             return await resp.json();
           } catch {
@@ -348,7 +351,7 @@ waitForStorage("supabase_data", () => {
           userEl = document.createElement("a");
           userEl.href = "/profile/" + u.user;
         }
-        userEl.textContent = badgeOwnerNames[i];
+        userEl.textContent = capeOwnerNames[i];
         userEl.translate = "no";
         if (u.note) {
           userEl.setAttribute("data-note", "");
@@ -447,5 +450,10 @@ waitForStorage("supabase_data", () => {
    * MAIN LOGIC
    */
 
-  loadPage();
-});
+  if (categoryId === "bedrock") {
+    loadPage();
+  } else {
+    waitForStorage("supabase_data", loadPage);
+  }
+}, { once: true });
+if (typeof superStorage !== "undefined") window.dispatchEvent(new Event("superstorage-ready"));

@@ -66,7 +66,7 @@ waitForSelector('.card.mb-3', async (skinsEl) => {
     const results = await Promise.all(fetches);
     results.forEach(pageSkins => skins.push(...pageSkins));
 
-    const hasTrue = skins.some(a => a.value === true);
+    const hasTrue = skins.some(a => a.value);
 
     document.querySelector('#hideAll').onclick = async () => {
         document.querySelector('#hideAll').classList.add('disabled');

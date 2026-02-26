@@ -1,17 +1,6 @@
 console.log("Injecting skin page...");
-const waitForStorage = function (callback) {
-  if (window.superStorage) {
-    setTimeout(() => {
-      callback();
-    });
-  } else {
-    setTimeout(() => {
-      waitForStorage(callback);
-    });
-  }
-};
 
-waitForStorage(() => {
+window.addEventListener("superstorage-ready", async () => {
   /*
    * UNIVERSAL VARIABLES
    */
@@ -156,4 +145,5 @@ waitForStorage(() => {
 
   addHolidayTools();
   createStealBtn();
-});
+}, { once: true });
+if (typeof superStorage !== "undefined") window.dispatchEvent(new Event("superstorage-ready"));

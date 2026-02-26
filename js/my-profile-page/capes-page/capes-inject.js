@@ -14,7 +14,7 @@ const waitForSelector = function (selector, callback) {
 waitForSelector('.card.my-3', (capesEl) => {
     let capes = [...capesEl.querySelectorAll('[class*=fa-toggle-]')].map(a => a.classList.contains('fa-toggle-on'));
     let capeValues = [...capesEl.querySelectorAll('[class*=fa-toggle-]')].map(a => a.parentElement.value);
-    let hasTrue = capes.some(a => a === true);
+    let hasTrue = capes.some(a => a);
     if (!capes.length) return;
     capesEl.querySelector('.card-header').innerHTML = `<div class="row">
             <div class="col">

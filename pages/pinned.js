@@ -1,6 +1,4 @@
 (async () => {
-    await superStorage._ready;
-
     const pinnedPageContent = `
 <h1 class="text-center">Pinned Users</h1>
 <hr class="mt-0">
@@ -956,6 +954,7 @@
         main.innerHTML = pinnedPageContent;
         // Wait for UserDataUtils class to be available, then create instance and load pinned users
         waitForUserDataUtils(async () => {
+            await superStorage._ready;
             const userDataUtils = new UserDataUtils();
             window.pinnedUserDataUtils = userDataUtils; // Make it globally accessible for this page
 

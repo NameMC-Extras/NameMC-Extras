@@ -2,8 +2,6 @@
     if (!document.contentType.startsWith('text/html')) return;
     if (window.location.hostname === 'store.namemc.com') return;
 
-    if (typeof superStorage !== 'undefined' && superStorage._ready) await superStorage._ready;
-
     class UserEntity {
         constructor(data = {}) {
             this.username = data.username || null;
@@ -330,5 +328,14 @@
         check();
     });
 
-    window.UserDataUtils = UserDataUtils;
+    if (typeof window.superStorage === 'undefined') {
+        window.addEventListener("superstorage-ready", async () => {
+            if (superStorage.getItem("pinned") !== "true") return;
+            window.UserDataUtils = UserDataUtils;
+        });
+    } else {
+        await superStorage._ready;
+        if (superStorage.getItem("pinned") !== "true") return;
+        window.UserDataUtils = UserDataUtils;
+    }
 })();

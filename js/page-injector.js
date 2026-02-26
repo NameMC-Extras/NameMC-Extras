@@ -2,8 +2,6 @@
     if (!document.contentType.startsWith('text/html')) return;
     if (window.location.hostname === 'store.namemc.com') return;
 
-    await superStorage._ready;
-
     const root = document.documentElement;
 
     // bypass anti ad blocker
@@ -12,15 +10,49 @@
     iframeEl.height = 0;
     iframeEl.style.display = 'none';
     iframeEl.srcdoc = `<script>
-    const bypassAntiAdBlocker = () => {
-        window.top.document.querySelectorAll('iframe').forEach(el => {
-            try {
-                el.contentWindow.confirm = () => {};
-            } catch {}
-        })
+function patchIframe(iframe) {
+    try {
+        const win = iframe.contentWindow;
+        if (!win || win.__patchedConfirm) return;
+
+        win.__patchedConfirm = true; // prevent double patch
+        win.confirm = () => {};
+    } catch {
+        // ignore cross-origin or not-ready frames
     }
-    bypassAntiAdBlocker();
-    setInterval(bypassAntiAdBlocker, 50);
+}
+
+function handleIframe(iframe) {
+    // Patch when it loads
+    iframe.addEventListener("load", () => patchIframe(iframe));
+
+    // Try immediately too (in case already loaded)
+    patchIframe(iframe);
+}
+
+// Patch existing iframes
+document.querySelectorAll("iframe").forEach(handleIframe);
+
+// Watch for new ones
+const observer = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+            if (node.tagName === "IFRAME") {
+                handleIframe(node);
+            }
+
+            // Also handle iframes inside added subtrees
+            if (node.querySelectorAll) {
+                node.querySelectorAll("iframe").forEach(handleIframe);
+            }
+        }
+    }
+});
+
+observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+});
     </script>`;
     root.append(iframeEl);
 
@@ -42,6 +74,8 @@
             });
         }
     };
+
+    await superStorage._ready;
 
     var theme = superStorage.getItem("theme");
     var customThemeOn = superStorage.getItem("customTheme") === "true";
@@ -669,7 +703,7 @@
             storeNavBar.before(customNavHTML);
             waitForSelector('.dropdown-divider:nth-of-type(2)', (dropDivider) => dropDivider.before(customNavDropHTML));
 
-            if (isPage === true) {
+            if (isPage) {
                 document.title = title + " | NameMC Extras";
 
                 var inject1 = document.createElement('script');
@@ -792,7 +826,7 @@
 
     waitForSelector("body", async () => {
         // REPLACE COPY BUTTON
-        setTimeout(() => {
+        waitForSelector("a.copy-button[data-clipboard-text][href*='javascript:']", () => {
             var copyLinks = [...document.querySelectorAll("a.copy-button[data-clipboard-text][href*='javascript:']")];
             copyLinks.forEach(copyLink => {
                 copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
@@ -801,7 +835,7 @@
                 // fix title
                 setTimeout(() => copyLink.title = "Copy", 1000);
             });
-        }, 5)
+        });
 
         // REMOVE NAME LENGTH RESTRICTIONS
         if (location.pathname === "/minecraft-names") {

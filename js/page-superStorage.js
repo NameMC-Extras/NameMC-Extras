@@ -2,141 +2,168 @@
   console.log("[SuperStorage] Initializing superStorage page script...");
 
   const script = document.currentScript;
-  const initialData = JSON.parse(script.dataset.initial || "{}");
+  const initialData = JSON.parse(script?.dataset?.initial || "{}");
 
   const cache = Object.create(null);
+  const keys = [];
   let size = 0;
+  let usedBytes = 0;
+
+  let readyResolve;
+  const readyPromise = new Promise(res => { readyResolve = res; });
+
+  const QUOTA_BYTES = 10 * 1024 * 1024;
+
+  const byteSize = (k, v) => k.length * 2 + String(v).length * 2;
 
   // Initialize cache from initialData
-  for (const k of Object.keys(initialData)) {
-    cache[k] = initialData[k];
+  for (const k in initialData) {
+    const v = initialData[k];
+    cache[k] = v;
+    keys.push(k);
     size++;
+    usedBytes += byteSize(k, v);
   }
 
   const dispatchWrite = (type, key, value) =>
-    window.dispatchEvent(new CustomEvent("superstorage-write", { detail: { type, key, value } }));
-
-  const QUOTA_BYTES = 10 * 1024 * 1024; // 10 MB
+    window.dispatchEvent(new CustomEvent("superstorage-write", {
+      detail: { type, key, value }
+    }));
 
   const api = {
     getItem(key) {
       if (key in cache) return cache[key];
 
-      // fallback only
-      const val = localStorage.getItem(key);
-      if (val !== null) {
-        cache[key] = val;
-        size++;
-        dispatchWrite("set", key, val);
+      try {
+        const val = localStorage.getItem(key);
+        if (val !== null) {
+          cache[key] = val;
+          keys.push(key);
+          size++;
+          usedBytes += byteSize(key, val);
+          dispatchWrite("set", key, val);
+        }
+        return val;
+      } catch {
+        return null;
       }
-      return val;
     },
 
     setItem(key, value) {
-      if (reservedKeys.has(key)) {
-        console.warn(`[SuperStorage] Cannot set reserved key: "${key}"`);
-        return;
-      }
-
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const localKey = localStorage.key(i);
-        if (localKey && localKey.startsWith("cape_data_")) {
-          localStorage.removeItem(localKey);
-        }
-      }
+      if (reservedKeys.has(key)) return;
 
       const v = String(value);
+      const newSize = byteSize(key, v);
 
-      // --- Check quota ---
-      let total = 0;
-      for (const k of Object.keys(cache)) {
-        const val = cache[k];
-        if (val == null) continue;
-        total += k.length * 2 + String(val).length * 2;
+      if (key in cache) {
+        usedBytes -= byteSize(key, cache[key]);
+      } else {
+        keys.push(key);
+        size++;
       }
-      const newEntrySize = key.length * 2 + v.length * 2;
 
-      if (total + newEntrySize >= QUOTA_BYTES) {
-        console.warn(`[SuperStorage] Approaching quota. Clearing cape_data_ keys...`);
-
-        // Remove cape_data_ keys first
-        for (const k of Object.keys(cache)) {
+      // Quota check
+      if (usedBytes + newSize >= QUOTA_BYTES) {
+        // Remove cape_data_ first
+        for (let i = keys.length - 1; i >= 0; i--) {
+          const k = keys[i];
           if (k.startsWith("cape_data_")) {
+            usedBytes -= byteSize(k, cache[k]);
             delete cache[k];
+            keys.splice(i, 1);
             size--;
             dispatchWrite("remove", k);
           }
         }
 
-        // Recalculate total after removing cape_data_ keys
-        total = 0;
-        for (const k of Object.keys(cache)) {
-          const val = cache[k];
-          if (val == null) continue;
-          total += k.length * 2 + String(val).length * 2;
-        }
-
-        if (total + newEntrySize >= QUOTA_BYTES) {
-          console.warn(`[SuperStorage] Quota still exceeded. Cannot add key: "${key}"`);
-          return;
-        }
+        if (usedBytes + newSize >= QUOTA_BYTES) return;
       }
-      // -------------------
 
-      if (!(key in cache)) size++;
       cache[key] = v;
+      usedBytes += newSize;
       dispatchWrite("set", key, v);
     },
 
     removeItem(key) {
-      if (key in cache) {
-        delete cache[key];
-        size--;
-        dispatchWrite("remove", key);
-      }
+      if (!(key in cache)) return;
+
+      usedBytes -= byteSize(key, cache[key]);
+      delete cache[key];
+
+      const index = keys.indexOf(key);
+      if (index !== -1) keys.splice(index, 1);
+
+      size--;
+      dispatchWrite("remove", key);
     },
 
     clear() {
-      for (const k of Object.keys(cache)) delete cache[k];
+      for (const k of keys) {
+        dispatchWrite("remove", k);
+      }
+
+      keys.length = 0;
+      for (const k in cache) delete cache[k];
+
       size = 0;
+      usedBytes = 0;
+
       dispatchWrite("clear");
     },
 
     key(index) {
-      return Object.keys(cache)[index] ?? null;
+      return keys[index] ?? null;
     },
 
     get length() {
       return size;
-    }
+    },
+
+    _ready: readyPromise
   };
 
   const reservedKeys = new Set(Reflect.ownKeys(api));
 
-  // Listen for content script updates
   window.addEventListener("superstorage-sync", (event) => {
     let key, value;
     try {
       key = event.detail.key;
       value = event.detail.value;
-    } catch (err) {
-      // Firefox threw a permission error — ignore this event
+    } catch {
       return;
     }
 
     if (key === null) {
-      for (const k of Object.keys(cache)) delete cache[k];
+      keys.length = 0;
+      for (const k in cache) delete cache[k];
       size = 0;
+      usedBytes = 0;
       return;
     }
+
     if (value === null) {
       if (key in cache) {
+        usedBytes -= byteSize(key, cache[key]);
         delete cache[key];
+
+        const i = keys.indexOf(key);
+        if (i !== -1) keys.splice(i, 1);
+
         size--;
       }
     } else {
-      if (!(key in cache)) size++;
-      cache[key] = value;
+      const v = String(value);
+      const newSize = byteSize(key, v);
+
+      if (key in cache) {
+        usedBytes -= byteSize(key, cache[key]);
+      } else {
+        keys.push(key);
+        size++;
+      }
+
+      cache[key] = v;
+      usedBytes += newSize;
     }
   });
 
@@ -147,7 +174,6 @@
     set(target, prop, value) {
       if (prop in target) target[prop] = value;
       else if (!reservedKeys.has(prop)) target.setItem(prop, value);
-      else console.warn(`[SuperStorage] Cannot overwrite reserved key: "${prop}"`);
       return true;
     },
     deleteProperty(target, prop) {
@@ -159,12 +185,16 @@
       return prop in target || prop in cache;
     },
     ownKeys() {
-      return [...Reflect.ownKeys(api), ...Object.keys(cache)];
+      return [...Reflect.ownKeys(api), ...keys];
     },
     getOwnPropertyDescriptor(target, prop) {
-      if (prop in target) return Object.getOwnPropertyDescriptor(target, prop);
+      if (prop in target)
+        return Object.getOwnPropertyDescriptor(target, prop);
       if (prop in cache)
         return { configurable: true, enumerable: true, value: cache[prop], writable: true };
     }
   });
+
+  readyResolve();
+  window.dispatchEvent(new Event("superstorage-ready"));
 })();
