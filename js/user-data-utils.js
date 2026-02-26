@@ -26,6 +26,7 @@
         constructor() {
             this.domain = window.location.origin;
             this.cache = new Map();
+            this.captchaPromise = null;
         }
 
         getSupabaseData() {
@@ -79,8 +80,7 @@
             return await waitForProfileSelector('[value=standard]', uuid => uuid.value.trim());
         }
 
-        parseUserProfile(html, uuid) {
-            const doc = new DOMParser().parseFromString(html, 'text/html');
+        parseUserProfile(doc, uuid) {
             const username = doc.querySelector('h1')?.innerText || '';
 
             const rows = doc.querySelectorAll('.card-body .row');
@@ -167,28 +167,103 @@
 
         async fetchUserProfile(uuid) {
             if (this.cache.has(uuid)) return this.cache.get(uuid);
-            try {
-                const response = await fetch(`/profile/${uuid}`);
-                if (!document.querySelector('#captchaIf2')) {
-                    document.documentElement.insertAdjacentHTML('beforeend', `<iframe src="/profile/${uuid}" id="captchaIf2" style="display:none"></iframe>`);
-                }
 
-                if (response.status === 403) {
-                    const iframe = document.querySelector('#captchaIf2');
-                    iframe.style.display = 'block';
-                    setTimeout(() => iframe.contentWindow.addEventListener('visibilitychange', () => location.reload()), 1000);
-                    return;
-                }
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const expectedTitle = "| Minecraft Profile | NameMC";
 
-                const html = await response.text();
-                const userEntity = this.parseUserProfile(html, uuid);
-                this.cache.set(uuid, userEntity);
-                return userEntity;
-            } catch (error) {
-                console.error(`Error fetching profile for ${uuid}:`, error);
-                throw error;
+            // If captcha is currently being solved, wait
+            if (this.captchaPromise) {
+                await this.captchaPromise;
             }
+
+            return new Promise((resolve, reject) => {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = `/profile/${uuid}`;
+                document.documentElement.appendChild(iframe);
+
+                const interval = setInterval(async () => {
+                    try {
+                        const doc = iframe.contentDocument;
+                        if (!doc) return;
+
+                        const ready = doc.readyState;
+                        const title = (doc.title || "").trim();
+
+                        // ⏳ Wait until DOM has started parsing AND title exists
+                        if (
+                            (ready !== "interactive" && ready !== "complete") ||
+                            !title
+                        ) {
+                            return;
+                        }
+
+                        clearInterval(interval);
+
+                        // ✅ Success
+                        if (title.includes(expectedTitle)) {
+                            iframe.remove();
+
+                            const userEntity = this.parseUserProfile(doc, uuid);
+                            this.cache.set(uuid, userEntity);
+                            resolve(userEntity);
+                            return;
+                        }
+
+                        // ❌ CAPTCHA detected
+                        iframe.remove();
+
+                        // If someone else already triggered captcha, wait
+                        if (this.captchaPromise) {
+                            await this.captchaPromise;
+                            resolve(this.fetchUserProfile(uuid));
+                            return;
+                        }
+
+                        // Create shared captcha promise
+                        let captchaResolve;
+                        this.captchaPromise = new Promise(r => captchaResolve = r);
+
+                        const captchaIframe = document.createElement('iframe');
+                        captchaIframe.style.position = "fixed";
+                        captchaIframe.style.top = "0";
+                        captchaIframe.style.left = "0";
+                        captchaIframe.style.width = "100%";
+                        captchaIframe.style.height = "100%";
+                        captchaIframe.style.zIndex = "999999";
+                        captchaIframe.src = `/profile/${uuid}`;
+                        document.body.appendChild(captchaIframe);
+
+                        const captchaCheck = setInterval(() => {
+                            try {
+                                const captchaDoc = captchaIframe.contentDocument;
+                                if (!captchaDoc) return;
+
+                                const captchaReady = captchaDoc.readyState;
+                                const captchaTitle = (captchaDoc.title || "").trim();
+
+                                if (
+                                    (captchaReady === "interactive" || captchaReady === "complete") &&
+                                    captchaTitle.includes(expectedTitle)
+                                ) {
+                                    clearInterval(captchaCheck);
+                                    captchaIframe.remove();
+                                    captchaResolve();
+                                    this.captchaPromise = null;
+                                }
+                            } catch { }
+                        }, 500);
+
+                        await this.captchaPromise;
+
+                        resolve(this.fetchUserProfile(uuid));
+
+                    } catch (err) {
+                        clearInterval(interval);
+                        iframe.remove();
+                        reject(err);
+                    }
+                }, 50);
+            });
         }
 
         getPinnedUsers() {
@@ -237,7 +312,8 @@
             const profiles = [];
             for (const u of this.getPinnedUsers()) {
                 try {
-                    profiles.push(await this.fetchUserProfile(u.uuid));
+                    const test = await this.fetchUserProfile(u.uuid)
+                    profiles.push(test);
                 } catch (e) {
                     console.error(`Error fetching profile for ${u.uuid}:`, e);
                 }
