@@ -67,42 +67,32 @@ const waitForSelector = (
   });
 };
 
-const waitForSelectorAll = (
-  selector,
-  count = 4,
-  callback,
-  { root = document, timeout = 10000, once = true } = {}
-) => {
-  return new Promise((resolve, reject) => {
-    const existing = root.querySelectorAll(selector);
-    if (existing.length >= count) {
-      callback?.(existing);
-      return resolve(existing);
-    }
+const watchSelector = (selector, callback, { root = document } = {}) => {
+  // Handle existing elements first
+  root.querySelectorAll(selector).forEach(el => callback(el));
 
-    const observer = new MutationObserver(() => {
-      // 2. Check all matches every time the DOM changes
-      const elements = root.querySelectorAll(selector);
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType !== 1) continue; // Only element nodes
 
-      if (elements.length >= count) {
-        if (once) observer.disconnect();
-        clearTimeout(timer);
-        callback?.(elements);
-        return resolve(elements);
+        // If node itself matches
+        if (node.matches(selector)) {
+          callback(node);
+        }
+
+        // If node has children that match, querySelectorAll inside this subtree only
+        const matchedChildren = node.querySelectorAll(selector);
+        if (matchedChildren.length) {
+          matchedChildren.forEach(callback);
+        }
       }
-    });
-
-    // Start observing
-    observer.observe(root.documentElement || root, {
-      childList: true,
-      subtree: true
-    });
-
-    const timer = timeout && setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`waitForSelectorAll timeout: Found only ${root.querySelectorAll(selector).length}/${count} for ${selector}`));
-    }, timeout);
+    }
   });
+
+  observer.observe(root.documentElement || root, { childList: true, subtree: true });
+
+  return () => observer.disconnect(); // Return stop function
 };
 
 const waitForSVSelector = (selector, callback) =>
@@ -493,22 +483,29 @@ window.addEventListener("superstorage-ready", async () => {
       linksTextArea = descText;
     }
 
-    waitForSelectorAll('a[href*="/my-profile/switch"]:not([class])', 4, () => {
-      // replace (edit) and Copy with icons
-      var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
-      editLinks.forEach(editLink => {
-        editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
-        editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
-        editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
-        editLink.classList.add("color-inherit");
-        editLink.title = "Edit";
+    watchSelector('a[href*="/my-profile/switch"]:not([class])', (editLink) => {
+      // Avoid double-processing
+      if (editLink.dataset.replaced) return;
+      editLink.dataset.replaced = "true";
 
-        // move to far right
-        if (editLink.parentElement.tagName === "STRONG") {
-          editLink.parentElement.parentElement.append(editLink);
-          editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
-        }
-      });
+      // replace (edit) and Copy with icons
+      if (editLink.previousSibling) {
+        editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
+      }
+      if (editLink.nextSibling) {
+        editLink.nextSibling.textContent = editLink.nextSibling.textContent.slice(1);
+      }
+
+      editLink.innerHTML = '<i class="far fa-fw fa-edit"></i>';
+      editLink.classList.add("color-inherit");
+      editLink.title = "Edit";
+
+      // move to far right
+      if (editLink.parentElement?.tagName === "STRONG") {
+        const parent = editLink.parentElement.parentElement;
+        parent.append(editLink);
+        editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
+      }
     });
 
     waitForSelector('.profile-column-right .card-body.py-1 > div:nth-child(2)', (views) => {
