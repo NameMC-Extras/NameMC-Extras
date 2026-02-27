@@ -25,6 +25,75 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[1]) : undefined;
 }
 
+/** Utility waiters */
+const waitFor = (conditionFn, callback) => {
+  if (conditionFn()) return setTimeout(callback);
+  setTimeout(() => waitFor(conditionFn, callback), 50);
+};
+
+const waitForSelector = (
+  selector,
+  callback,
+  {
+    root = document,
+    timeout = 10000,
+    once = true
+  } = {}
+) => {
+  return new Promise((resolve, reject) => {
+    const existing = root.querySelector(selector);
+    if (existing) {
+      callback?.(existing);
+      return resolve(existing);
+    }
+
+    const observer = new MutationObserver(() => {
+      const el = root.querySelector(selector);
+      if (!el) return;
+
+      if (once) observer.disconnect();
+      callback?.(el);
+      resolve(el);
+    });
+
+    observer.observe(root.documentElement || root, {
+      childList: true,
+      subtree: true
+    });
+
+    if (timeout) {
+      setTimeout(() => {
+        observer.disconnect();
+        reject(new Error(`waitForSelector timeout: ${selector}`));
+      }, timeout);
+    }
+  });
+};
+
+const waitForSVSelector = (selector, callback) =>
+  waitFor(() => document.querySelector(selector) && window.skinview3d?.SkinViewer, callback);
+
+const waitForImage = (callback, hash) =>
+  waitFor(() => window.namemc?.images?.[hash]?.src, callback);
+
+const waitForFunc = (funcName, callback) =>
+  waitFor(() => window[funcName] || window.wrappedJSObject?.[funcName], () => callback(window[funcName] || window.wrappedJSObject?.[funcName]));
+
+const waitForSupabase = (callback) =>
+  waitFor(() => !!window.superStorage.getItem("supabase_data"), () =>
+    callback(JSON.parse(window.superStorage.getItem("supabase_data"))));
+
+const waitForTooltip = (callback) =>
+  waitFor(() => typeof $ !== 'undefined' && typeof $().tooltip !== 'undefined', callback);
+
+/** Misc actions */
+const downloadSkinArt = () => {
+  const a = document.createElement("a");
+  a.href = resizedArt.toDataURL();
+  a.download = "skinart";
+  a.click();
+};
+
 window.addEventListener("superstorage-ready", async () => {
   superStorage.setItem("namemc_animate", "false");
 
@@ -173,39 +242,6 @@ window.addEventListener("superstorage-ready", async () => {
       }
     });
   }
-
-  /** Utility waiters */
-  const waitFor = (conditionFn, callback) => {
-    if (conditionFn()) return setTimeout(callback);
-    setTimeout(() => waitFor(conditionFn, callback));
-  };
-
-  const waitForSelector = (selector, callback) =>
-    waitFor(() => document.querySelector(selector), () => callback(document.querySelector(selector)));
-
-  const waitForSVSelector = (selector, callback) =>
-    waitFor(() => document.querySelector(selector) && window.skinview3d?.SkinViewer, callback);
-
-  const waitForImage = (callback, hash) =>
-    waitFor(() => window.namemc?.images?.[hash]?.src, callback);
-
-  const waitForFunc = (funcName, callback) =>
-    waitFor(() => window[funcName] || window.wrappedJSObject?.[funcName], () => callback(window[funcName] || window.wrappedJSObject?.[funcName]));
-
-  const waitForSupabase = (callback) =>
-    waitFor(() => !!window.superStorage.getItem("supabase_data"), () =>
-      callback(JSON.parse(window.superStorage.getItem("supabase_data"))));
-
-  const waitForTooltip = (callback) =>
-    waitFor(() => typeof $ !== 'undefined' && typeof $().tooltip !== 'undefined', callback);
-
-  /** Misc actions */
-  const downloadSkinArt = () => {
-    const a = document.createElement("a");
-    a.href = resizedArt.toDataURL();
-    a.download = "skinart";
-    a.click();
-  };
 
   const toggleLayers = () => {
     layer = !layer;
@@ -384,7 +420,7 @@ window.addEventListener("superstorage-ready", async () => {
       if (e.pointerType === 0 || e.target.tagName === "OPTION") document.querySelector("#uuid-select").blur();
     }
 
-    var profileBody = uuid_select.parentElement.parentElement.parentElement;
+    var profileBody = document.querySelector(".profile-column-right .card-body.py-1");
 
     // create layer buttons
     setTimeout(createLayerBtn);
@@ -436,7 +472,7 @@ window.addEventListener("superstorage-ready", async () => {
     });
 
     // replace (edit) and Copy with icons
-    waitForSelector("a[href*='/my-profile/switch']:not([class])", () => {
+    waitForSelector(".profile-column-right .card.mb-3:nth-of-type(3) a[href*='/my-profile/switch']:not([class])", () => {
       var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
       editLinks.forEach(editLink => {
         editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
@@ -463,6 +499,64 @@ window.addEventListener("superstorage-ready", async () => {
     };
 
     document.documentElement.append(gadgetIf);
+
+    waitForSelector('.profile-column-right :nth-child(3) > .card-header', (historyTitle) => {
+      historyTitle.style.cssText = "display:flex;justify-content:space-between";
+
+      var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
+      if (hasHidden) {
+        if (isHidden) hideHidden();
+
+        // add show hidden button
+        historyTitle.innerHTML += `<div id="historyButtons">
+          <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn">
+            ${isHidden ? '<i class="fas fa-fw fa-eye"></i>' : '<i class="fas fa-fw fa-eye-slash"></i>'}
+          </a>
+          <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
+        </div>`;
+
+        histBtn.onclick = () => {
+          if (isHidden) {
+            showHidden();
+            isHidden = false;
+            superStorage.setItem("isHidden", "false");
+            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
+            histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
+          } else {
+            hideHidden();
+            isHidden = true;
+            superStorage.setItem("isHidden", "true");
+            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
+            histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
+          }
+        }
+      } else {
+        historyTitle.innerHTML += `<div id="historyButtons">
+          <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
+          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
+        </div>`;
+      }
+
+      // fix
+      var trash = historyTitle.querySelector(".fa-trash")?.parentElement;
+      if (trash) {
+        trash.classList.remove('position-absolute');
+        document.getElementById("historyButtons").append(trash);
+      }
+
+      // fix alignment
+      document.querySelectorAll("a.px-1").forEach(a => a.classList.remove("px-1"))
+
+      // fix title
+      setTimeout(() => copyHist.title = "Copy", 1000)
+
+      // make it so when holding shift and copy is copies name changes instead
+      window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-lg-none)')].length - 1) : null)
+      window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")))
+
+      historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
+    });
 
     // give developers verification
     if (uuid === '1cf1a286-acbd-4810-8137-0fcd7a0969f2' || uuid === 'd76ca44e-af76-41ad-8b24-d012673ac436') {
@@ -518,78 +612,80 @@ window.addEventListener("superstorage-ready", async () => {
     // add badges
     if (!hideBadges2) {
       waitForSupabase((supabase_data) => {
-        // add emoji override (if applicable)
-        let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid === uuid)[0];
-        if (emojiOverride) {
-          let usernameEl = document.querySelector("h1.text-nowrap");
-          // if usernameEl has img child, remove it
-          if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
-          // add new img
-          let emojiImg = document.createElement("img");
-          emojiImg.draggable = false;
-          emojiImg.src = emojiOverride.image_src;
-          emojiImg.classList.add("emoji");
-          emojiImg.id = "emoji_override";
-          waitForTooltip(() => {
-            $('#emoji_override').tooltip({
-              "placement": "top",
-              "boundary": "viewport",
-              "title": emojiOverride.tooltip_text
+        waitForSelector(".profile-column-right .card-body.py-1 > div:nth-child(2)", () => {
+          // add emoji override (if applicable)
+          let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid === uuid)[0];
+          if (emojiOverride) {
+            let usernameEl = document.querySelector("h1.text-nowrap");
+            // if usernameEl has img child, remove it
+            if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
+            // add new img
+            let emojiImg = document.createElement("img");
+            emojiImg.draggable = false;
+            emojiImg.src = emojiOverride.image_src;
+            emojiImg.classList.add("emoji");
+            emojiImg.id = "emoji_override";
+            waitForTooltip(() => {
+              $('#emoji_override').tooltip({
+                "placement": "top",
+                "boundary": "viewport",
+                "title": emojiOverride.tooltip_text
+              });
             });
-          });
-          usernameEl.append(emojiImg);
-        }
+            usernameEl.append(emojiImg);
+          }
 
-        const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user === uuid).map(v => v.badge);
-        if (userBadgeIds.length > 0) {
-          const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
-          var hrEl = document.createElement("hr");
-          hrEl.classList.add("my-1");
-          if (!socialsTitle) profileBody.append(hrEl)
+          const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user === uuid).map(v => v.badge);
+          if (userBadgeIds.length > 0) {
+            const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
+            var hrEl = document.createElement("hr");
+            hrEl.classList.add("my-1");
+            if (!socialsTitle) profileBody.append(hrEl)
 
-          const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
-          let badgeCardRange = document.createRange();
-          let badgeCardHTML = badgeCardRange.createContextualFragment(`
+            const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
+            let badgeCardRange = document.createRange();
+            let badgeCardHTML = badgeCardRange.createContextualFragment(`
         <div class="row g-0 align-items-center">
           <div class="col-auto col-lg-3 pe-3"><strong id="badgestitle">Badges</strong></div>
           <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges"></div>
         </div>
         `)
-          let badgesHTML = userBadges.map(badge => {
-            var badgeRange = document.createRange()
-            var badgeHTML = badgeRange.createContextualFragment(`
+            let badgesHTML = userBadges.map(badge => {
+              var badgeRange = document.createRange()
+              var badgeHTML = badgeRange.createContextualFragment(`
             <a class="d-inline-block position-relative p-1" href="javascript:void(0)">
               <img class="service-icon">
             </a>
           `);
 
-            badgeHTML.querySelector("img").src = badge.image;
-            badgeHTML.querySelector("img").width = 27;
-            badgeHTML.querySelector("img").height = 27;
-            badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
-            badgeHTML.querySelector("a").setAttribute("title", badge.name);
-            badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
+              badgeHTML.querySelector("img").src = badge.image;
+              badgeHTML.querySelector("img").width = 27;
+              badgeHTML.querySelector("img").height = 27;
+              badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
+              badgeHTML.querySelector("a").setAttribute("title", badge.name);
+              badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
 
-            return badgeHTML.querySelector("a").outerHTML;
-          })
-
-          badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
-
-          profileBody.append(badgeCardHTML)
-
-          waitForTooltip(() => {
-            $('#badgestitle').tooltip({
-              "placement": "top",
-              "boundary": "viewport",
-              "title": "Badges from NameMC Extras!"
+              return badgeHTML.querySelector("a").outerHTML;
             })
 
-            $('[src*=badges]').parent().tooltip({
-              "placement": "top",
-              "boundary": "viewport"
-            });
-          })
-        }
+            badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
+
+            profileBody.append(badgeCardHTML)
+
+            waitForTooltip(() => {
+              $('#badgestitle').tooltip({
+                "placement": "top",
+                "boundary": "viewport",
+                "title": "Badges from NameMC Extras!"
+              })
+
+              $('[src*=badges]').parent().tooltip({
+                "placement": "top",
+                "boundary": "viewport"
+              });
+            })
+          }
+        });
       });
     }
 
@@ -701,65 +797,6 @@ window.addEventListener("superstorage-ready", async () => {
           }
         }
       }
-    })
-
-    setTimeout(() => {
-      var historyTitle = document.querySelectorAll('.card-header')[1];
-      historyTitle.style.cssText = "display:flex;justify-content:space-between";
-
-      var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
-      if (hasHidden) {
-        if (isHidden) hideHidden();
-
-        // add show hidden button
-        historyTitle.innerHTML += `<div id="historyButtons">
-          <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn">
-            ${isHidden ? '<i class="fas fa-fw fa-eye"></i>' : '<i class="fas fa-fw fa-eye-slash"></i>'}
-          </a>
-          <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
-          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
-        </div>`;
-
-        histBtn.onclick = () => {
-          if (isHidden) {
-            showHidden();
-            isHidden = false;
-            superStorage.setItem("isHidden", "false");
-            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
-            histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
-          } else {
-            hideHidden();
-            isHidden = true;
-            superStorage.setItem("isHidden", "true");
-            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
-            histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
-          }
-        }
-      } else {
-        historyTitle.innerHTML += `<div id="historyButtons">
-          <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
-          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
-        </div>`;
-      }
-
-      // fix
-      var trash = historyTitle.querySelector(".fa-trash")?.parentElement;
-      if (trash) {
-        trash.classList.remove('position-absolute');
-        document.getElementById("historyButtons").append(trash);
-      }
-
-      // fix alignment
-      document.querySelectorAll("a.px-1").forEach(a => a.classList.remove("px-1"))
-
-      // fix title
-      setTimeout(() => copyHist.title = "Copy", 1000)
-
-      // make it so when holding shift and copy is copies name changes instead
-      window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-lg-none)')].length - 1) : null)
-      window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")))
-
-      historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
     });
 
     waitForSVSelector('.skin-3d', () => {

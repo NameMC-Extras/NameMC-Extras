@@ -1,9 +1,42 @@
 console.log("Injecting capes page...");
 
-const waitForSelector = (selector, callback) => {
-  const el = document.querySelector(selector);
-  if (el) return callback(el);
-  setTimeout(() => waitForSelector(selector, callback));
+const waitForSelector = (
+  selector,
+  callback,
+  {
+    root = document,
+    timeout = 10000,
+    once = true
+  } = {}
+) => {
+  return new Promise((resolve, reject) => {
+    const existing = root.querySelector(selector);
+    if (existing) {
+      callback?.(existing);
+      return resolve(existing);
+    }
+
+    const observer = new MutationObserver(() => {
+      const el = root.querySelector(selector);
+      if (!el) return;
+
+      if (once) observer.disconnect();
+      callback?.(el);
+      resolve(el);
+    });
+
+    observer.observe(root.documentElement || root, {
+      childList: true,
+      subtree: true
+    });
+
+    if (timeout) {
+      setTimeout(() => {
+        observer.disconnect();
+        reject(new Error(`waitForSelector timeout: ${selector}`));
+      }, timeout);
+    }
+  });
 };
 
 const waitForStorage = (key, callback) => {

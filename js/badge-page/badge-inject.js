@@ -1,17 +1,44 @@
 console.log("Creating badge page...");
 
-const waitForSelector = function (selector, callback) {
-  let query = document.querySelector(selector)
-  if (query) {
-    setTimeout((query) => {
-      callback(query);
-    }, null, query);
-  } else {
-    setTimeout(() => {
-      waitForSelector(selector, callback);
+const waitForSelector = (
+  selector,
+  callback,
+  {
+    root = document,
+    timeout = 10000,
+    once = true
+  } = {}
+) => {
+  return new Promise((resolve, reject) => {
+    const existing = root.querySelector(selector);
+    if (existing) {
+      callback?.(existing);
+      return resolve(existing);
+    }
+
+    const observer = new MutationObserver(() => {
+      const el = root.querySelector(selector);
+      if (!el) return;
+
+      if (once) observer.disconnect();
+      callback?.(el);
+      resolve(el);
     });
-  }
+
+    observer.observe(root.documentElement || root, {
+      childList: true,
+      subtree: true
+    });
+
+    if (timeout) {
+      setTimeout(() => {
+        observer.disconnect();
+        reject(new Error(`waitForSelector timeout: ${selector}`));
+      }, timeout);
+    }
+  });
 };
+
 const waitForStorage = function (key, callback) {
   if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
     setTimeout(() => {

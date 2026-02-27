@@ -40,11 +40,47 @@
     /** Utility waiters */
     const waitFor = (conditionFn, callback) => {
         if (conditionFn()) return setTimeout(callback);
-        setTimeout(() => waitFor(conditionFn, callback));
+        setTimeout(() => waitFor(conditionFn, callback), 50);
     };
 
-    const waitForSelector = (selector, callback) =>
-        waitFor(() => document.querySelector(selector), () => callback(document.querySelector(selector)));
+    const waitForSelector = (
+        selector,
+        callback,
+        {
+            root = document,
+            timeout = 10000,
+            once = true
+        } = {}
+    ) => {
+        return new Promise((resolve, reject) => {
+            const existing = root.querySelector(selector);
+            if (existing) {
+                callback?.(existing);
+                return resolve(existing);
+            }
+
+            const observer = new MutationObserver(() => {
+                const el = root.querySelector(selector);
+                if (!el) return;
+
+                if (once) observer.disconnect();
+                callback?.(el);
+                resolve(el);
+            });
+
+            observer.observe(root.documentElement || root, {
+                childList: true,
+                subtree: true
+            });
+
+            if (timeout) {
+                setTimeout(() => {
+                    observer.disconnect();
+                    reject(new Error(`waitForSelector timeout: ${selector}`));
+                }, timeout);
+            }
+        });
+    };
 
     const waitForFunc = (funcName, callback) =>
         waitFor(() => window[funcName] || window.wrappedJSObject?.[funcName], () => callback(window[funcName] || window.wrappedJSObject?.[funcName]));

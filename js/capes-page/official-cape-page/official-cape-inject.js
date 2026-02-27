@@ -8,6 +8,105 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[1]) : undefined;
 }
 
+const waitForSelector = (
+  selector,
+  callback,
+  {
+    root = document,
+    timeout = 10000,
+    once = true
+  } = {}
+) => {
+  return new Promise((resolve, reject) => {
+    const existing = root.querySelector(selector);
+    if (existing) {
+      callback?.(existing);
+      return resolve(existing);
+    }
+
+    const observer = new MutationObserver(() => {
+      const el = root.querySelector(selector);
+      if (!el) return;
+
+      if (once) observer.disconnect();
+      callback?.(el);
+      resolve(el);
+    });
+
+    observer.observe(root.documentElement || root, {
+      childList: true,
+      subtree: true
+    });
+
+    if (timeout) {
+      setTimeout(() => {
+        observer.disconnect();
+        reject(new Error(`waitForSelector timeout: ${selector}`));
+      }, timeout);
+    }
+  });
+};
+
+const waitForSVSelector = function (selector, callback) {
+  if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d.SkinViewer !== 'undefined' && window.skinview3d.SkinViewer) {
+    setTimeout(() => {
+      callback();
+    });
+  } else {
+    setTimeout(() => {
+      waitForSVSelector(selector, callback);
+    });
+  }
+};
+
+const waitForImage = function (callback, hash) {
+  if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[hash] !== 'undefined' && window.namemc.images[hash].src) {
+    setTimeout(() => {
+      callback();
+    });
+  } else {
+    setTimeout(() => {
+      waitForImage(callback, hash);
+    });
+  }
+};
+
+const waitForFunc = function (func, callback) {
+  if (window[func] ?? window.wrappedJSObject?.[func]) {
+    setTimeout(() => {
+      callback(window[func] ?? window.wrappedJSObject?.[func]);
+    });
+  } else {
+    setTimeout(() => {
+      waitForFunc(func, callback);
+    });
+  }
+};
+
+const waitForStorage = function (key, callback) {
+  if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
+    setTimeout(() => {
+      callback();
+    });
+  } else {
+    setTimeout(() => {
+      waitForStorage(key, callback);
+    });
+  }
+};
+
+const waitForCape = function (callback) {
+  if (skinViewer.capeTexture) {
+    setTimeout(() => {
+      callback();
+    });
+  } else {
+    setTimeout(() => {
+      waitForCape(callback);
+    });
+  }
+};
+
 window.addEventListener("superstorage-ready", async () => {
 
   /*
@@ -18,79 +117,6 @@ window.addEventListener("superstorage-ready", async () => {
   var elytraOn = false;
   var hideElytra = superStorage.getItem("hideElytra") === "false";
   var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
-
-  const waitForSelector = function (selector, callback) {
-    let query = document.querySelector(selector)
-    if (query) {
-      setTimeout((query) => {
-        callback(query);
-      }, null, query);
-    } else {
-      setTimeout(() => {
-        waitForSelector(selector, callback);
-      });
-    }
-  };
-
-  const waitForSVSelector = function (selector, callback) {
-    if (document.querySelector(selector) && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d !== 'undefined' && typeof window.skinview3d.SkinViewer !== 'undefined' && window.skinview3d.SkinViewer) {
-      setTimeout(() => {
-        callback();
-      });
-    } else {
-      setTimeout(() => {
-        waitForSVSelector(selector, callback);
-      });
-    }
-  };
-
-  const waitForImage = function (callback, hash) {
-    if (typeof window.namemc !== 'undefined' && typeof window.namemc.images !== 'undefined' && typeof window.namemc.images[hash] !== 'undefined' && window.namemc.images[hash].src) {
-      setTimeout(() => {
-        callback();
-      });
-    } else {
-      setTimeout(() => {
-        waitForImage(callback, hash);
-      });
-    }
-  };
-
-  const waitForFunc = function (func, callback) {
-    if (window[func] ?? window.wrappedJSObject?.[func]) {
-      setTimeout(() => {
-        callback(window[func] ?? window.wrappedJSObject?.[func]);
-      });
-    } else {
-      setTimeout(() => {
-        waitForFunc(func, callback);
-      });
-    }
-  };
-
-  const waitForStorage = function (key, callback) {
-    if (window.superStorage && window.superStorage.getItem(key) && window.superStorage.getItem(key).length != 0) {
-      setTimeout(() => {
-        callback();
-      });
-    } else {
-      setTimeout(() => {
-        waitForStorage(key, callback);
-      });
-    }
-  };
-
-  const waitForCape = function (callback) {
-    if (skinViewer.capeTexture) {
-      setTimeout(() => {
-        callback();
-      });
-    } else {
-      setTimeout(() => {
-        waitForCape(callback);
-      });
-    }
-  };
 
   // Fix for pause button
   const fixPauseBtn = () => {

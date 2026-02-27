@@ -8,53 +8,54 @@
     var iframeEl = document.createElement("iframe");
     iframeEl.width = 0;
     iframeEl.height = 0;
-    iframeEl.style.display = 'none';
+    iframeEl.style.display = "none";
     iframeEl.srcdoc = `<script>
-function patchIframe(iframe) {
+const patch = (win) => {
     try {
-        const win = iframe.contentWindow;
-        if (!win || win.__patchedConfirm) return;
-
-        win.__patchedConfirm = true; // prevent double patch
         win.confirm = () => {};
-    } catch {
-        // ignore cross-origin or not-ready frames
-    }
-}
+    } catch {}
+};
 
-function handleIframe(iframe) {
-    // Patch when it loads
-    iframe.addEventListener("load", () => patchIframe(iframe));
-
-    // Try immediately too (in case already loaded)
-    patchIframe(iframe);
-}
+// Patch top window once
+patch(window.top);
 
 // Patch existing iframes
-document.querySelectorAll("iframe").forEach(handleIframe);
+const patchIframe = (iframe) => {
+    try {
+        patch(iframe.contentWindow);
+    } catch {}
+};
 
-// Watch for new ones
+window.top.document.querySelectorAll("iframe").forEach(iframe => {
+    patchIframe(iframe);
+    iframe.addEventListener("load", () => patchIframe(iframe));
+});
+
+// Watch for new iframes
 const observer = new MutationObserver(mutations => {
-    for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
+    for (const m of mutations) {
+        for (const node of m.addedNodes) {
             if (node.tagName === "IFRAME") {
-                handleIframe(node);
+                patchIframe(node);
+                node.addEventListener("load", () => patchIframe(node));
             }
-
-            // Also handle iframes inside added subtrees
             if (node.querySelectorAll) {
-                node.querySelectorAll("iframe").forEach(handleIframe);
+                node.querySelectorAll("iframe").forEach(f => {
+                    patchIframe(f);
+                    f.addEventListener("load", () => patchIframe(f));
+                });
             }
         }
     }
 });
 
-observer.observe(document.documentElement, {
+observer.observe(window.top.document.documentElement, {
     childList: true,
     subtree: true
 });
-    </script>`;
-    root.append(iframeEl);
+</script>`;
+
+    document.documentElement.append(iframeEl);
 
     let currentUrl = location.href;
 
@@ -62,17 +63,43 @@ observer.observe(document.documentElement, {
 
     if (currentUrl !== cleanUrl && currentUrl !== location.origin + '/') location.href = cleanUrl;
 
-    const waitForSelector = function (selector, callback) {
-        let query = document.querySelector(selector)
-        if (query) {
-            setTimeout((query) => {
-                callback(query);
-            }, null, query);
-        } else {
-            setTimeout(() => {
-                waitForSelector(selector, callback);
+    const waitForSelector = (
+        selector,
+        callback,
+        {
+            root = document,
+            timeout = 10000,
+            once = true
+        } = {}
+    ) => {
+        return new Promise((resolve, reject) => {
+            const existing = root.querySelector(selector);
+            if (existing) {
+                callback?.(existing);
+                return resolve(existing);
+            }
+
+            const observer = new MutationObserver(() => {
+                const el = root.querySelector(selector);
+                if (!el) return;
+
+                if (once) observer.disconnect();
+                callback?.(el);
+                resolve(el);
             });
-        }
+
+            observer.observe(root.documentElement || root, {
+                childList: true,
+                subtree: true
+            });
+
+            if (timeout) {
+                setTimeout(() => {
+                    observer.disconnect();
+                    reject(new Error(`waitForSelector timeout: ${selector}`));
+                }, timeout);
+            }
+        });
     };
 
     await superStorage._ready;
