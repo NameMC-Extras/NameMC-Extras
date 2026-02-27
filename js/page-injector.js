@@ -66,11 +66,7 @@ observer.observe(window.top.document.documentElement, {
     const waitForSelector = (
         selector,
         callback,
-        {
-            root = document,
-            timeout = 10000,
-            once = true
-        } = {}
+        { root = document, timeout = 10000, once = true } = {}
     ) => {
         return new Promise((resolve, reject) => {
             const existing = root.querySelector(selector);
@@ -79,26 +75,27 @@ observer.observe(window.top.document.documentElement, {
                 return resolve(existing);
             }
 
-            const observer = new MutationObserver(() => {
-                const el = root.querySelector(selector);
-                if (!el) return;
-
-                if (once) observer.disconnect();
-                callback?.(el);
-                resolve(el);
+            const observer = new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType !== 1) continue;
+                        const el = node.matches(selector) ? node : node.querySelector(selector);
+                        if (el) {
+                            if (once) observer.disconnect();
+                            clearTimeout(timer);
+                            callback?.(el);
+                            return resolve(el);
+                        }
+                    }
+                }
             });
 
-            observer.observe(root.documentElement || root, {
-                childList: true,
-                subtree: true
-            });
+            observer.observe(root.documentElement || root, { childList: true, subtree: true });
 
-            if (timeout) {
-                setTimeout(() => {
-                    observer.disconnect();
-                    reject(new Error(`waitForSelector timeout: ${selector}`));
-                }, timeout);
-            }
+            const timer = timeout && setTimeout(() => {
+                observer.disconnect();
+                reject(new Error(`waitForSelector timeout: ${selector}`));
+            }, timeout);
         });
     };
 
@@ -892,7 +889,7 @@ observer.observe(window.top.document.documentElement, {
         // MARK ALL READ
         waitForSelector('.dropdown-header:nth-child(6)', async (header) => {
             header.insertAdjacentHTML('beforeend', `<a href="javascript:void 0" id="markAllRead" class="color-inherit" title="Mark All Read"><i class="far fa-envelope-open"></i></a>`);
-            const currProfile = document.querySelector('[style] > .dropdown-item.active').href;
+            const currProfile = document.querySelector('.dropdown-menu > [style] > .dropdown-item.active')?.href;
             const profiles = [...document.querySelectorAll('[href*="%2Ffollowers%3Fsort%3Ddate%3Adesc"]')].map(a => a.href);
             const currURL = document.querySelector('[href*="/followers?sort=date:desc"]').href;
 

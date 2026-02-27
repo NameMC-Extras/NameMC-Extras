@@ -34,11 +34,7 @@ const waitFor = (conditionFn, callback) => {
 const waitForSelector = (
   selector,
   callback,
-  {
-    root = document,
-    timeout = 10000,
-    once = true
-  } = {}
+  { root = document, timeout = 10000, once = true } = {}
 ) => {
   return new Promise((resolve, reject) => {
     const existing = root.querySelector(selector);
@@ -47,26 +43,65 @@ const waitForSelector = (
       return resolve(existing);
     }
 
-    const observer = new MutationObserver(() => {
-      const el = root.querySelector(selector);
-      if (!el) return;
-
-      if (once) observer.disconnect();
-      callback?.(el);
-      resolve(el);
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          const el = node.matches(selector) ? node : node.querySelector(selector);
+          if (el) {
+            if (once) observer.disconnect();
+            clearTimeout(timer);
+            callback?.(el);
+            return resolve(el);
+          }
+        }
+      }
     });
 
+    observer.observe(root.documentElement || root, { childList: true, subtree: true });
+
+    const timer = timeout && setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`waitForSelector timeout: ${selector}`));
+    }, timeout);
+  });
+};
+
+const waitForSelectorAll = (
+  selector,
+  count = 4,
+  callback,
+  { root = document, timeout = 10000, once = true } = {}
+) => {
+  return new Promise((resolve, reject) => {
+    const existing = root.querySelectorAll(selector);
+    if (existing.length >= count) {
+      callback?.(existing);
+      return resolve(existing);
+    }
+
+    const observer = new MutationObserver(() => {
+      // 2. Check all matches every time the DOM changes
+      const elements = root.querySelectorAll(selector);
+
+      if (elements.length >= count) {
+        if (once) observer.disconnect();
+        clearTimeout(timer);
+        callback?.(elements);
+        return resolve(elements);
+      }
+    });
+
+    // Start observing
     observer.observe(root.documentElement || root, {
       childList: true,
       subtree: true
     });
 
-    if (timeout) {
-      setTimeout(() => {
-        observer.disconnect();
-        reject(new Error(`waitForSelector timeout: ${selector}`));
-      }, timeout);
-    }
+    const timer = timeout && setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`waitForSelectorAll timeout: Found only ${root.querySelectorAll(selector).length}/${count} for ${selector}`));
+    }, timeout);
   });
 };
 
@@ -458,21 +493,8 @@ window.addEventListener("superstorage-ready", async () => {
       linksTextArea = descText;
     }
 
-    waitForSelector('.card-body.py-1 > div:nth-child(2)', (views) => {
-      views.outerHTML += `
-      ${!hideCreatedAt ? `<div class="row g-0" id="created-at-section">
-        <div class="col col-lg-3"><strong>Created At</strong></div>
-        <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
-      </div>` : ''}
-      ${linksTextArea ? `<div class="row g-0">
-        <div class="col order-lg-1 col-lg-3"><strong>Links</strong></div>
-        <div class="col-12 order-lg-2 col-lg">${linksTextArea}</div>
-      </div>` : ''}
-    `;
-    });
-
-    // replace (edit) and Copy with icons
-    waitForSelector(".profile-column-right .card.mb-3:nth-of-type(3) a[href*='/my-profile/switch']:not([class])", () => {
+    waitForSelectorAll('a[href*="/my-profile/switch"]:not([class])', 4, () => {
+      // replace (edit) and Copy with icons
       var editLinks = [...document.querySelectorAll("a[href*='/my-profile/switch']:not([class])")];
       editLinks.forEach(editLink => {
         editLink.previousSibling.textContent = editLink.previousSibling.textContent.slice(0, -1);
@@ -487,6 +509,97 @@ window.addEventListener("superstorage-ready", async () => {
           editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
         }
       });
+    });
+
+    waitForSelector('.profile-column-right .card-body.py-1 > div:nth-child(2)', (views) => {
+      views.outerHTML += `
+      ${!hideCreatedAt ? `<div class="row g-0" id="created-at-section">
+        <div class="col col-lg-3"><strong>Created At</strong></div>
+        <div id="cdate" class="col-auto saving"><span>•</span><span>•</span><span>•</span></div>
+      </div>` : ''}
+      ${linksTextArea ? `<div class="row g-0">
+        <div class="col order-lg-1 col-lg-3"><strong>Links</strong></div>
+        <div class="col-12 order-lg-2 col-lg">${linksTextArea}</div>
+      </div>` : ''}
+    `;
+
+      // add badges
+      if (!hideBadges2) {
+        waitForSupabase((supabase_data) => {
+          // add emoji override (if applicable)
+          let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid === uuid)[0];
+          if (emojiOverride) {
+            let usernameEl = document.querySelector("h1.text-nowrap");
+            // if usernameEl has img child, remove it
+            if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
+            // add new img
+            let emojiImg = document.createElement("img");
+            emojiImg.draggable = false;
+            emojiImg.src = emojiOverride.image_src;
+            emojiImg.classList.add("emoji");
+            emojiImg.id = "emoji_override";
+            waitForTooltip(() => {
+              $('#emoji_override').tooltip({
+                "placement": "top",
+                "boundary": "viewport",
+                "title": emojiOverride.tooltip_text
+              });
+            });
+            usernameEl.append(emojiImg);
+          }
+
+          const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user === uuid).map(v => v.badge);
+          if (userBadgeIds.length > 0) {
+            const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
+            var hrEl = document.createElement("hr");
+            hrEl.classList.add("my-1");
+            if (!socialsTitle) profileBody.append(hrEl)
+
+            const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
+            let badgeCardRange = document.createRange();
+            let badgeCardHTML = badgeCardRange.createContextualFragment(`
+        <div class="row g-0 align-items-center">
+          <div class="col-auto col-lg-3 pe-3"><strong id="badgestitle">Badges</strong></div>
+          <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges"></div>
+        </div>
+        `)
+            let badgesHTML = userBadges.map(badge => {
+              var badgeRange = document.createRange()
+              var badgeHTML = badgeRange.createContextualFragment(`
+            <a class="d-inline-block position-relative p-1" href="javascript:void(0)">
+              <img class="service-icon">
+            </a>
+          `);
+
+              badgeHTML.querySelector("img").src = badge.image;
+              badgeHTML.querySelector("img").width = 27;
+              badgeHTML.querySelector("img").height = 27;
+              badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
+              badgeHTML.querySelector("a").setAttribute("title", badge.name);
+              badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
+
+              return badgeHTML.querySelector("a").outerHTML;
+            })
+
+            badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
+
+            profileBody.append(badgeCardHTML)
+
+            waitForTooltip(() => {
+              $('#badgestitle').tooltip({
+                "placement": "top",
+                "boundary": "viewport",
+                "title": "Badges from NameMC Extras!"
+              })
+
+              $('[src*=badges]').parent().tooltip({
+                "placement": "top",
+                "boundary": "viewport"
+              });
+            })
+          }
+        });
+      }
     });
 
     var gadgetIf = document.createElement('iframe');
@@ -568,7 +681,7 @@ window.addEventListener("superstorage-ready", async () => {
         verifyEl.src = 'https://s.namemc.com/img/verification-badge.svg';
         verifyEl.title = "Verified";
         el.parentElement.appendChild(verifyEl);
-      })
+      });
     }
 
     // BEDROCK CAPES CONTAINER
@@ -607,86 +720,6 @@ window.addEventListener("superstorage-ready", async () => {
             }
           }), true);
         }).catch(() => { });
-    }
-
-    // add badges
-    if (!hideBadges2) {
-      waitForSupabase((supabase_data) => {
-        waitForSelector(".profile-column-right .card-body.py-1 > div:nth-child(2)", () => {
-          // add emoji override (if applicable)
-          let emojiOverride = supabase_data.user_emoji_overrides.filter(obj => obj.uuid === uuid)[0];
-          if (emojiOverride) {
-            let usernameEl = document.querySelector("h1.text-nowrap");
-            // if usernameEl has img child, remove it
-            if (usernameEl.querySelector("img")) usernameEl.querySelector("img").remove();
-            // add new img
-            let emojiImg = document.createElement("img");
-            emojiImg.draggable = false;
-            emojiImg.src = emojiOverride.image_src;
-            emojiImg.classList.add("emoji");
-            emojiImg.id = "emoji_override";
-            waitForTooltip(() => {
-              $('#emoji_override').tooltip({
-                "placement": "top",
-                "boundary": "viewport",
-                "title": emojiOverride.tooltip_text
-              });
-            });
-            usernameEl.append(emojiImg);
-          }
-
-          const userBadgeIds = supabase_data.user_badges.filter(obj => obj.user === uuid).map(v => v.badge);
-          if (userBadgeIds.length > 0) {
-            const socialsTitle = document.querySelector(".col-lg-3.pe-3 strong");
-            var hrEl = document.createElement("hr");
-            hrEl.classList.add("my-1");
-            if (!socialsTitle) profileBody.append(hrEl)
-
-            const userBadges = supabase_data.badges.filter(b => userBadgeIds.includes(b.id));
-            let badgeCardRange = document.createRange();
-            let badgeCardHTML = badgeCardRange.createContextualFragment(`
-        <div class="row g-0 align-items-center">
-          <div class="col-auto col-lg-3 pe-3"><strong id="badgestitle">Badges</strong></div>
-          <div class="col d-flex flex-wrap justify-content-end justify-content-lg-start" style="margin:0 -0.25rem" id="badges"></div>
-        </div>
-        `)
-            let badgesHTML = userBadges.map(badge => {
-              var badgeRange = document.createRange()
-              var badgeHTML = badgeRange.createContextualFragment(`
-            <a class="d-inline-block position-relative p-1" href="javascript:void(0)">
-              <img class="service-icon">
-            </a>
-          `);
-
-              badgeHTML.querySelector("img").src = badge.image;
-              badgeHTML.querySelector("img").width = 27;
-              badgeHTML.querySelector("img").height = 27;
-              badgeHTML.querySelector("img").style["image-rendering"] = "pixelated";
-              badgeHTML.querySelector("a").setAttribute("title", badge.name);
-              badgeHTML.querySelector("a").href = `/extras/badge/${encodeURIComponent(badge.id)}`;
-
-              return badgeHTML.querySelector("a").outerHTML;
-            })
-
-            badgeCardHTML.querySelector("#badges").innerHTML = badgesHTML.join("");
-
-            profileBody.append(badgeCardHTML)
-
-            waitForTooltip(() => {
-              $('#badgestitle').tooltip({
-                "placement": "top",
-                "boundary": "viewport",
-                "title": "Badges from NameMC Extras!"
-              })
-
-              $('[src*=badges]').parent().tooltip({
-                "placement": "top",
-                "boundary": "viewport"
-              });
-            })
-          }
-        });
-      });
     }
 
     waitForSVSelector('.skin-2d.skin-button', () => {

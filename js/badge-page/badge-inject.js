@@ -3,11 +3,7 @@ console.log("Creating badge page...");
 const waitForSelector = (
   selector,
   callback,
-  {
-    root = document,
-    timeout = 10000,
-    once = true
-  } = {}
+  { root = document, timeout = 10000, once = true } = {}
 ) => {
   return new Promise((resolve, reject) => {
     const existing = root.querySelector(selector);
@@ -16,26 +12,27 @@ const waitForSelector = (
       return resolve(existing);
     }
 
-    const observer = new MutationObserver(() => {
-      const el = root.querySelector(selector);
-      if (!el) return;
-
-      if (once) observer.disconnect();
-      callback?.(el);
-      resolve(el);
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          const el = node.matches(selector) ? node : node.querySelector(selector);
+          if (el) {
+            if (once) observer.disconnect();
+            clearTimeout(timer);
+            callback?.(el);
+            return resolve(el);
+          }
+        }
+      }
     });
 
-    observer.observe(root.documentElement || root, {
-      childList: true,
-      subtree: true
-    });
+    observer.observe(root.documentElement || root, { childList: true, subtree: true });
 
-    if (timeout) {
-      setTimeout(() => {
-        observer.disconnect();
-        reject(new Error(`waitForSelector timeout: ${selector}`));
-      }, timeout);
-    }
+    const timer = timeout && setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`waitForSelector timeout: ${selector}`));
+    }, timeout);
   });
 };
 
