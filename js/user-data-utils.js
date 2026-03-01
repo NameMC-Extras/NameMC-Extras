@@ -279,16 +279,14 @@
             return pinned.some(u => u.uuid === uuid);
         }
 
-        async pinUser(uuid) {
+        pinUser(uuid) {
             try {
-                const userProfile = await this.fetchUserProfile(uuid);
                 const pinned = this.getPinnedUsers();
                 if (!this.isPinned(uuid)) {
-                    pinned.push({ uuid: userProfile.uuid, pinnedAt: Date.now() });
+                    pinned.push({ uuid, pinnedAt: Date.now() });
                     superStorage.setItem('namemc_pinned_users', JSON.stringify(pinned));
-                    return true;
                 }
-                return false;
+                return true;
             } catch (error) {
                 console.error('Error pinning user:', error);
                 return false;

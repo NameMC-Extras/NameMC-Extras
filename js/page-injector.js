@@ -855,15 +855,12 @@ observer.observe(window.top.document.documentElement, {
             pages.push(['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']);
         }
 
-        if (pinned) {
-            const hasPinnedUsers = await checkPinnedUsers();
-            if (hasPinnedUsers) {
-                pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
-            }
-        }
-
         if (!hideBadges2) {
             pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
+        }
+
+        if (pinned) {
+            pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
         }
 
         // INJECT PAGES

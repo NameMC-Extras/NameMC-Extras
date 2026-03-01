@@ -1030,7 +1030,7 @@ window.addEventListener("superstorage-ready", async () => {
           pinButton.innerHTML = `<i class="fas fa-thumbtack"></i> ${isPinned ? 'Unpin' : 'Pin'}`;
           pinButton.title = `${isPinned ? 'Remove from' : 'Add to'} pinned users`;
 
-          pinButton.addEventListener('click', async (e) => {
+          pinButton.addEventListener('click', (e) => {
             e.preventDefault();
             const btn = pinButton;
             const wasUnpinning = btn.classList.contains('btn-warning');
@@ -1043,7 +1043,7 @@ window.addEventListener("superstorage-ready", async () => {
               if (wasUnpinning) {
                 success = userDataUtils.unpinUser(uuid);
               } else {
-                success = await userDataUtils.pinUser(uuid);
+                success = userDataUtils.pinUser(uuid);
               }
 
               if (success) {
