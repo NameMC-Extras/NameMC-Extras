@@ -8,7 +8,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "4.0.6",
+  "version": "4.0.7",
   "content_scripts": [
     {
       "js": [
@@ -170,7 +170,12 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "/*"
+        "js/*.js",
+        "js/**/*.js",
+        "pages/*.js",
+        "pages/**/*.js",
+        "dropdown-items/*.js",
+        "dropdown-items/**/*.js"
       ],
       "matches": [
         "*://*.namemc.com/*"

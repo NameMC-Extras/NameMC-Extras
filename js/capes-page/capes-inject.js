@@ -12,27 +12,37 @@ const waitForSelector = (
       return resolve(existing);
     }
 
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
+    const timer = timeout && setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`waitForSelector timeout: ${selector}`));
+    }, timeout);
+
+    const observer = new MutationObserver(mutations => {
+      for (let i = 0; i < mutations.length; i++) {
+        const nodes = mutations[i].addedNodes;
+        for (let j = 0; j < nodes.length; j++) {
+          const node = nodes[j];
           if (node.nodeType !== 1) continue;
-          const el = node.matches(selector) ? node : node.querySelector(selector);
-          if (el) {
+
+          if (node.matches(selector)) {
             if (once) observer.disconnect();
             clearTimeout(timer);
-            callback?.(el);
-            return resolve(el);
+            callback?.(node);
+            return resolve(node);
+          }
+
+          const found = node.querySelector(selector);
+          if (found) {
+            if (once) observer.disconnect();
+            clearTimeout(timer);
+            callback?.(found);
+            return resolve(found);
           }
         }
       }
     });
 
     observer.observe(root.documentElement || root, { childList: true, subtree: true });
-
-    const timer = timeout && setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`waitForSelector timeout: ${selector}`));
-    }, timeout);
   });
 };
 

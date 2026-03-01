@@ -1,5 +1,66 @@
 console.log("Injecting skin page...");
 
+/*
+ * HELPERS
+ */
+const waitForSelector = (
+  selector,
+  callback,
+  { root = document, timeout = 10000, once = true } = {}
+) => {
+  return new Promise((resolve, reject) => {
+    const existing = root.querySelector(selector);
+    if (existing) {
+      callback?.(existing);
+      return resolve(existing);
+    }
+
+    const timer = timeout && setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`waitForSelector timeout: ${selector}`));
+    }, timeout);
+
+    const observer = new MutationObserver(mutations => {
+      for (let i = 0; i < mutations.length; i++) {
+        const nodes = mutations[i].addedNodes;
+        for (let j = 0; j < nodes.length; j++) {
+          const node = nodes[j];
+          if (node.nodeType !== 1) continue;
+
+          if (node.matches(selector)) {
+            if (once) observer.disconnect();
+            clearTimeout(timer);
+            callback?.(node);
+            return resolve(node);
+          }
+
+          const found = node.querySelector(selector);
+          if (found) {
+            if (once) observer.disconnect();
+            clearTimeout(timer);
+            callback?.(found);
+            return resolve(found);
+          }
+        }
+      }
+    });
+
+    observer.observe(root.documentElement || root, { childList: true, subtree: true });
+  });
+};
+
+const waitForFunc = function (func, callback) {
+  if (window[func] ?? window.wrappedJSObject?.[func]) {
+    setTimeout(() => {
+      callback(window[func] ?? window.wrappedJSObject?.[func]);
+    });
+  } else {
+    setTimeout(() => {
+      waitForFunc(func, callback);
+    });
+  }
+};
+
 window.addEventListener("superstorage-ready", async () => {
   /*
    * UNIVERSAL VARIABLES
@@ -7,47 +68,9 @@ window.addEventListener("superstorage-ready", async () => {
   const hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
 
   /*
-   * HELPERS
-   */
-  const waitForSelector = (
-    selector,
-    callback,
-    { root = document, timeout = 10000, once = true } = {}
-  ) => {
-    return new Promise((resolve, reject) => {
-      const existing = root.querySelector(selector);
-      if (existing) {
-        callback?.(existing);
-        return resolve(existing);
-      }
-
-      const observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          for (const node of mutation.addedNodes) {
-            if (node.nodeType !== 1) continue;
-            const el = node.matches(selector) ? node : node.querySelector(selector);
-            if (el) {
-              if (once) observer.disconnect();
-              clearTimeout(timer);
-              callback?.(el);
-              return resolve(el);
-            }
-          }
-        }
-      });
-
-      observer.observe(root.documentElement || root, { childList: true, subtree: true });
-
-      const timer = timeout && setTimeout(() => {
-        observer.disconnect();
-        reject(new Error(`waitForSelector timeout: ${selector}`));
-      }, timeout);
-    });
-  };
-
-  /*
    * MAIN
    */
+
   const createStealBtn = () => {
     if (hideSkinStealer) return;
 
@@ -80,18 +103,6 @@ window.addEventListener("superstorage-ready", async () => {
         window.location.href = url;
       };
     });
-  };
-
-  const waitForFunc = function (func, callback) {
-    if (window[func] ?? window.wrappedJSObject?.[func]) {
-      setTimeout(() => {
-        callback(window[func] ?? window.wrappedJSObject?.[func]);
-      });
-    } else {
-      setTimeout(() => {
-        waitForFunc(func, callback);
-      });
-    }
   };
 
   const addHolidayTools = () => {

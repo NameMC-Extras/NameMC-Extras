@@ -43,59 +43,68 @@ const waitForSelector = (
       return resolve(existing);
     }
 
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
+    const timer = timeout && setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`waitForSelector timeout: ${selector}`));
+    }, timeout);
+
+    const observer = new MutationObserver(mutations => {
+      for (let i = 0; i < mutations.length; i++) {
+        const nodes = mutations[i].addedNodes;
+        for (let j = 0; j < nodes.length; j++) {
+          const node = nodes[j];
           if (node.nodeType !== 1) continue;
-          const el = node.matches(selector) ? node : node.querySelector(selector);
-          if (el) {
+
+          if (node.matches(selector)) {
             if (once) observer.disconnect();
             clearTimeout(timer);
-            callback?.(el);
-            return resolve(el);
+            callback?.(node);
+            return resolve(node);
+          }
+
+          const found = node.querySelector(selector);
+          if (found) {
+            if (once) observer.disconnect();
+            clearTimeout(timer);
+            callback?.(found);
+            return resolve(found);
           }
         }
       }
     });
 
     observer.observe(root.documentElement || root, { childList: true, subtree: true });
-
-    const timer = timeout && setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`waitForSelector timeout: ${selector}`));
-    }, timeout);
   });
 };
 
 const watchSelector = (selector, callback, { root = document } = {}) => {
-  // Process existing elements
-  root.querySelectorAll(selector).forEach(callback);
+  // Process existing elements once
+  const existing = root.querySelectorAll(selector);
+  for (let i = 0; i < existing.length; i++) callback(existing[i]);
 
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      for (let i = 0; i < mutation.addedNodes.length; i++) {
-        const node = mutation.addedNodes[i];
+  const observer = new MutationObserver(mutations => {
+    for (let i = 0; i < mutations.length; i++) {
+      const mutation = mutations[i];
+      const nodes = mutation.addedNodes;
+      for (let j = 0; j < nodes.length; j++) {
+        const node = nodes[j];
         if (node.nodeType !== 1) continue;
 
-        // If node itself matches
-        if (node.matches(selector)) {
-          callback(node);
-        }
+        // If the node itself matches
+        if (node.matches(selector)) callback(node);
 
-        // Only search inside this newly added subtree
-        const matches = node.querySelectorAll(selector);
-        for (let j = 0; j < matches.length; j++) {
-          callback(matches[j]);
+        // Query descendants only if node itself didn’t match
+        const descendants = node.querySelectorAll(selector);
+        for (let k = 0; k < descendants.length; k++) {
+          callback(descendants[k]);
         }
       }
     }
   });
 
-  observer.observe(root.documentElement || root, {
-    childList: true,
-    subtree: true
-  });
+  observer.observe(root.documentElement || root, { childList: true, subtree: true });
 
+  // Return a disconnect function
   return () => observer.disconnect();
 };
 
@@ -363,34 +372,67 @@ window.addEventListener("superstorage-ready", async () => {
     });
   };
 
-  const hideHidden = () => {
-    const rows = [...document.querySelectorAll("tr")];
+  // Update border-bottom on mobile rows based on visibility
+  const updateMobileBorders = () => {
+    const mobileRows = [...document.querySelectorAll("tbody tr.d-lg-none")];
 
-    for (const row of rows) {
-      const cell = row.querySelector("td:nth-child(2)");
+    // Reset all border-bottom
+    mobileRows.forEach(row => row.classList.add("border-bottom"));
+
+    // Find the last visible mobile row
+    for (let i = mobileRows.length - 1; i >= 0; i--) {
+      if (!mobileRows[i].classList.contains("d-none")) {
+        // Remove border-bottom only for the last visible mobile row
+        mobileRows[i].classList.remove("border-bottom");
+        break;
+      }
+    }
+  };
+
+  // Hide rows with a dash (—)
+  const hideHidden = () => {
+    const rows = [...document.querySelectorAll("tbody tr")];
+
+    for (let i = 0; i < rows.length; i++) {
+      const desktop = rows[i];
+      const cell = desktop.querySelector("td:nth-child(2)");
+
       if (cell && cell.textContent.trim() === "—") {
-        row.classList.add("d-none");
+        // Hide desktop row
+        desktop.classList.add("d-none");
+
+        // Hide paired mobile row if exists
+        const mobile = rows[i + 1];
+        if (mobile && mobile.classList.contains("d-lg-none")) {
+          mobile.classList.add("d-none");
+        }
       }
     }
 
-    // remove border-bottom from the last visible row
-    const visibleRows = document.querySelectorAll("tr:not(.d-none)");
-    visibleRows[visibleRows.length - 1]?.classList.remove("border-bottom");
+    updateMobileBorders(); // Update borders after hiding
   };
 
+  // Show all rows that were hidden
   const showHidden = () => {
-    const rows = document.querySelectorAll("tr");
+    const rows = [...document.querySelectorAll("tbody tr")];
 
-    rows.forEach(row => {
-      const cell = row.querySelector("td:nth-child(2)");
+    for (let i = 0; i < rows.length; i++) {
+      const desktop = rows[i];
+      const cell = desktop.querySelector("td:nth-child(2)");
+
       if (cell && cell.textContent.trim() === "—") {
-        row.classList.remove("d-none");
-      }
-    });
+        // Show desktop row
+        desktop.classList.remove("d-none");
 
-    // add border-bottom back to the last visible row
-    const visibleRows = document.querySelectorAll("tr:not(.d-none)");
-    visibleRows[visibleRows.length - 1]?.classList.add("border-bottom");
+        // Show paired mobile row if exists
+        const mobile = rows[i + 1];
+        if (mobile && mobile.classList.contains("d-lg-none")) {
+          mobile.classList.remove("d-none");
+        }
+      }
+    }
+
+    updateMobileBorders(); // Update borders after showing
   };
 
   // fix bug
@@ -617,7 +659,7 @@ window.addEventListener("superstorage-ready", async () => {
 
     document.documentElement.append(gadgetIf);
 
-    waitForSelector('.profile-column-right .card.mb-3:has(.table) > .card-header', (historyTitle) => {
+    waitForSelector('.profile-column-right .card.mb-3:has(.table > tbody > tr) > .card-header', (historyTitle) => {
       historyTitle.style.cssText = "display:flex;justify-content:space-between";
 
       var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
@@ -673,20 +715,20 @@ window.addEventListener("superstorage-ready", async () => {
       window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")))
 
       historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
-    });
 
-    // give developers verification
-    if (uuid === '1cf1a286-acbd-4810-8137-0fcd7a0969f2' || uuid === 'd76ca44e-af76-41ad-8b24-d012673ac436') {
-      [...document.querySelectorAll(".service-icon:not([src*=badges])")].forEach(el => {
-        var verifyEl = document.createElement("img");
-        verifyEl.width = 15;
-        verifyEl.height = 15;
-        verifyEl.className = 'position-absolute bottom-0 end-0';
-        verifyEl.src = 'https://s.namemc.com/img/verification-badge.svg';
-        verifyEl.title = "Verified";
-        el.parentElement.appendChild(verifyEl);
-      });
-    }
+      // give developers verification
+      if (uuid === '1cf1a286-acbd-4810-8137-0fcd7a0969f2' || uuid === 'd76ca44e-af76-41ad-8b24-d012673ac436') {
+        [...document.querySelectorAll(".service-icon:not([src*=badges])")].forEach(el => {
+          var verifyEl = document.createElement("img");
+          verifyEl.width = 15;
+          verifyEl.height = 15;
+          verifyEl.className = 'position-absolute bottom-0 end-0';
+          verifyEl.src = 'https://s.namemc.com/img/verification-badge.svg';
+          verifyEl.title = "Verified";
+          el.parentElement.appendChild(verifyEl);
+        });
+      }
+    });
 
     // BEDROCK CAPES CONTAINER
     if (enableBedrockCapes) {

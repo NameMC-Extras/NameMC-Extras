@@ -2,15 +2,8 @@
     border-radius: 8px;
     background: var(--bs-light);
     overflow: hidden;
-}
-
-.user-info p {
-    margin-bottom: 0.25rem;
-    font-size: 0.9rem;
-}
-
-.user-info strong {
-    font-weight: 600;
+    display: flex;
+    justify-content: center;
 }
 
 .badge-container .badge {
@@ -29,13 +22,3 @@
 .pin-user-btn {
     transition: all 0.2s ease-in-out;
 }
-
-@media (max-width: 768px) {
-    .skin-viewer-container {
-        height: 150px !important;
-    }
-    
-    .user-info {
-        font-size: 0.85rem;
-    }
-} 

@@ -20,27 +20,37 @@ const waitForSelector = (
       return resolve(existing);
     }
 
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
+    const timer = timeout && setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`waitForSelector timeout: ${selector}`));
+    }, timeout);
+
+    const observer = new MutationObserver(mutations => {
+      for (let i = 0; i < mutations.length; i++) {
+        const nodes = mutations[i].addedNodes;
+        for (let j = 0; j < nodes.length; j++) {
+          const node = nodes[j];
           if (node.nodeType !== 1) continue;
-          const el = node.matches(selector) ? node : node.querySelector(selector);
-          if (el) {
+
+          if (node.matches(selector)) {
             if (once) observer.disconnect();
             clearTimeout(timer);
-            callback?.(el);
-            return resolve(el);
+            callback?.(node);
+            return resolve(node);
+          }
+
+          const found = node.querySelector(selector);
+          if (found) {
+            if (once) observer.disconnect();
+            clearTimeout(timer);
+            callback?.(found);
+            return resolve(found);
           }
         }
       }
     });
 
     observer.observe(root.documentElement || root, { childList: true, subtree: true });
-
-    const timer = timeout && setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`waitForSelector timeout: ${selector}`));
-    }, timeout);
   });
 };
 
@@ -224,9 +234,10 @@ window.addEventListener("superstorage-ready", async () => {
   });
 
   // wait for supabase before creating official description card
-  waitForSelector(".col-md-6", () => {
+  waitForSelector(".card.mb-3", () => {
     // create html for card
-    let descriptionCard = `
+    var descriptionRange = document.createRange();
+    var descriptionHTML = descriptionRange.createContextualFragment(`
     <div class="card mb-3">
       <div class="d-flex flex-column" style="max-height: 25rem">
         <div class="card-header py-1">
@@ -235,11 +246,11 @@ window.addEventListener("superstorage-ready", async () => {
         <div class="card-body py-2" id="description"></div>
       </div>
     </div>
-  `;
+  `);
 
     // inject card
-    const leftColumn = document.getElementsByClassName("col-md-6")[0];
-    leftColumn.innerHTML += descriptionCard;
+    const leftColumn = document.querySelector(".col-md-6");
+    leftColumn.appendChild(descriptionHTML);
 
     const capeHash = location.href.split("/").pop();
     if (window.createUsageGraphCard) {
