@@ -96,6 +96,10 @@ body main {
     margin: 0 !important;
 }
 
+[data-bs-theme=light] .settings-section button {
+    --bs-tertiary-bg: var(--bs-body-bg) !important;
+}
+
 .customTheme[data-bs-theme=light] .card {
     --bs-card-bg: rgba(255, 255, 255, 0.7) !important;
 }

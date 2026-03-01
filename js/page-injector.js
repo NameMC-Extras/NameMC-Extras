@@ -132,7 +132,7 @@ observer.observe(window.top.document.documentElement, {
 
     await superStorage._ready;
 
-    var theme = superStorage.getItem("theme");
+    var theme = localStorage.getItem("theme");
     var customThemeOn = superStorage.getItem("customTheme") === "true";
     var customBg = superStorage.getItem("customBg") || (theme == "dark" ? "#12161A" : "#EEF0F2");
     var customText = superStorage.getItem("customText") || (theme == "dark" ? "#dee2e6" : "#212529");
@@ -203,7 +203,7 @@ observer.observe(window.top.document.documentElement, {
             root.style.setProperty("--ne-btn-rgb", `${btnRgb["r"]}, ${btnRgb["g"]}, ${btnRgb["b"]}`);
             root.setAttribute("data-bs-theme", customBase);
             root.classList.add("customTheme");
-            superStorage.theme = customBase;
+            localStorage.theme = customBase;
 
             var bgRgb = hexToRgb(customBg);
             let multiplier = 1.15;
@@ -436,7 +436,7 @@ observer.observe(window.top.document.documentElement, {
 
                 lightTheme.onclick = () => {
                     superStorage.customTheme = false;
-                    superStorage.theme = "light";
+                    localStorage.theme = "light";
                     customThemeOn = false;
                     root.style.removeProperty("--bs-body-bg");
                     root.style.removeProperty("--bs-body-color");
@@ -476,7 +476,7 @@ observer.observe(window.top.document.documentElement, {
 
                 darkTheme.onclick = () => {
                     superStorage.customTheme = false;
-                    superStorage.theme = "dark";
+                    localStorage.theme = "dark";
                     customThemeOn = false;
                     root.style.removeProperty("--bs-body-bg");
                     root.style.removeProperty("--bs-body-color");
@@ -552,7 +552,7 @@ observer.observe(window.top.document.documentElement, {
                 selectBase.onchange = () => {
                     if (customThemeOn) root.setAttribute("data-bs-theme", selectBase.value);
                     superStorage.customBase = selectBase.value;
-                    superStorage.theme = selectBase.value;
+                    localStorage.theme = selectBase.value;
                     customBase = selectBase.value;
                     customTheme.click();
                 }

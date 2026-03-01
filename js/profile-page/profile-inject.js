@@ -68,31 +68,35 @@ const waitForSelector = (
 };
 
 const watchSelector = (selector, callback, { root = document } = {}) => {
-  // Handle existing elements first
-  root.querySelectorAll(selector).forEach(el => callback(el));
+  // Process existing elements
+  root.querySelectorAll(selector).forEach(callback);
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      for (const node of mutation.addedNodes) {
-        if (node.nodeType !== 1) continue; // Only element nodes
+      for (let i = 0; i < mutation.addedNodes.length; i++) {
+        const node = mutation.addedNodes[i];
+        if (node.nodeType !== 1) continue;
 
         // If node itself matches
         if (node.matches(selector)) {
           callback(node);
         }
 
-        // If node has children that match, querySelectorAll inside this subtree only
-        const matchedChildren = node.querySelectorAll(selector);
-        if (matchedChildren.length) {
-          matchedChildren.forEach(callback);
+        // Only search inside this newly added subtree
+        const matches = node.querySelectorAll(selector);
+        for (let j = 0; j < matches.length; j++) {
+          callback(matches[j]);
         }
       }
     }
   });
 
-  observer.observe(root.documentElement || root, { childList: true, subtree: true });
+  observer.observe(root.documentElement || root, {
+    childList: true,
+    subtree: true
+  });
 
-  return () => observer.disconnect(); // Return stop function
+  return () => observer.disconnect();
 };
 
 const waitForSVSelector = (selector, callback) =>

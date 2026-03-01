@@ -8,7 +8,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "4.0.3",
+  "version": "4.0.4",
   "content_scripts": [
     {
       "js": [
