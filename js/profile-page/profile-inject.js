@@ -366,28 +366,31 @@ window.addEventListener("superstorage-ready", async () => {
   const hideHidden = () => {
     const rows = [...document.querySelectorAll("tr")];
 
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-
-      if (!row.classList.length && row.textContent.includes("—")) {
+    for (const row of rows) {
+      const cell = row.querySelector("td:nth-child(2)");
+      if (cell && cell.textContent.trim() === "—") {
         row.classList.add("d-none");
-
-        if (rows[i + 1] && rows[i + 1].classList.length) {
-          rows[i + 1].classList.add("d-none");
-        }
       }
     }
 
+    // remove border-bottom from the last visible row
     const visibleRows = document.querySelectorAll("tr:not(.d-none)");
     visibleRows[visibleRows.length - 1]?.classList.remove("border-bottom");
   };
 
   const showHidden = () => {
-    const hiddenRows = document.querySelectorAll("tr.d-none");
-    hiddenRows.forEach(el => el.classList.remove("d-none"));
+    const rows = document.querySelectorAll("tr");
 
-    const rows = document.querySelectorAll("tr:not(.d-none)");
-    rows[rows.length - 1]?.classList.add("border-bottom");
+    rows.forEach(row => {
+      const cell = row.querySelector("td:nth-child(2)");
+      if (cell && cell.textContent.trim() === "—") {
+        row.classList.remove("d-none");
+      }
+    });
+
+    // add border-bottom back to the last visible row
+    const visibleRows = document.querySelectorAll("tr:not(.d-none)");
+    visibleRows[visibleRows.length - 1]?.classList.add("border-bottom");
   };
 
   // fix bug
