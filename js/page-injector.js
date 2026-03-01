@@ -99,6 +99,37 @@ observer.observe(window.top.document.documentElement, {
         });
     };
 
+    const waitForHtmlDataTheme = (callback, { timeout = 10000 } = {}) => {
+        return new Promise((resolve, reject) => {
+            const html = document.documentElement;
+
+            // Immediate resolve (fast path)
+            if (html.hasAttribute("data-bs-theme")) {
+                callback?.(html);
+                return resolve(html);
+            }
+
+            const observer = new MutationObserver(() => {
+                if (html.hasAttribute("data-bs-theme")) {
+                    observer.disconnect();
+                    clearTimeout(timer);
+                    callback?.(html);
+                    resolve(html);
+                }
+            });
+
+            observer.observe(html, {
+                attributes: true,
+                attributeFilter: ["data-bs-theme"]
+            });
+
+            const timer = timeout && setTimeout(() => {
+                observer.disconnect();
+                reject(new Error("waitForHtmlDataTheme timeout"));
+            }, timeout);
+        });
+    };
+
     await superStorage._ready;
 
     var theme = superStorage.getItem("theme");
@@ -375,7 +406,7 @@ observer.observe(window.top.document.documentElement, {
             }
         }
 
-        waitForSelector("[data-bs-theme]", () => {
+        waitForHtmlDataTheme(() => {
             if (document.querySelector(".no-js")) return;
 
             waitForSelector("[href*=namemc]", () => {

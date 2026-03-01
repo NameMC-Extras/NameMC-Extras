@@ -610,7 +610,7 @@ window.addEventListener("superstorage-ready", async () => {
 
     document.documentElement.append(gadgetIf);
 
-    waitForSelector('.profile-column-right :nth-child(3) > .card-header', (historyTitle) => {
+    waitForSelector('.profile-column-right .card.mb-3:has(.table) > .card-header', (historyTitle) => {
       historyTitle.style.cssText = "display:flex;justify-content:space-between";
 
       var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;

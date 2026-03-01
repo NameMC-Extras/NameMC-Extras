@@ -63,7 +63,7 @@
               <img class="drop-shadow auto-size-square"
                    loading="lazy"
                    width="136" height="136"
-                   style="padding:9px; image-rendering: pixelated;"
+                   style="padding:14px; image-rendering: pixelated;"
                    src="${badgeImage}"
                    alt="${badgeName}"
                    title="${badgeName}">
