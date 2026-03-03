@@ -321,7 +321,7 @@
                 skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36;
                 skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36;
 
-                skinViewer.playerObject.cape.rotation.x = 0.3;
+                skinViewer.playerObject.cape.rotation.x = 0.28;
             }
 
             skinContainer.addEventListener(
