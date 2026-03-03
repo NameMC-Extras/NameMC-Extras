@@ -3,6 +3,7 @@ console.log("Injecting skin page...");
 /*
  * HELPERS
  */
+
 const waitForSelector = (
   selector,
   callback,
@@ -147,6 +148,9 @@ window.addEventListener("superstorage-ready", async () => {
       <hr class="my-0">
       <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="/transform-skin">
           <input type="hidden" name="skin" value="${skinId}">
+          <!--<button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa-2" title="Santa Hat">
+              <canvas class="skin-2d d-block" data-id="${skinId}" data-head="c0fd0edf3ba58e8a" width="32" height="32"></canvas>
+          </button>-->
           <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa" title="Santa Hat">
               <canvas class="skin-2d d-block" data-id="${skinId}" data-head="659771ecfb902f62" width="32" height="32"></canvas>
           </button>

@@ -169,7 +169,7 @@ window.addEventListener("superstorage-ready", async () => {
       var downloadBtn = document.createElement('button');
       downloadBtn.id = 'download-btn';
       downloadBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
-      downloadBtn.setAttribute('style', 'width:32px;height:32px;margin-top:50px!important;')
+      downloadBtn.setAttribute('style', 'width:36px;height:36px;margin-top:50px!important;')
       downloadBtn.title = "Download Cape";
       downloadIcon = document.createElement('i');
       downloadIcon.classList.add('fas');
@@ -191,7 +191,7 @@ window.addEventListener("superstorage-ready", async () => {
         let margin = 135;
         if (hideSkinStealer) margin -= 42.5;
         elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
-        elytraBtn.setAttribute('style', `width:32px;height:32px;margin-top:${margin}px!important;`)
+        elytraBtn.setAttribute('style', `width:36px;height:36px;margin-top:${margin}px!important;`)
         elytraBtn.title = "Elytra";
         let elytraIcon = document.createElement('i');
         elytraIcon.classList.add('fas');
@@ -211,7 +211,7 @@ window.addEventListener("superstorage-ready", async () => {
           let stealBtn = document.createElement('button');
           stealBtn.id = 'steal-btn';
           stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-          stealBtn.setAttribute('style', `width:32px;height:32px;margin-top:92.5px!important;`)
+          stealBtn.setAttribute('style', `width:36px;height:36px;margin-top:92.5px!important;`)
           stealBtn.title = "Steal Cape";
           let stealIcon = document.createElement('i');
           stealIcon.classList.add('fas');
@@ -327,8 +327,8 @@ window.addEventListener("superstorage-ready", async () => {
 
       let skinViewer = new skinview3d.SkinViewer({
         canvas: skinContainer,
-        width: 300,
-        height: 400,
+        width: 240,
+        height: 360,
         skin: steveDataURL,
         cape: null,
         preserveDrawingBuffer: true
@@ -370,8 +370,9 @@ window.addEventListener("superstorage-ready", async () => {
 
       window.skinViewer = skinViewer;
 
-      skinViewer.fov = 40;
-      skinViewer.camera.position.y = 22 * Math.cos(.01);
+      skinViewer.fov = 38;
+      skinViewer.camera.position.y = 22;
+      skinViewer.camera.position.z = 57;
       skinViewer.playerWrapper.rotation.y = -90.58;
       skinViewer.globalLight.intensity = .65;
       skinViewer.cameraLight.intensity = .38;
@@ -379,11 +380,11 @@ window.addEventListener("superstorage-ready", async () => {
       skinViewer.zoom = 0.86;
 
       if (paused) {
-        skinViewer.playerObject.skin.leftArm.rotation.x = 0.32;
-        skinViewer.playerObject.skin.rightArm.rotation.x = -0.3;
+        skinViewer.playerObject.skin.leftArm.rotation.x = 0.3;
+        skinViewer.playerObject.skin.rightArm.rotation.x = -0.32;
 
-        skinViewer.playerObject.skin.leftLeg.rotation.x = -0.32;
-        skinViewer.playerObject.skin.rightLeg.rotation.x = 0.38;
+        skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36;
+        skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36;
 
         skinViewer.playerObject.cape.rotation.x = 0.3;
       }

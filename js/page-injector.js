@@ -63,51 +63,97 @@ observer.observe(window.top.document.documentElement, {
 
     if (currentUrl !== cleanUrl && currentUrl !== location.origin + '/') location.href = cleanUrl;
 
-    const waitForSelector = (
+    // Shared state
+    const __wfs_listeners = [];
+    let __wfs_observer = null;
+
+    function waitForSelector(
         selector,
         callback,
         { root = document, timeout = 10000, once = true } = {}
-    ) => {
+    ) {
         return new Promise((resolve, reject) => {
-            const existing = root.querySelector(selector);
+            const searchRoot = root.documentElement || root;
+
+            // Immediate check
+            const existing = searchRoot.querySelector(selector);
             if (existing) {
                 callback?.(existing);
                 return resolve(existing);
             }
 
-            const timer = timeout && setTimeout(() => {
-                observer.disconnect();
-                reject(new Error(`waitForSelector timeout: ${selector}`));
-            }, timeout);
+            const listener = {
+                selector,
+                callback,
+                resolve,
+                reject,
+                once,
+                root: searchRoot
+            };
 
-            const observer = new MutationObserver(mutations => {
-                for (let i = 0; i < mutations.length; i++) {
-                    const nodes = mutations[i].addedNodes;
-                    for (let j = 0; j < nodes.length; j++) {
-                        const node = nodes[j];
-                        if (node.nodeType !== 1) continue;
+            __wfs_listeners.push(listener);
 
-                        if (node.matches(selector)) {
-                            if (once) observer.disconnect();
-                            clearTimeout(timer);
-                            callback?.(node);
-                            return resolve(node);
-                        }
+            // Setup timeout (optional)
+            if (timeout) {
+                listener.timer = setTimeout(() => {
+                    removeListener(listener);
+                    reject(new Error(`waitForSelector timeout: ${selector}`));
+                }, timeout);
+            }
 
-                        const found = node.querySelector(selector);
-                        if (found) {
-                            if (once) observer.disconnect();
-                            clearTimeout(timer);
-                            callback?.(found);
-                            return resolve(found);
+            // Start shared observer if not running
+            if (!__wfs_observer) {
+                __wfs_observer = new MutationObserver(handleMutations);
+                __wfs_observer.observe(document.documentElement, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        });
+    }
+
+    function handleMutations(mutations) {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (!(node instanceof Element)) continue;
+
+                for (let i = __wfs_listeners.length - 1; i >= 0; i--) {
+                    const listener = __wfs_listeners[i];
+
+                    if (!listener.root.contains(node)) continue;
+
+                    let match = null;
+
+                    if (node.matches?.(listener.selector)) {
+                        match = node;
+                    } else {
+                        match = node.querySelector?.(listener.selector);
+                    }
+
+                    if (match) {
+                        listener.callback?.(match);
+                        listener.resolve(match);
+
+                        if (listener.once) {
+                            removeListener(listener);
                         }
                     }
                 }
-            });
+            }
+        }
+    }
 
-            observer.observe(root.documentElement || root, { childList: true, subtree: true });
-        });
-    };
+    function removeListener(listener) {
+        clearTimeout(listener.timer);
+        const index = __wfs_listeners.indexOf(listener);
+        if (index !== -1) __wfs_listeners.splice(index, 1);
+
+        // Auto-stop observer if nothing listening
+        if (__wfs_listeners.length === 0 && __wfs_observer) {
+            __wfs_observer.disconnect();
+            __wfs_observer = null;
+        }
+    }
 
     const waitForHtmlDataTheme = (callback, { timeout = 10000 } = {}) => {
         return new Promise((resolve, reject) => {
@@ -762,9 +808,9 @@ observer.observe(window.top.document.documentElement, {
     }
 
     const customPage = (page, name, title, icon) => {
-        waitForSelector('[href="/minecraft-skins"]', () => {
+        waitForSelector('.nav-link[href="https://store.namemc.com/category/emerald"]', () => {
             var isPage = location.pathname == "/extras/" + page;
-            var storeNavBar = document.querySelector('.nav-link[href="https://store.namemc.com/category/emerald"]').parentElement;
+            var storeNavBar = document.querySelector('.nav-link[href="https://store.namemc.com/category/emerald"]')?.parentElement;
             var customNavRange = document.createRange();
             var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link${isPage ? " active" : ""}' href='/extras/${page}'>${name}</a></li>`);
             var customNavDropRange = document.createRange();
@@ -798,12 +844,8 @@ observer.observe(window.top.document.documentElement, {
                     (document.head || root).appendChild(inject3);
                 }
 
-                waitForSelector('#faq', (faq) => {
-                    faq.remove()
-                });
-
                 document.querySelector('.dropdown-menu > .active')?.classList.remove('active');
-                document.querySelector('#' + page)?.classList.add('active');
+                document.querySelector('.dropdown-item#' + page)?.classList.add('active');
             }
         })
     }
@@ -865,17 +907,11 @@ observer.observe(window.top.document.documentElement, {
     const initializePages = async () => {
         const pages = [];
 
-        if (!hideSkinTester) {
-            pages.push(['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']);
-        }
+        if (!hideSkinTester) pages.push(['skin-cape-test', 'Tester', 'Skin & Cape Tester', 'fas fa-rectangle-portrait']);
 
-        if (!hideBadges2) {
-            pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
-        }
+        if (!hideBadges2) pages.push(['badges', 'Badges', 'Badges', 'fas fa-award']);
 
-        if (pinned) {
-            pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
-        }
+        if (pinned) pages.push(['pinned', 'Pinned', 'Pinned Users', 'fas fa-thumbtack']);
 
         // INJECT PAGES
         injectPages(pages);

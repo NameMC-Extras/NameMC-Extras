@@ -15,25 +15,7 @@
     var officialCapes = {};
     var officialCapesCategoryOrder = [];
     var specialCapes = {};
-    const noElytra = new Set([
-        "fd14214cd8073059e93d9c626260f5df85e5a959181537119df56cadaf5002cc",
-        "2ada7acf3e0ef436f350e21af91a774b7cd95309c53668a441eeacec88ca4211",
-        "d1f20f8534f9f58a3a0a26586d5615f513add564809986334b7f247593425ee3",
-        "938155dd83118a3993a22579649fab313cdb06073029c3839843d58fad06ebb2",
-        "4e25998e4db8e19fe4df3df74d7983f03ff81a4074426252ce6eb3d1c70c9a59",
-        "dc39d8eb38419f4cbb9a2e19642893b854c131a9ab06bd4e2c2a5b3af98f3a19",
-        "35d9516769099ad42be14344551f9e9dfe66ee9ceb1d5624b4442f76cef9ea9e",
-        "da01a74f8ca96bdf652ad3acddc886d6396eea482870ed3d2678e07cd1cd653f",
-        "c900e2768696a783f34a6ce548aad6d4241051fac15b1622fa7beeb521ae43e",
-        "16516dd786b870268e7601ad9c9dbf53530fef54041a2d18f2b5fbf15c0724ea",
-        "17c4ec5654f5d2f37953f228be1aa796d482a395c08dba65c82c020ebc6e03d8",
-        "639cb7c0f0d4345900b64f14ee33ecfccc7d6bcb5e18d027fb3452bfc9e5c4d1",
-        "12607ff71c803562dfb985769caaebf867172c13b20853368da1ebb099817f0d",
-        "aab48288f2067b9adf650ed68556652e9c34f4338b9d61ae5a35065f8c1c9413",
-        "5e8f3740ec1aabc872d8149c5e00b5b739cce63971db6edab30f94ccffed9d37",
-        "b69e02edd267ea9bd7bf3f67f2a5cfff0f5aa8caf7c081e2d7221ac78277970a",
-        "b698cefe18ac367f930332dd77f4a6d390be7adb36380e568761df4683562f84"
-    ]);
+    var noElytra = new Set();
     const UUIDRegex = /([0-9a-f]{8})(?:-|)([0-9a-f]{4})(?:-|)(4[0-9a-f]{3})(?:-|)([89ab][0-9a-f]{3})(?:-|)([0-9a-f]{12})/;
     var model = "auto-detect";
 
@@ -323,8 +305,9 @@
 
             window.skinViewer = skinViewer;
 
-            skinViewer.fov = 40;
-            skinViewer.camera.position.y = 22 * Math.cos(.01);
+            skinViewer.fov = 38;
+            skinViewer.camera.position.y = 22;
+            skinViewer.camera.position.z = 57;
             skinViewer.playerWrapper.rotation.y = .53;
             skinViewer.globalLight.intensity = .65;
             skinViewer.cameraLight.intensity = .38;
@@ -332,11 +315,11 @@
             skinViewer.zoom = 0.86;
 
             if (paused) {
-                skinViewer.playerObject.skin.leftArm.rotation.x = 0.32;
-                skinViewer.playerObject.skin.rightArm.rotation.x = -0.3;
+                skinViewer.playerObject.skin.leftArm.rotation.x = 0.3;
+                skinViewer.playerObject.skin.rightArm.rotation.x = -0.32;
 
-                skinViewer.playerObject.skin.leftLeg.rotation.x = -0.32;
-                skinViewer.playerObject.skin.rightLeg.rotation.x = 0.38;
+                skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36;
+                skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36;
 
                 skinViewer.playerObject.cape.rotation.x = 0.3;
             }
@@ -656,6 +639,8 @@
             });
 
             waitForSupabase((supabase_data) => {
+                noElytra = new Set(supabase_data.tester_capes.filter(a => a.elytra === false).map(a => a.id));
+
                 // load official capes
                 vanilla.onchange = () => {
                     if (vanilla.checked) {

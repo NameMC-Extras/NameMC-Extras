@@ -411,8 +411,9 @@
             skinViewer.animation.headBobbing = false;
 
             // Configure camera and lighting (similar to skin-cape-test.js)
-            skinViewer.fov = 40;
-            skinViewer.camera.position.y = 22 * Math.cos(.01);
+            skinViewer.fov = 38;
+            skinViewer.camera.position.y = 22;
+            skinViewer.camera.position.z = 57;
             skinViewer.playerWrapper.rotation.y = .53;
             skinViewer.globalLight.intensity = .65;
             skinViewer.cameraLight.intensity = .38;

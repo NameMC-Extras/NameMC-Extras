@@ -911,19 +911,20 @@ window.addEventListener("superstorage-ready", async () => {
 
       window.skinViewer = skinViewer;
 
-      skinViewer.fov = 40;
-      skinViewer.camera.position.y = 22 * Math.cos(.01);
+      skinViewer.fov = 38;
+      skinViewer.camera.position.y = 22;
+      skinViewer.camera.position.z = 57;
       skinViewer.playerWrapper.rotation.y = .53;
       skinViewer.globalLight.intensity = .65;
       skinViewer.cameraLight.intensity = .38;
       skinViewer.cameraLight.position.set(12, 25, 0);
 
       if (paused) {
-        skinViewer.playerObject.skin.leftArm.rotation.x = 0.32;
-        skinViewer.playerObject.skin.rightArm.rotation.x = -0.3;
+        skinViewer.playerObject.skin.leftArm.rotation.x = 0.3;
+        skinViewer.playerObject.skin.rightArm.rotation.x = -0.32;
 
-        skinViewer.playerObject.skin.leftLeg.rotation.x = -0.32;
-        skinViewer.playerObject.skin.rightLeg.rotation.x = 0.38;
+        skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36;
+        skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36;
 
         skinViewer.playerObject.cape.rotation.x = 0.3;
       }

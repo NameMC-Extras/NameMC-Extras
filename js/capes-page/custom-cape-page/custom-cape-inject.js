@@ -263,18 +263,18 @@ window.addEventListener("superstorage-ready", async () => {
       <div class="col-md-6">
         <div class="card mb-3">
           <div class="card-body position-relative text-center p-0 checkered animation-paused">
-            <canvas class="drop-shadow auto-size align-top" width="300" height="400" style="touch-action: none; width: 300px; height: 400px;"></canvas>
-            <button id="play-pause-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;">
+            <canvas class="drop-shadow auto-size align-top" width="240" height="360" style="touch-action: none; width: 240px; height: 360px;"></canvas>
+            <button id="play-pause-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;">
               <i class="fas fa-play"></i>
             </button>
-            <button id="download-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:50px!important;" title="Download Cape">
+            <button id="download-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;margin-top:50px!important;" title="Download Cape">
               <i class="fas fa-download"></i>
             </button>
-            ${!hideElytra ? `<button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:${(capeCategory !== "Bedrock" && !hideSkinStealer) ? 135 : 92.5}px!important;" title="Elytra">
+            ${!hideElytra ? `<button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;margin-top:${(capeCategory !== "Bedrock" && !hideSkinStealer) ? 135 : 92.5}px!important;" title="Elytra">
               <i class="fas fa-dove"></i>
             </button>` : ''}
             ${(capeCategory !== "Bedrock" && !hideSkinStealer) ? `
-              <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:32px;height:32px;margin-top:92.5px!important;" title="Steal Cape">
+              <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;margin-top:92.5px!important;" title="Steal Cape">
                 <i class="fas fa-user-secret"></i>
               </button>  
             ` : ""}
@@ -418,8 +418,8 @@ window.addEventListener("superstorage-ready", async () => {
 
         let skinViewer = new skinview3d.SkinViewer({
           canvas: skinContainer,
-          width: 300,
-          height: 400,
+          width: 240,
+          height: 360,
           skin: steveDataURL,
           cape: capeURL,
           preserveDrawingBuffer: true
@@ -436,8 +436,9 @@ window.addEventListener("superstorage-ready", async () => {
 
         window.skinViewer = skinViewer;
 
-        skinViewer.fov = 40;
-        skinViewer.camera.position.y = 22 * Math.cos(.01);
+        skinViewer.fov = 38;
+        skinViewer.camera.position.y = 22;
+        skinViewer.camera.position.z = 57;
         skinViewer.playerWrapper.rotation.y = -90.58;
         skinViewer.globalLight.intensity = .65;
         skinViewer.cameraLight.intensity = .38;
@@ -445,11 +446,11 @@ window.addEventListener("superstorage-ready", async () => {
         skinViewer.zoom = 0.86;
 
         if (paused) {
-          skinViewer.playerObject.skin.leftArm.rotation.x = 0.32;
-          skinViewer.playerObject.skin.rightArm.rotation.x = -0.3;
+          skinViewer.playerObject.skin.leftArm.rotation.x = 0.3;
+          skinViewer.playerObject.skin.rightArm.rotation.x = -0.32;
 
-          skinViewer.playerObject.skin.leftLeg.rotation.x = -0.32;
-          skinViewer.playerObject.skin.rightLeg.rotation.x = 0.38;
+          skinViewer.playerObject.skin.leftLeg.rotation.x = -0.36;
+          skinViewer.playerObject.skin.rightLeg.rotation.x = 0.36;
 
           skinViewer.playerObject.cape.rotation.x = 0.3;
         }
