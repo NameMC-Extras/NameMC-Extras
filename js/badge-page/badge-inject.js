@@ -177,14 +177,9 @@ async function loadPage(mainDiv) {
     description.innerHTML = descText;
   }
 
-  var badgeOwnerNames = (await Promise.all(badgeOwners.map(async badge => {
-    const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + badge.user);
-    try {
-      return await resp.json();
-    } catch {
-      return null;
-    }
-  }))).map(a => a && a.name);
+  const badgeOwnerNames = (await Promise.allSettled(
+    badgeOwners.map(badge => fetch(`https://api.gapple.pw/cors/sessionserver/${badge.user}`).then(r => r.json()))
+  )).map(r => r.status === "fulfilled" ? r.value.name : null);
 
   document.querySelector(".player-list").innerHTML = badgeOwners.map((u, i) => {
     var userEl = document.createElement("a");

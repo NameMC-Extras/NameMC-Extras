@@ -356,24 +356,28 @@ window.addEventListener("superstorage-ready", async () => {
 
       let capeOwnerNames;
       if (isBedrock) {
-        //capeOwners.push({ username: "..." });
-        capeOwnerNames = (await Promise.all(capeOwners.filter(a => a.java_uuid).map(async cape => {
-          const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + cape.java_uuid);
-          try {
-            return await resp.json();
-          } catch {
-            return null;
-          }
-        }))).map(a => a.name);
+        // Only Java users get API fetch
+        const javaOwners = capeOwners.filter(a => a.java_uuid);
+        const javaPromises = javaOwners.map(cape =>
+          fetch(`https://api.gapple.pw/cors/sessionserver/${cape.java_uuid}`)
+            .then(r => r.json())
+            .catch(() => null)
+        );
+
+        const javaNames = (await Promise.allSettled(javaPromises))
+          .map(r => r.status === "fulfilled" ? r.value?.name : null);
+
+        capeOwnerNames = javaNames; // Bedrock users handled separately
       } else {
-        capeOwnerNames = (await Promise.all(capeOwners.map(async cape => {
-          const resp = await fetch("https://api.gapple.pw/cors/sessionserver/" + cape.user);
-          try {
-            return await resp.json();
-          } catch {
-            return null;
-          }
-        }))).map(a => a && a.name);
+        // Standard capes: fetch all user data
+        const promises = capeOwners.map(cape =>
+          fetch(`https://api.gapple.pw/cors/sessionserver/${cape.user}`)
+            .then(r => r.json())
+            .catch(() => null)
+        );
+
+        capeOwnerNames = (await Promise.allSettled(promises))
+          .map(r => r.status === "fulfilled" ? r.value?.name : null);
       }
 
       document.querySelector(".player-list").innerHTML = (isBedrock ? capeOwners.filter(a => a.java_uuid) : capeOwners).map((u, i) => {

@@ -97,10 +97,16 @@
     main.innerHTML = "";
 
     // get user count
-    const badges = supabase_data.badges.map(badge => {
-      badge.usersCount = supabase_data.user_badges.reduce((count, user) => user.badge === badge.id ? count + 1 : count, 0);
-      return badge;
-    });
+    const counts = new Map();
+
+    for (const user of supabase_data.user_badges) {
+      counts.set(user.badge, (counts.get(user.badge) || 0) + 1);
+    }
+
+    const badges = supabase_data.badges.map(badge => ({
+      ...badge,
+      usersCount: counts.get(badge.id) || 0
+    }));
 
     badges.sort((a, b) => b.usersCount - a.usersCount);
 

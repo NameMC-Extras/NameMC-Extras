@@ -16,34 +16,43 @@ const patch = (win) => {
     } catch {}
 };
 
-// Patch top window once
 patch(window.top);
 
-// Patch existing iframes
 const patchIframe = (iframe) => {
     try {
         patch(iframe.contentWindow);
     } catch {}
 };
 
-window.top.document.querySelectorAll("iframe").forEach(iframe => {
+const onIframeLoad = (e) => patchIframe(e.target);
+
+// Patch existing iframes
+const iframes = window.top.document.getElementsByTagName("iframe");
+for (let i = 0; i < iframes.length; i++) {
+    const iframe = iframes[i];
     patchIframe(iframe);
-    iframe.addEventListener("load", () => patchIframe(iframe));
-});
+    iframe.addEventListener("load", onIframeLoad);
+}
 
 // Watch for new iframes
 const observer = new MutationObserver(mutations => {
     for (const m of mutations) {
         for (const node of m.addedNodes) {
+            if (node.nodeType !== 1) continue;
+
             if (node.tagName === "IFRAME") {
                 patchIframe(node);
-                node.addEventListener("load", () => patchIframe(node));
+                node.addEventListener("load", onIframeLoad);
+                continue;
             }
-            if (node.querySelectorAll) {
-                node.querySelectorAll("iframe").forEach(f => {
-                    patchIframe(f);
-                    f.addEventListener("load", () => patchIframe(f));
-                });
+
+            const frames = node.getElementsByTagName?.("iframe");
+            if (!frames) continue;
+
+            for (let i = 0; i < frames.length; i++) {
+                const f = frames[i];
+                patchIframe(f);
+                f.addEventListener("load", onIframeLoad);
             }
         }
     }
