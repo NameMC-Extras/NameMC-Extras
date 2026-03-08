@@ -128,11 +128,13 @@ function extractPlayerEntries(doc) {
         if (!tr || !tr.matches("tr")) continue;
         const link = tr.querySelector('td.player-cell a[href*="/profile/"]');
         if (!link) continue;
+        const skinImg = tr.querySelector('img.skin-2d');
+        const skinFaceUrl = skinImg ? (skinImg.getAttribute("src") || "").trim() : null;
         const href = link.getAttribute("href") || "";
         const m = href.match(/\/profile\/([^/]+)/);
         const slug = m ? m[1] : "";
         const name = (link.childNodes[0]?.textContent ?? link.textContent ?? "").trim() || (link.getAttribute("title") || "").trim() || slug.split(".")[0] || slug;
-        if (slug) entries.push({ name, slug, uuid: uuid || null });
+        if (slug) entries.push({ name, slug, uuid: uuid || null, skinFaceUrl: skinFaceUrl || null });
     }
     if (entries.length > 0) return entries;
 
@@ -143,7 +145,10 @@ function extractPlayerEntries(doc) {
             const m = href.match(/\/profile\/([^/]+)/);
             const slug = m ? m[1] : "";
             const name = (a.childNodes[0]?.textContent ?? a.textContent ?? "").trim() || (a.getAttribute("title") || "").trim() || slug.split(".")[0] || slug;
-            return slug ? { name, slug, uuid: null } : null;
+            const row = a.closest("tr");
+            const skinImg = row ? row.querySelector('img.skin-2d') : null;
+            const skinFaceUrl = skinImg ? (skinImg.getAttribute("src") || "").trim() : null;
+            return slug ? { name, slug, uuid: null, skinFaceUrl: skinFaceUrl || null } : null;
         })
         .filter(Boolean);
 }
@@ -370,11 +375,16 @@ waitForSelector("#unfollow-scan-btn", (scanBtn) => {
             if (listEl) {
                 listEl.innerHTML = nonFollowers.length === 0
                     ? ""
-                    : "<ul class=\"list-group\">" + nonFollowers.map(u =>
-                        `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            <a href="/profile/${u.slug}" target="_blank" rel="noopener">${u.name}</a>
-                        </li>`
-                    ).join("") + "</ul>";
+                    : "<ul class=\"list-group list-group-flush\">" + nonFollowers.map(u => {
+                        const face = u.skinFaceUrl
+                            ? `<img class="skin-2d me-2" src="${u.skinFaceUrl.replace(/"/g, "&quot;")}" width="24" height="24" alt="">`
+                            : "";
+                        const safeName = (u.name || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+                        const safeSlug = (u.slug || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+                        return `<li class="list-group-item d-flex align-items-center">
+                            ${face}<a href="/profile/${safeSlug}" target="_blank" rel="noopener">${safeName}</a>
+                        </li>`;
+                    }).join("") + "</ul>";
             }
 
             if (confirmBtn) {
