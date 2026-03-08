@@ -343,14 +343,14 @@ window.addEventListener("superstorage-ready", async () => {
             if (!elytraOn) {
               elytraOn = true;
               elytraIconEl.classList.remove('fa-dove');
-              elytraIconEl.classList.add('fa-square');
+              elytraIconEl.classList.add('fa-rectangle-portrait');
               elytraIconEl.parentElement.title = "No Elytra"
               skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
                 backEquipment: "elytra"
               });
             } else {
               elytraOn = false;
-              elytraIconEl.classList.remove('fa-square');
+              elytraIconEl.classList.remove('fa-rectangle-portrait');
               elytraIconEl.classList.add('fa-dove');
               elytraIconEl.parentElement.title = "Elytra"
               skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());

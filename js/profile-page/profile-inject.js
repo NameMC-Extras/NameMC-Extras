@@ -338,7 +338,7 @@ window.addEventListener("superstorage-ready", async () => {
       elytraBtn.onclick = () => {
         const icon = elytraBtn.querySelector("i");
         elytraOn = !elytraOn;
-        icon.className = elytraOn ? "fas fa-square" : "fas fa-dove";
+        icon.className = elytraOn ? "fas fa-rectangle-portrait" : "fas fa-dove";
         elytraBtn.title = elytraOn ? "No Elytra" : "Elytra";
         skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), elytraOn ? { backEquipment: "elytra" } : {});
       };

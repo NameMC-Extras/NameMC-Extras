@@ -83,7 +83,7 @@
     const toggleLayers = () => {
         layer = !layer;
         const icon = document.querySelector("#layer-btn i");
-        icon.className = layer ? "fas fa-clone" : "far fa-clone";
+        icon.className = layer ? "fas fa-clone" : "fas fa-square";
         icon.parentElement.title = layer ? "No Layers" : "Layers";
 
         const parts = skinViewer.playerObject.skin;
@@ -127,11 +127,11 @@
             elytraBtn.onclick = () => {
                 elytraOn = !elytraOn;
                 if (elytraOn) {
-                    elytraIcon.classList.replace('fa-dove', 'fa-square');
+                    elytraIcon.classList.replace('fa-dove', 'fa-rectangle-portrait');
                     elytraIcon.parentElement.title = "No Elytra";
                     skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), { backEquipment: "elytra" });
                 } else {
-                    elytraIcon.classList.replace('fa-square', 'fa-dove');
+                    elytraIcon.classList.replace('fa-rectangle-portrait', 'fa-dove');
                     elytraIcon.parentElement.title = "Elytra";
                     skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
                 }
