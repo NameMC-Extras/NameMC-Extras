@@ -108,6 +108,19 @@
     },
     {
       "js": [
+        "js/profile-page/following-page/following-inject.js"
+      ],
+      "matches": [
+        "*://*.namemc.com/profile/*/following",
+        "*://*.namemc.com/profile/*/followers"
+      ],
+      "exclude_matches": [
+        "*://*.namemc.com/profile/*/following/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
         "js/profile-page/profile-injector.js"
       ],
       "matches": [
