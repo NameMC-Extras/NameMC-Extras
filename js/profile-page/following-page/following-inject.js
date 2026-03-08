@@ -106,7 +106,7 @@ waitForSelector("body > main > div.text-center.mb-3", (btnContainer) => {
     btnContainer.insertAdjacentHTML(
         "beforeend",
         `<button type="button" class="btn btn-warning" id="unfollow-non-followers-trigger"
-                data-bs-toggle="modal" data-bs-target="#unfollow-non-followers-modal">Unfollow non-followers</button>`
+                data-bs-toggle="modal" data-bs-target="#unfollow-non-followers-modal">Unfollow Non-Followers</button>`
     );
 });
 

@@ -284,7 +284,7 @@ window.addEventListener("superstorage-ready", async () => {
   const toggleLayers = () => {
     layer = !layer;
     const icon = document.querySelector("#layer-btn i");
-    icon.className = layer ? "fas fa-clone" : "far fa-clone";
+    icon.className = layer ? "fas fa-clone" : "fas fa-square";
     icon.parentElement.title = layer ? "No Layers" : "Layers";
     const parts = skinViewer.playerObject.skin;
     ["head", "body", "rightArm", "leftArm", "rightLeg", "leftLeg"].forEach(part => {
