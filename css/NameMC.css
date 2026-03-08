@@ -450,3 +450,8 @@ a:has([class*=fa-eye]) {
     top: 0;
     left: 0;
 }
+
+.jscolor-picker-border {
+    background: var(--bs-body-bg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
