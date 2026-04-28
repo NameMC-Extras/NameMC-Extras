@@ -654,7 +654,7 @@
                             const capes = dictionary[key]
                             var optGroupEl = document.createElement("optgroup");
                             optGroupEl.label = categoryName;
-                            optGroupEl.innerHTML = capes.sort((a, b) => a.name.localeCompare(b.name)).map(c => {
+                            optGroupEl.innerHTML = capes.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map(c => {
                                 var optionEl = document.createElement("option");
                                 optionEl.value = c.render_texture ?? c.id;
                                 optionEl.textContent = c.name;
@@ -714,7 +714,7 @@
                             const capes = dictionary[key]
                             var optGroupEl = document.createElement("optgroup");
                             optGroupEl.label = categoryName;
-                            optGroupEl.innerHTML = capes.sort((a, b) => a.name.localeCompare(b.name)).map(c => {
+                            optGroupEl.innerHTML = capes.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map(c => {
                                 var optionEl = document.createElement("option");
                                 optionEl.value = c.image_src;
                                 optionEl.textContent = c.name;
