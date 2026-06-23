@@ -393,6 +393,10 @@ select * {
     z-index: 5 !important;
 }
 
+#modal-predict.active {
+    pointer-events: auto !important;
+}
+
 a:has([class*=fa-eye]) {
     color: inherit !important;
 }
