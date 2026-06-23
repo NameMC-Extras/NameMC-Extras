@@ -1,21 +1,20 @@
-// Inject skinview3d
-const skinViewScript = document.createElement("script");
-skinViewScript.src = chrome.runtime.getURL("js/skinview3d.bundle.js");
-(document.head || document.documentElement).appendChild(skinViewScript);
-skinViewScript.onload = function() {
-  skinViewScript.remove();
-};
-
-const graphUtilsScript = document.createElement("script");
-graphUtilsScript.src = chrome.runtime.getURL("js/capes-page/graph-utils.js");
-(document.head || document.documentElement).appendChild(graphUtilsScript);
-graphUtilsScript.onload = function() {
+// Helper: inject a page-context script.
+// `ordered` scripts download in parallel but execute in insertion order
+// (graph-utils must run before the inject script, which calls its globals).
+function injectScript(src, ordered = false) {
   const script = document.createElement("script");
-  script.src = chrome.runtime.getURL("js/capes-page/official-cape-page/official-cape-inject.js");
-  (document.head || document.documentElement).appendChild(script);
-  script.onload = function() {
-    script.remove();
+  script.src = chrome.runtime.getURL(src);
+  if (ordered) script.async = false;
+  script.onload = function () {
+    this.remove();
   };
-  
-  graphUtilsScript.remove();
-};
+  (document.head || document.documentElement).appendChild(script);
+  return script;
+}
+
+// skinview3d is awaited via polling inside the inject script, so it can load fully in parallel.
+injectScript("js/skinview3d.bundle.js");
+
+// graph-utils must execute before the inject script that uses its globals.
+injectScript("js/capes-page/graph-utils.js", true);
+injectScript("js/capes-page/official-cape-page/official-cape-inject.js", true);

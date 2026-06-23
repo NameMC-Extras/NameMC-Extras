@@ -10,7 +10,13 @@ class AnnouncementManager {
         if (!document.contentType.startsWith('text/html')) return;
         if (window.location.hostname === 'store.namemc.com') return;
 
+        let attempts = 0;
         const interval = setInterval(() => {
+            // Stop polling after ~15s so an offline/no-cache load doesn't spin forever.
+            if (++attempts > 300) {
+                clearInterval(interval);
+                return;
+            }
             const supabaseDataRaw = superStorage.getItem('supabase_data');
             if (supabaseDataRaw) {
                 clearInterval(interval);

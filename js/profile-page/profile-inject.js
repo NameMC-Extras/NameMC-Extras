@@ -117,9 +117,20 @@ const waitForImage = (callback, hash) =>
 const waitForFunc = (funcName, callback) =>
   waitFor(() => window[funcName] || window.wrappedJSObject?.[funcName], () => callback(window[funcName] || window.wrappedJSObject?.[funcName]));
 
+// Parse the (potentially large) supabase_data blob at most once per raw value.
+let _supabaseRaw = null, _supabaseParsed = null;
+const parseSupabase = () => {
+  const raw = window.superStorage.getItem("supabase_data");
+  if (raw !== _supabaseRaw) {
+    _supabaseRaw = raw;
+    _supabaseParsed = JSON.parse(raw);
+  }
+  return _supabaseParsed;
+};
+
 const waitForSupabase = (callback) =>
   waitFor(() => !!window.superStorage.getItem("supabase_data"), () =>
-    callback(JSON.parse(window.superStorage.getItem("supabase_data"))));
+    callback(parseSupabase()));
 
 const waitForTooltip = (callback) =>
   waitFor(() => typeof $ !== 'undefined' && typeof $().tooltip !== 'undefined', callback);
@@ -662,7 +673,7 @@ window.addEventListener("superstorage-ready", async () => {
     waitForSelector('.profile-column-right .card.mb-3:has(.table > tbody > tr) > .card-header', (historyTitle) => {
       historyTitle.style.cssText = "display:flex;justify-content:space-between";
 
-      var hasHidden = [...document.querySelectorAll('tr')].filter(el => el.innerText.includes('—')).length !== 0;
+      var hasHidden = [...document.querySelectorAll('tr')].some(el => el.textContent.includes('—'));
       if (hasHidden) {
         if (isHidden) hideHidden();
 

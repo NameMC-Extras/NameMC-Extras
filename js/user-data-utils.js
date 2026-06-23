@@ -29,8 +29,12 @@
 
         getSupabaseData() {
             try {
-                const supabaseData = superStorage.getItem('supabase_data');
-                return supabaseData ? JSON.parse(supabaseData) : {};
+                const raw = superStorage.getItem('supabase_data');
+                // Reuse the last parse unless the raw value actually changed.
+                if (raw === this._supabaseRaw) return this._supabaseParsed;
+                this._supabaseRaw = raw;
+                this._supabaseParsed = raw ? JSON.parse(raw) : {};
+                return this._supabaseParsed;
             } catch (error) {
                 console.error('Error retrieving Supabase data:', error);
                 return {};
