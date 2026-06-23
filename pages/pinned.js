@@ -1,4 +1,8 @@
 (async () => {
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+
     const pinnedPageContent = `
 <h1 class="text-center">Pinned Users</h1>
 <hr class="mt-0">
@@ -281,12 +285,12 @@
             <!-- Header with username and unpin button -->
             <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 border-0" style="background: linear-gradient(135deg, rgba(var(--ne-btn-rgb, 13, 110, 253), 0.1), rgba(var(--ne-btn-rgb, 13, 110, 253), 0.05));">
                 <h6 class="mb-0 text-truncate me-2">
-                    <a href="/profile/${userProfile.username}" class="text-decoration-none fw-bold">
-                        ${userProfile.username}
+                    <a href="/profile/${encodeURIComponent(userProfile.username)}" class="text-decoration-none fw-bold">
+                        ${escapeHtml(userProfile.username)}
                     </a>
                 </h6>
                 ${userProfile.rank ? `
-                <span class="badge" style="background-color: ${userProfile.rank.toLowerCase() === 'emerald' ? '#0A0' : '#F00'}!important; font-size: 0.65rem;">${userProfile.rank}</span>
+                <span class="badge" style="background-color: ${userProfile.rank.toLowerCase() === 'emerald' ? '#0A0' : '#F00'}!important; font-size: 0.65rem;">${escapeHtml(userProfile.rank)}</span>
                 ` : ''}
                 <button class="unpin-btn btn ms-auto" 
                         data-uuid="${userProfile.uuid}" 
@@ -334,7 +338,7 @@
                     ${fullBio ? `
                     <div class="text-center mb-3">
                         <p class="text-muted small mb-0 fst-italic" style="line-height: 1.4; border-left: 3px solid rgba(var(--ne-btn-rgb, 13, 110, 253), 0.3); padding-left: 8px; text-align: left !important;">
-                            "${fullBio}"
+                            "${escapeHtml(fullBio)}"
                         </p>
                     </div>
                     ` : ''}
@@ -901,8 +905,8 @@
             div.draggable = true;
             div.id = 'profile-' + user.uuid;
             div.ondragstart = window.top.drag;
-            div.innerHTML = `<img draggable="false" src="https://nmsr.nickac.dev/bust/${user.uuid}" width="68" height="68" alt="${user.username}">
-                     <div class="overlay-text">${user.username}</div>`;
+            div.innerHTML = `<img draggable="false" src="https://nmsr.nickac.dev/bust/${encodeURIComponent(user.uuid)}" width="68" height="68" alt="${escapeHtml(user.username)}">
+                     <div class="overlay-text">${escapeHtml(user.username)}</div>`;
             document.querySelector('#profilesContainer').appendChild(div);
         });
 

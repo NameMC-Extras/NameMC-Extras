@@ -1054,8 +1054,9 @@ window.addEventListener("superstorage-ready", async () => {
     });
     if (pinned) {
       if (!document.querySelector('.text-end > [method=POST]')) {
-        const username = document.querySelector('.align-items-end .col-auto');
-        if (username && !document.getElementById('pin-user-btn')) {
+        const username = document.querySelector('.align-items-end .col-auto')
+          || document.querySelector('.text-nowrap[translate=no]')?.closest('[class*="col"]');
+        if (username && username.parentElement && !document.getElementById('pin-user-btn')) {
           username.parentElement.insertAdjacentHTML('beforeend', `<div class="col">
         <div class="row justify-content-end">
           <div class="col text-end">

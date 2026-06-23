@@ -816,16 +816,41 @@ observer.observe(window.top.document.documentElement, {
         })
     }
 
-    const customPage = (page, name, title, icon) => {
+    // Insert `el` among its extras siblings so they stay in ascending `order`,
+    // independent of which page's async wait resolves first. Falls back to
+    // inserting before `fallbackBefore` when no higher-ordered sibling exists.
+    const insertOrdered = (el, order, container, fallbackBefore) => {
+        let ref = fallbackBefore;
+        for (const sibling of container.querySelectorAll(':scope > [data-extras-order]')) {
+            if (Number(sibling.dataset.extrasOrder) > order) { ref = sibling; break; }
+        }
+        container.insertBefore(el, ref);
+    };
+
+    const customPage = (page, name, title, icon, order = 0) => {
         waitForSelector('.nav-link[href="https://store.namemc.com/category/emerald"]', () => {
             var isPage = location.pathname == "/extras/" + page;
             var storeNavBar = document.querySelector('.nav-link[href="https://store.namemc.com/category/emerald"]')?.parentElement;
-            var customNavRange = document.createRange();
-            var customNavHTML = customNavRange.createContextualFragment(`<li class='nav-item'><a class='nav-link${isPage ? " active" : ""}' href='/extras/${page}'>${name}</a></li>`);
-            var customNavDropRange = document.createRange();
-            var customNavDropHTML = customNavDropRange.createContextualFragment(`<a class='dropdown-item' id='${page}' href='/extras/${page}' title='${name}'><i class="${icon} menu-icon"></i>${name}</a>`);
-            storeNavBar.before(customNavHTML);
-            waitForSelector('.dropdown-divider:nth-of-type(2)', (dropDivider) => dropDivider.before(customNavDropHTML));
+            if (!storeNavBar) return;
+
+            // Navbar item — placed by order index so timing races can't shuffle it.
+            const navList = storeNavBar.parentElement;
+            if (navList && !navList.querySelector(`:scope > .nav-item[data-extras-page="${page}"]`)) {
+                const navItem = document.createRange().createContextualFragment(
+                    `<li class='nav-item' data-extras-page='${page}' data-extras-order='${order}'><a class='nav-link${isPage ? " active" : ""}' href='/extras/${page}'>${name}</a></li>`
+                ).firstElementChild;
+                insertOrdered(navItem, order, navList, storeNavBar);
+            }
+
+            // Dropdown menu item — same ordered insertion.
+            waitForSelector('.dropdown-divider:nth-of-type(2)', (dropDivider) => {
+                const dropMenu = dropDivider.parentElement;
+                if (!dropMenu || dropMenu.querySelector(`:scope > .dropdown-item[data-extras-page="${page}"]`)) return;
+                const dropItem = document.createRange().createContextualFragment(
+                    `<a class='dropdown-item' id='${page}' data-extras-page='${page}' data-extras-order='${order}' href='/extras/${page}' title='${name}'><i class="${icon} menu-icon"></i>${name}</a>`
+                ).firstElementChild;
+                insertOrdered(dropItem, order, dropMenu, dropDivider);
+            });
 
             if (isPage) {
                 document.title = title + " | NameMC Extras";
@@ -891,8 +916,8 @@ observer.observe(window.top.document.documentElement, {
     }
 
     const injectPages = (pages, delay = 0) => {
-        pages.forEach(page => {
-            setTimeout(() => customPage(...page), delay);
+        pages.forEach((page, i) => {
+            setTimeout(() => customPage(...page, i), delay);
         });
     };
 
