@@ -2,7 +2,6 @@
 
 const apiBase = 'https://cors.faav.top/fyz';
 
-// Debounce helper function
 function debounce(func, wait) {
   let timeout;
   return function(...args) {
@@ -12,7 +11,6 @@ function debounce(func, wait) {
   };
 }
 
-// Function to format numbers with commas (e.g., 1000000 -> 1,000,000)
 function formatNumber(number) {
   if (typeof number !== 'number' || isNaN(number)) {
     return number;
@@ -69,7 +67,6 @@ function processApiData(data, capeId) {
     users: typeof data.c[i] === 'number' ? data.c[i] : 0
   }));
   
-  // Validate and clean the data
   const validData = formattedData.filter(point => {
     const isValidTimestamp = point.timestamp instanceof Date && !isNaN(point.timestamp.getTime());
     const isValidUsers = typeof point.users === 'number' && !isNaN(point.users) && point.users >= 0;
@@ -118,7 +115,6 @@ class CapeUsageGraph {
     this.hoverPoint = null;
     this.lastHoverPosition = { x: 0, y: 0 };
     
-    // For dynamic data loading
     this.capeId = options.capeId || 'unknown';
     this.lastFetchedViewport = { start: 0, end: 0 };
     this.fullyLoaded = false;
@@ -128,21 +124,24 @@ class CapeUsageGraph {
     this.fetchDebounceDelay = 500; // ms to wait before fetching
     this.debouncedFetchData = debounce(this._fetchDataForViewport.bind(this), this.fetchDebounceDelay);
     
-    // Make canvas responsive
+    // Prediction mode (client-side only)
+    this.predictionEnabled = false;
+    this.predictionModel = null; // Lazily computed when prediction is enabled
+    // Hard cap on how far in the future the viewport may go (2 years).
+    // Effective horizon also scales with the loaded history length.
+    this.maxFutureMs = 2 * 365 * 24 * 60 * 60 * 1000;
+    
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
     
-    // Add event listeners if not simplified
     if (!this.options.simplified) {
       this.addEventListeners();
     }
     
-    // Initialize tooltips
     this.initTooltips();
   }
   
   initTooltips() {
-    // Get the graph container
     this.graphContainer = this.canvas.parentElement;
     
     // Create the tooltip container for the simplified view if it doesn't already exist
@@ -182,13 +181,11 @@ class CapeUsageGraph {
     }
   }
   
-  // method to position a tooltip relative to a point
   positionTooltip(tooltip, x, y, content) {
     if (!tooltip) return;
     
     const graphRect = this.graphContainer.getBoundingClientRect();
     
-    // Update the tooltip content
     tooltip.innerHTML = content;
     tooltip.style.display = 'block';
     
@@ -196,51 +193,41 @@ class CapeUsageGraph {
     tooltip.style.left = `${x}px`;
     tooltip.style.top = `${y}px`;
     
-    // Get the dimensions of the tooltip after rendering it visible
     const tooltipRect = tooltip.getBoundingClientRect();
     
-    // Check if the tooltip exceeds the left
     if (tooltipRect.left < 0) {
       tooltip.style.left = `${Math.max(tooltipRect.width / 2, x)}px`;
     }
     
-    // Check if the tooltip exceeds the right
     if (tooltipRect.right > window.innerWidth) {
       tooltip.style.left = `${Math.min(window.innerWidth - tooltipRect.width / 2, x)}px`;
     }
     
-    // Check if the tooltip exceeds the top
     if (tooltipRect.top < 0) {
       // Place the tooltip below the point instead of above
       tooltip.style.transform = 'translate(-50%, 10px)';
       tooltip.style.marginTop = '0';
     } else {
-      // Normal position (above)
       tooltip.style.transform = 'translate(-50%, -100%)';
       tooltip.style.marginTop = '-10px';
     }
     
-    // Add the tooltip arrow
     this.updateTooltipArrow(tooltip);
   }
   
   updateTooltipArrow(tooltip) {
-    // Remove the old arrow if it exists
     const oldArrow = tooltip.querySelector('.tooltip-arrow');
     if (oldArrow) {
       oldArrow.remove();
     }
     
-    // Create a new arrow
     const arrow = document.createElement('div');
     arrow.className = 'tooltip-arrow';
     arrow.style.position = 'absolute';
     arrow.style.width = '0';
     arrow.style.height = '0';
     
-    // According to the tooltip position (above or below)
     if (tooltip.style.transform.includes('-100%')) {
-      // Arrow pointing down (for a tooltip above)
       arrow.style.bottom = '-5px';
       arrow.style.left = '50%';
       arrow.style.marginLeft = '-5px';
@@ -248,7 +235,6 @@ class CapeUsageGraph {
       arrow.style.borderRight = '5px solid transparent';
       arrow.style.borderTop = '5px solid rgba(0,0,0,0.8)';
     } else {
-      // Arrow pointing up (for a tooltip below)
       arrow.style.top = '-5px';
       arrow.style.left = '50%';
       arrow.style.marginLeft = '-5px';
@@ -264,14 +250,12 @@ class CapeUsageGraph {
     const container = this.canvas.parentElement;
     const devicePixelRatio = window.devicePixelRatio || 1;
     
-    // Set canvas dimensions to match container
     this.canvas.width = container.clientWidth * devicePixelRatio;
     this.canvas.height = container.clientHeight * devicePixelRatio;
     
     // Scale the context to ensure correct drawing operations
     this.ctx.scale(devicePixelRatio, devicePixelRatio);
     
-    // Redraw if we have data
     if (this.data.length > 0) {
       this.draw();
     }
@@ -296,6 +280,9 @@ class CapeUsageGraph {
     this.fullyLoaded = true;
     this.lastFetchedViewport = { start: 0, end: Date.now() };
     
+    // Any cached prediction model is now stale.
+    this.predictionModel = null;
+    
     this.draw();
   }
   
@@ -308,16 +295,55 @@ class CapeUsageGraph {
       if (point.users < min) min = point.users;
     }
     this.minUsers = Math.max(0, min);
-    this.maxUsers = Math.max(1, Math.ceil(Math.max(0, max) * 1.1));
+    // Keep the raw data maximum around so the Y axis can be rescaled dynamically
+    // (e.g. to fit the prediction band) without losing the historical reference.
+    this.dataMaxUsers = Math.max(0, max);
+    this.maxUsers = Math.max(1, Math.ceil(this.dataMaxUsers * 1.1));
+  }
+  
+  // Sample the predicted upper band across the visible future window and return its max.
+  // Uses a fixed, deterministic sample count so draw() and handleMouseMove() always agree
+  // on the resulting Y scale (otherwise the hover marker drifts off the curve).
+  predictedUpperMaxInView() {
+    if (!this.predictionEnabled) return 0;
+    const nowMs = Date.now();
+    if (this.viewportEnd <= nowMs) return 0;
+    if (!this.predictionModel) {
+      this.predictionModel = this.computePredictionModel();
+    }
+    const model = this.predictionModel;
+    if (!model) return 0;
+    
+    const startMs = Math.max(nowMs, this.viewportStart);
+    const endMs = this.viewportEnd;
+    if (endMs <= startMs) return 0;
+    
+    const SAMPLES = 64;
+    let maxUpper = 0;
+    for (let i = 0; i <= SAMPLES; i++) {
+      const t = startMs + ((endMs - startMs) * i) / SAMPLES;
+      const upper = model.predict(t) + model.band(t);
+      if (upper > maxUpper) maxUpper = upper;
+    }
+    return maxUpper;
+  }
+  
+  // Recompute the Y-axis maximum. When prediction is active and the viewport extends into
+  // the future, the axis grows to fit the predicted band so the curve doesn't overflow.
+  refreshYScale() {
+    let raw = this.dataMaxUsers != null ? this.dataMaxUsers : this.maxUsers;
+    if (this.predictionEnabled && this.viewportEnd > Date.now()) {
+      raw = Math.max(raw, this.predictedUpperMaxInView());
+    }
+    this.maxUsers = Math.max(1, Math.ceil(raw * 1.1));
   }
   
   setTimeframe(timeframe) {
     this.options.timeframe = timeframe;
     
     if (!this.data.length) {
-      // Set reasonable default viewport when there's no data
       const now = new Date();
-      this.viewportStart = Math.floor(new Date(now - 30 * 24 * 60 * 60 * 1000).getTime()); // 30 days ago
+      this.viewportStart = Math.floor(new Date(now - 30 * 24 * 60 * 60 * 1000).getTime());
       this.viewportEnd = Math.floor(now.getTime());
       this.draw();
       return;
@@ -350,14 +376,65 @@ class CapeUsageGraph {
       }
     }
     
-    this.viewportEnd = Math.floor(now.getTime());
+    // When prediction is on, extend the viewport into the future so the predicted
+    // curve is visible right away (proportional to the selected timeframe).
+    if (this.predictionEnabled) {
+      const span = this.viewportEnd - this.viewportStart;
+      const futureSpan = Math.min(this.getEffectiveMaxFutureMs(), Math.max(span * 0.3, 24 * 60 * 60 * 1000));
+      this.viewportEnd = Math.floor(now.getTime() + futureSpan);
+    } else {
+      this.viewportEnd = Math.floor(now.getTime());
+    }
     
     // Only invalidate the fetched range cache if we haven't preloaded the full history.
     if (!this.fullyLoaded) {
       this.lastFetchedViewport = { start: 0, end: 0 };
     }
     
-    this.validateViewport(); // Apply additional constraints
+    this.validateViewport();
+    this.draw();
+  }
+  
+  // Cap how far in the future the viewport may extend. We allow up to one full
+  // historical span ahead, clamped by `maxFutureMs`, so very short histories don't
+  // pretend to predict 2 years out.
+  getEffectiveMaxFutureMs() {
+    if (!this.data || this.data.length < 2) {
+      return this.maxFutureMs;
+    }
+    const span = this.data[this.data.length - 1].timestamp.getTime() - this.data[0].timestamp.getTime();
+    // At minimum allow 30 days of prediction so freshly tracked capes still get a useful horizon.
+    const minHorizon = 30 * 24 * 60 * 60 * 1000;
+    return Math.min(this.maxFutureMs, Math.max(minHorizon, span));
+  }
+  
+  setPrediction(enabled) {
+    const wasEnabled = this.predictionEnabled;
+    this.predictionEnabled = !!enabled;
+    
+    if (this.predictionEnabled) {
+      // Force a recompute so the freshest data is used.
+      this.predictionModel = null;
+      // Extend the right edge into the future if we're currently pinned to "now".
+      const now = Date.now();
+      if (this.viewportEnd <= now + 60 * 1000) {
+        const span = Math.max(1, this.viewportEnd - this.viewportStart);
+        const futureSpan = Math.min(this.getEffectiveMaxFutureMs(), Math.max(span * 0.3, 24 * 60 * 60 * 1000));
+        this.viewportEnd = Math.floor(now + futureSpan);
+      }
+    } else if (wasEnabled) {
+      // Slide the viewport entirely back into the past while preserving the current
+      // zoom level. Without this, a user who had zoomed into the predicted region
+      // would be left looking at an empty future-only viewport.
+      const now = Date.now();
+      if (this.viewportEnd > now) {
+        const span = Math.max(60 * 60 * 1000, this.viewportEnd - this.viewportStart);
+        this.viewportEnd = Math.floor(now);
+        this.viewportStart = Math.floor(now - span);
+      }
+    }
+    
+    this.validateViewport();
     this.draw();
   }
   
@@ -447,7 +524,30 @@ class CapeUsageGraph {
     // Case B: no point in viewport but a previous one exists -> draw flat carry-forward line.
     // It runs from viewportStart to either viewportEnd or the next out-of-view point.
     const carryUsers = data[prevIdx].users;
-    const rightTs = nextIdx !== -1 ? data[nextIdx].timestamp.getTime() : this.viewportEnd;
+    const nowMs = Date.now();
+    
+    // When prediction is on and the viewport is entirely in the future, skip the
+    // historical carry-forward entirely so the predicted curve isn't shadowed by a
+    // flat "phantom" line at the last recorded value.
+    if (this.predictionEnabled && this.viewportStart >= nowMs && nextIdx === -1) {
+      return {
+        plotData: [],
+        pointsInView: [],
+        statsData: [{ timestamp: new Date(this.viewportEnd), users: carryUsers }]
+      };
+    }
+    
+    // If the carry-forward would extend into the future while prediction is active,
+    // cap it at `now` so the prediction takes over from there.
+    let rightTs;
+    if (nextIdx !== -1) {
+      rightTs = data[nextIdx].timestamp.getTime();
+    } else if (this.predictionEnabled) {
+      rightTs = Math.min(this.viewportEnd, nowMs);
+    } else {
+      rightTs = this.viewportEnd;
+    }
+    
     const synthLeft = {
       timestamp: new Date(this.viewportStart),
       users: carryUsers,
@@ -468,18 +568,192 @@ class CapeUsageGraph {
     return { plotData: [synthLeft, synthRight], pointsInView: [], statsData };
   }
   
+  // Build a forecasting model for cape ownership over time.
+  //
+  // This algorithm was selected by an external backtesting lab (see /predict-lab) that
+  // pulled the full usage history of 31 real capes from the API and compared a dozen
+  // forecasters (naive, drift, OLS, Holt, damped-Holt, Holt-Winters, log-trend, Theta,
+  // Theil-Sen...) by rolling-origin sMAPE at horizons up to 365 days. The winner, across
+  // both quiet and actively-growing capes, was a robust recent-slope extrapolation.
+  //
+  // Observed data dynamics that drive the design:
+  //   - "owners" is near-monotone: declines are rare and usually data glitches.
+  //   - growth decelerates over time (adoption S-curve).
+  //
+  // Pipeline:
+  //   1. Resample the sparse RLE history onto a regular DAILY grid (carry-forward).
+  //   2. Robust recent slope via Theil-Sen (median of pairwise slopes) over the last
+  //      90 days -> immune to short dips and single glitch points.
+  //   3. Dampen declines (cape loss is unlikely) and apply a long-term trend floor so a
+  //      structurally-growing cape is never forecast flat.
+  //   4. Floor the forecast at the recent minimum; apply very mild damping so long
+  //      horizons decelerate instead of exploding.
+  //   5. Uncertainty band from the recent residual spread, widening with the horizon.
+  computePredictionModel() {
+    const data = this.data;
+    if (!data || data.length < 2) {
+      return null;
+    }
+    
+    const HOUR = 60 * 60 * 1000;
+    const DAY = 24 * HOUR;
+    const firstTs = data[0].timestamp.getTime();
+    const lastTs = data[data.length - 1].timestamp.getTime();
+    const anchorUsers = Math.max(0, data[data.length - 1].users);
+    
+    // Tuned constants (from the lab's parameter sweep).
+    const WINDOW_DAYS = 90;   // recent window for the robust slope
+    const NEG_DAMP = 0.5;     // multiply negative slopes (declines are rare)
+    const LT_FACTOR = 0.25;   // long-term trend floor on the slope
+    const FLOOR_DAYS = 30;    // forecast never drops below this recent minimum
+    const PHI = 0.997;        // per-day damping so long horizons decelerate
+    const Z = 1.28;           // ~80% prediction interval
+    
+    // --- 1. Resample onto a regular DAILY grid (carry-forward / RLE semantics) ---
+    // Daily resolution matches the cadence at which ownership actually moves and keeps the
+    // trend estimate stable. The span is capped so ancient epoch-0 rows can't skew it.
+    const MAX_DAYS = 4000;
+    const spanDays = Math.max(1, Math.floor((lastTs - firstTs) / DAY));
+    const nDays = Math.min(MAX_DAYS, spanDays) + 1;
+    const gridStart = lastTs - (nDays - 1) * DAY;
+    const y = new Float64Array(nDays);
+    {
+      let p = 0;
+      while (p + 1 < data.length && data[p + 1].timestamp.getTime() <= gridStart) p++;
+      for (let i = 0; i < nDays; i++) {
+        const t = gridStart + i * DAY;
+        while (p + 1 < data.length && data[p + 1].timestamp.getTime() <= t) p++;
+        y[i] = Math.max(0, data[p].users);
+      }
+    }
+    const last = y[nDays - 1];
+    
+    // Degenerate / very short history: flat carry-forward at the last value.
+    if (nDays < 4) {
+      const predict = () => anchorUsers;
+      const band = (ts) => {
+        const k = Math.max(0, (ts - lastTs) / DAY);
+        return Z * Math.max(1, anchorUsers * 0.05) * Math.sqrt(1 + k);
+      };
+      return { predict, band, slope: 0, anchorUsers, anchorTs: lastTs };
+    }
+    
+    // --- 2. Robust recent slope: Theil-Sen (median of pairwise slopes), per day ---
+    const median = (arr) => {
+      if (!arr.length) return 0;
+      const s = arr.slice().sort((a, b) => a - b);
+      const mid = s.length >> 1;
+      return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+    };
+    const win = Math.min(WINDOW_DAYS, nDays);
+    const seg = Array.prototype.slice.call(y, nDays - win);
+    const slopes = [];
+    const step = Math.max(1, Math.floor(win / 60)); // bound the pair count
+    for (let i = 0; i < win; i += step) {
+      for (let j = i + step; j < win; j += step) {
+        slopes.push((seg[j] - seg[i]) / (j - i));
+      }
+    }
+    let slope = median(slopes);
+    
+    // --- 3. Decline damping + long-term trend floor ---
+    if (slope < 0) slope *= NEG_DAMP;
+    const ltSlope = (y[nDays - 1] - y[0]) / Math.max(1, nDays - 1);
+    if (ltSlope > 0) slope = Math.max(slope, LT_FACTOR * ltSlope);
+    
+    // --- 4. Recent-minimum floor (forecast never crashes below recent reality) ---
+    const floorCells = Math.min(FLOOR_DAYS, nDays);
+    let floor = Infinity;
+    for (let i = nDays - floorCells; i < nDays; i++) floor = Math.min(floor, y[i]);
+    
+    // --- 5. Residual spread of the recent window for the uncertainty band ---
+    let sse = 0;
+    for (let i = 0; i < seg.length; i++) {
+      const fit = seg[seg.length - 1] + slope * (i - (seg.length - 1));
+      const e = seg[i] - fit;
+      sse += e * e;
+    }
+    const sigma = Math.sqrt(sse / Math.max(1, seg.length - 2));
+    
+    // --- Forecast helpers (very mild per-day damping so long horizons decelerate) ---
+    // dampedSteps(k) = sum_{i=1..k} PHI^i, continuous in k.
+    const dampedSteps = (k) => (PHI >= 1 ? k : (PHI * (1 - Math.pow(PHI, k))) / (1 - PHI));
+    
+    const predict = (timestampMs) => {
+      const k = (timestampMs - lastTs) / DAY;
+      if (k <= 0) return anchorUsers; // join seamlessly on the last real value
+      return Math.max(floor, last + slope * dampedSteps(k), 0);
+    };
+    
+    const band = (timestampMs) => {
+      const k = Math.max(0, (timestampMs - lastTs) / DAY);
+      return Z * sigma * Math.sqrt(1 + k);
+    };
+    
+    return { predict, band, slope, anchorUsers, anchorTs: lastTs };
+  }
+  
+  // Generate a synthetic series from "now" up to viewportEnd describing the predicted
+  // trajectory. Sampling density is tied to the display width so we never overdraw.
+  buildPredictionData(displayWidth) {
+    if (!this.predictionEnabled) return null;
+    
+    const nowMs = Date.now();
+    if (this.viewportEnd <= nowMs) return null;
+    
+    if (!this.predictionModel) {
+      this.predictionModel = this.computePredictionModel();
+    }
+    const model = this.predictionModel;
+    if (!model) return null;
+    
+    // Clamp the predicted range to the visible future portion.
+    const startMs = Math.max(nowMs, this.viewportStart);
+    const endMs = this.viewportEnd;
+    if (endMs <= startMs) return null;
+    
+    // ~2 samples per CSS pixel of visible future, capped for safety.
+    const futureWidthPx = Math.max(
+      1,
+      this.timeToX(endMs, displayWidth) - this.timeToX(startMs, displayWidth)
+    );
+    const sampleCount = Math.min(400, Math.max(20, Math.ceil(futureWidthPx / 4)));
+    
+    const points = new Array(sampleCount + 1);
+    
+    // First point anchored exactly on the last real sample for a seamless join.
+    points[0] = {
+      timestamp: new Date(startMs),
+      users: startMs === nowMs ? model.anchorUsers : model.predict(startMs),
+      lower: startMs === nowMs ? model.anchorUsers : Math.max(0, model.predict(startMs) - model.band(startMs)),
+      upper: startMs === nowMs ? model.anchorUsers : model.predict(startMs) + model.band(startMs)
+    };
+    
+    for (let i = 1; i <= sampleCount; i++) {
+      const t = startMs + ((endMs - startMs) * i) / sampleCount;
+      const mean = model.predict(t);
+      const delta = model.band(t);
+      points[i] = {
+        timestamp: new Date(t),
+        users: mean,
+        lower: Math.max(0, mean - delta),
+        upper: mean + delta
+      };
+    }
+    
+    return points;
+  }
+  
   draw() {
     const ctx = this.ctx;
     const dpr = window.devicePixelRatio || 1;
     const displayWidth = this.canvas.width / dpr;
     const displayHeight = this.canvas.height / dpr;
     
-    // Clear canvas
     ctx.clearRect(0, 0, displayWidth, displayHeight);
     
     // If no data at all, just draw an empty graph with grid and axes
     if (!this.data.length) {
-      // Set default max users for empty graph
       this.maxUsers = 100;
       this.drawGrid(displayWidth, displayHeight);
       this.drawAxes(displayWidth, displayHeight);
@@ -488,8 +762,15 @@ class CapeUsageGraph {
     
     const { plotData, pointsInView, statsData } = this.buildPlotData();
     
+    // Rescale the Y axis to fit the predicted band (dynamic when prediction is on).
+    // This is done up front, persistently, so the grid, the historical line, the
+    // prediction curve AND the hover marker all share the exact same scale.
+    this.refreshYScale();
+    
+    const predictionData = this.buildPredictionData(displayWidth);
+    
     // Nothing relevant at all (no point in viewport AND no previous point to carry forward)
-    if (plotData.length === 0) {
+    if (plotData.length === 0 && !predictionData) {
       this.drawGrid(displayWidth, displayHeight);
       this.drawAxes(displayWidth, displayHeight);
       
@@ -520,47 +801,149 @@ class CapeUsageGraph {
     ctx.rect(p, p, displayWidth - 2 * p, displayHeight - 2 * p);
     ctx.clip();
     
-    ctx.beginPath();
-    ctx.strokeStyle = this.options.lineColor;
-    ctx.lineWidth = 2;
-    
-    dataToPlot.forEach((point, i) => {
-      const x = this.timeToX(point.timestamp, displayWidth);
-      const y = this.userCountToY(point.users, displayHeight);
+    if (dataToPlot.length > 0) {
+      ctx.beginPath();
+      ctx.strokeStyle = this.options.lineColor;
+      ctx.lineWidth = 2;
       
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
+      dataToPlot.forEach((point, i) => {
+        const x = this.timeToX(point.timestamp, displayWidth);
+        const y = this.userCountToY(point.users, displayHeight);
+        
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      
+      ctx.stroke();
+      
+      // Only dots inside the viewport get drawn (no markers for boundary / synthetic points)
+      this.drawPoints(dataToPlot, displayWidth, displayHeight);
+    }
     
-    ctx.stroke();
-    
-    // Only dots inside the viewport get drawn (no markers for boundary / synthetic points)
-    this.drawPoints(dataToPlot, displayWidth, displayHeight);
+    // Prediction overlay: uncertainty band + dashed mean curve.
+    if (predictionData && predictionData.length > 1) {
+      this.drawPrediction(predictionData, displayWidth, displayHeight);
+    }
     
     // Floating marker on the line at the cursor position (interpolated hover)
     if (this.hoverPoint && this.hoverPoint._interpolated) {
       const hx = this.hoverPoint.x;
       const hy = this.hoverPoint.y;
-      ctx.beginPath();
-      ctx.arc(hx, hy, this.options.pointRadius + 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(hx, hy, this.options.pointRadius + 2, 0, Math.PI * 2);
-      ctx.fillStyle = `${this.options.lineColor}40`;
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(hx, hy, this.options.pointRadius, 0, Math.PI * 2);
-      ctx.fillStyle = this.options.lineColor;
-      ctx.fill();
+      
+      if (this.hoverPoint._predicted) {
+        // Smaller, hollow marker for predicted hovers so it reads as "estimate"
+        // rather than a real recorded sample.
+        ctx.beginPath();
+        ctx.arc(hx, hy, this.options.pointRadius + 2, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = this.options.lineColor;
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(hx, hy, this.options.pointRadius + 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(hx, hy, this.options.pointRadius + 2, 0, Math.PI * 2);
+        ctx.fillStyle = `${this.options.lineColor}40`;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(hx, hy, this.options.pointRadius, 0, Math.PI * 2);
+        ctx.fillStyle = this.options.lineColor;
+        ctx.fill();
+      }
     }
     
     ctx.restore();
     
+    // "Now" separator drawn on top (outside clip so the label can sit at the top edge).
+    if (this.predictionEnabled) {
+      this.drawNowMarker(displayWidth, displayHeight);
+    }
+    
     this.drawStats(statsData, displayWidth, displayHeight);
+  }
+  
+  // Draw the prediction band (uncertainty area) and the mean curve as a dashed line.
+  // Visually subdued so it reads clearly as "estimate" without overpowering the chart.
+  drawPrediction(predictionData, displayWidth, displayHeight) {
+    const ctx = this.ctx;
+    
+    // Uncertainty band as a filled area between lower and upper. Same opacity as the
+    // historical area fill so both feel like part of the same chart.
+    ctx.beginPath();
+    for (let i = 0; i < predictionData.length; i++) {
+      const pt = predictionData[i];
+      const x = this.timeToX(pt.timestamp, displayWidth);
+      const y = this.userCountToY(pt.upper, displayHeight);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    for (let i = predictionData.length - 1; i >= 0; i--) {
+      const pt = predictionData[i];
+      const x = this.timeToX(pt.timestamp, displayWidth);
+      const y = this.userCountToY(pt.lower, displayHeight);
+      ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = `${this.options.lineColor}1A`; // ~10% alpha
+    ctx.fill();
+    
+    // Mean curve as a finer dashed line at reduced opacity.
+    ctx.save();
+    ctx.beginPath();
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = this.options.lineColor;
+    ctx.globalAlpha = 0.75;
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < predictionData.length; i++) {
+      const pt = predictionData[i];
+      const x = this.timeToX(pt.timestamp, displayWidth);
+      const y = this.userCountToY(pt.users, displayHeight);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+  
+  // Vertical line + small "Now" label separating real data from predicted data.
+  drawNowMarker(displayWidth, displayHeight) {
+    const ctx = this.ctx;
+    const p = this.options.padding;
+    const nowMs = Date.now();
+    
+    if (nowMs < this.viewportStart || nowMs > this.viewportEnd) return;
+    
+    const x = this.timeToX(nowMs, displayWidth);
+    if (x < p || x > displayWidth - p) return;
+    
+    ctx.save();
+    ctx.strokeStyle = this.options.textColor;
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(x, p);
+    ctx.lineTo(x, displayHeight - p);
+    ctx.stroke();
+    ctx.restore();
+    
+    ctx.save();
+    ctx.fillStyle = this.options.textColor;
+    ctx.font = `11px ${this.options.fontFamily}`;
+    ctx.textBaseline = 'top';
+    const label = 'Now';
+    const labelWidth = ctx.measureText(label).width;
+    const labelX = Math.min(displayWidth - p - labelWidth - 4, x + 4);
+    ctx.fillText(label, labelX, p + 2);
+    ctx.restore();
   }
   
   drawGrid(width, height) {
@@ -570,7 +953,6 @@ class CapeUsageGraph {
     ctx.strokeStyle = this.options.gridColor;
     ctx.lineWidth = 1;
     
-    // Horizontal grid lines - simplify for small graph
     const userStep = Math.ceil(this.maxUsers / (this.options.simplified ? 2 : 5));
     for (let i = 0; i <= this.maxUsers; i += userStep) {
       const y = this.userCountToY(i, height);
@@ -589,7 +971,6 @@ class CapeUsageGraph {
       }
     }
     
-    // Vertical grid lines
     const timeRange = this.viewportEnd - this.viewportStart;
     const HOUR = 60 * 60 * 1000;
     const DAY = 24 * HOUR;
@@ -622,11 +1003,9 @@ class CapeUsageGraph {
     const startTime = new Date(this.viewportStart);
     startTime.setHours(0, 0, 0, 0);
     
-    // Calculate how many labels would fit in the available width
     const availableWidth = width - 2 * p;
     const maxLabels = Math.max(1, Math.floor(availableWidth / avgLabelWidth));
     
-    // Count potential labels
     let labelCount = 0;
     for (let timestamp = startTime.getTime(); timestamp <= this.viewportEnd; timestamp += timeStep) {
       labelCount++;
@@ -726,10 +1105,8 @@ class CapeUsageGraph {
           }
         };
         
-        // First date
         drawEdgeLabel(format(firstTime), firstX);
         
-        // Last date
         drawEdgeLabel(format(lastTime), lastX);
       }
     }
@@ -742,13 +1119,11 @@ class CapeUsageGraph {
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 1;
     
-    // X axis
     ctx.beginPath();
     ctx.moveTo(p, height - p);
     ctx.lineTo(width - p, height - p);
     ctx.stroke();
     
-    // Y axis
     ctx.beginPath();
     ctx.moveTo(p, p);
     ctx.lineTo(p, height - p);
@@ -761,10 +1136,8 @@ class CapeUsageGraph {
       ctx.textBaseline = 'middle';
       ctx.font = `bold 12px ${this.options.fontFamily}`;
       
-      // X axis label
       ctx.fillText('Time', width / 2, height - 10);
       
-      // Y axis label
       ctx.save();
       ctx.translate(15, height / 2);
       ctx.rotate(-Math.PI / 2);
@@ -783,7 +1156,6 @@ class CapeUsageGraph {
     const maxUsers = Math.max(0, Math.max(...visibleData.map(d => d.users)));
     const minUsers = Math.max(0, Math.min(...visibleData.map(d => d.users)));
     
-    // Update stats in the HTML
     const { statElements } = this.options;
     if (statElements) {
       if (statElements.current) statElements.current.textContent = formatNumber(currentUsers);
@@ -793,7 +1165,6 @@ class CapeUsageGraph {
     
     // For simplified view, add more data points and display more information
     if (this.options.simplified) {
-      // Calculate additional statistics
       let maxPoint = visibleData[0];
       let minPoint = visibleData[0];
       
@@ -802,12 +1173,10 @@ class CapeUsageGraph {
         if (point.users < minPoint.users) minPoint = point;
       }
       
-      // Draw more horizontal grid lines
       const userStep = Math.ceil(this.maxUsers / 5); // Show 5 grid lines regardless of simplified view
       for (let i = userStep; i < this.maxUsers; i += userStep) {
         const y = this.userCountToY(i, height);
         
-        // Draw dotted grid line
         ctx.beginPath();
         ctx.setLineDash([2, 2]);
         ctx.moveTo(p, y);
@@ -816,7 +1185,6 @@ class CapeUsageGraph {
         ctx.stroke();
         ctx.setLineDash([]);
         
-        // Label for intermediate values
         ctx.fillStyle = this.options.textColor;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
@@ -966,39 +1334,31 @@ class CapeUsageGraph {
   }
   
   addEventListeners() {
-    // Mouse wheel for zooming
     this.canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       
       const rect = this.canvas.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       
-      // Calculate time at mouse position
       const timeAtMouse = this.xToTime(mouseX);
       
-      // Zoom factor
       const factor = e.deltaY < 0 ? 0.9 : 1.1;
       
-      // Apply zoom
       const timeRange = this.viewportEnd - this.viewportStart;
       const newTimeRange = timeRange * factor;
       
-      // Calculate new viewport limits
       const mousePercent = (timeAtMouse - this.viewportStart) / timeRange;
       let newStart = timeAtMouse - mousePercent * newTimeRange;
       let newEnd = newStart + newTimeRange;
       
-      // Update viewport
       this.viewportStart = newStart;
       this.viewportEnd = newEnd;
       
-      // Apply constraints
       this.validateViewport();
       
       this.draw();
     });
     
-    // Mouse drag for panning
     this.canvas.addEventListener('mousedown', (e) => {
       const rect = this.canvas.getBoundingClientRect();
       this.isDragging = true;
@@ -1015,21 +1375,17 @@ class CapeUsageGraph {
         const mouseX = e.clientX - rect.left;
         const dx = mouseX - this.dragStart.x;
         
-        // Convert pixel movement to time delta
         const displayWidth = this.canvas.width / (window.devicePixelRatio || 1);
         const timeRange = this.dragStart.timeEnd - this.dragStart.timeStart;
         const timeDelta = -dx / (displayWidth - 2 * this.options.padding) * timeRange;
         
-        // Calculate new viewport times
         this.viewportStart = this.dragStart.timeStart + timeDelta;
         this.viewportEnd = this.dragStart.timeEnd + timeDelta;
         
-        // Apply constraints
         this.validateViewport();
         
         this.draw();
       } else {
-        // Handle hover effect
         this.handleMouseMove(e);
       }
     });
@@ -1046,7 +1402,6 @@ class CapeUsageGraph {
     });
     
     this.canvas.addEventListener('mouseleave', () => {
-      // Hide tooltip and hover elements when mouse leaves the canvas
       if (this.options.tooltipContainer) {
         this.options.tooltipContainer.style.display = 'none';
       }
@@ -1083,14 +1438,13 @@ class CapeUsageGraph {
     
     // Check if hovering min/max indicators in simplified view
     if (this.options.simplified && this.data.length > 0) {
-      // Check if mouse is near max point
       if (this.maxPointInfo || this.minPointInfo) {
         const distance = Math.sqrt(
           Math.pow(mouseX - this.maxPointInfo.x, 2) + 
           Math.pow(mouseY - this.maxPointInfo.y, 2)
         );
         
-        if (distance <= 10) { // 10px hover radius
+        if (distance <= 10) {
           const formattedDate = this.formatTooltipDate(this.maxPointInfo.timestamp);
           const tooltipContent = `
             <strong>Maximum:</strong> ${formatNumber(Math.max(0, this.maxPointInfo.users))} users<br>${formattedDate}
@@ -1108,14 +1462,13 @@ class CapeUsageGraph {
         }
       }
       
-      // Check if mouse is near min point
       if (this.minPointInfo) {
         const distance = Math.sqrt(
           Math.pow(mouseX - this.minPointInfo.x, 2) + 
           Math.pow(mouseY - this.minPointInfo.y, 2)
         );
         
-        if (distance <= 10) { // 10px hover radius
+        if (distance <= 10) {
           const formattedDate = this.formatTooltipDate(this.minPointInfo.timestamp);
           const tooltipContent = `
             <strong>Minimum:</strong> ${formatNumber(Math.max(0, this.minPointInfo.users))} users<br>${formattedDate}
@@ -1133,36 +1486,64 @@ class CapeUsageGraph {
         }
       }
       
-      // Hide tooltip if not hovering any special point
       if (this.options.tooltipContainer) {
         this.options.tooltipContainer.style.display = 'none';
       }
     }
     
-    // Continue with the existing hover point detection
     const timeAtMouse = this.xToTime(mouseX, displayWidth);
     const mouseTimestamp = new Date(timeAtMouse);
+    const nowMs = Date.now();
     
-    // Original hover code - find data point closest to mouse
     const visibleData = this.data.filter(d => {
       const timestamp = d.timestamp.getTime();
       return timestamp >= this.viewportStart && timestamp <= this.viewportEnd;
     });
     
-    // Reset cursor if not over a special point
     if (this.canvas.style.cursor === 'pointer' && !this.isDragging) {
       this.canvas.style.cursor = 'default';
     }
     
-    if (visibleData.length === 0) {
+    // In the future region when prediction is on, the value comes from the model,
+    // not from `visibleData`. Skip the early return so we still display a tooltip.
+    const inPredictedRegion = this.predictionEnabled && timeAtMouse > nowMs;
+    
+    if (visibleData.length === 0 && !inPredictedRegion) {
       this.hoverPoint = null;
       this.draw();
       return;
     }
     
-    // Interpolate the user count at the cursor's X position so the tooltip follows the line
-    // smoothly between samples (linear interpolation, carry-forward outside the data range).
-    const hover = this.computeHoverAtX(mouseX, displayWidth, displayHeight, visibleData);
+    // Match the Y scale draw() will use so the hover marker lands exactly on the curve.
+    this.refreshYScale();
+    
+    let hover;
+    if (inPredictedRegion) {
+      if (!this.predictionModel) {
+        this.predictionModel = this.computePredictionModel();
+      }
+      const model = this.predictionModel;
+      if (model) {
+        const mean = model.predict(timeAtMouse);
+        const delta = model.band(timeAtMouse);
+        hover = {
+          timestamp: mouseTimestamp,
+          users: Math.round(mean),
+          x: mouseX,
+          y: this.userCountToY(mean, displayHeight),
+          _interpolated: true,
+          _predicted: true,
+          _predLower: Math.max(0, mean - delta),
+          _predUpper: mean + delta
+        };
+      } else {
+        hover = null;
+      }
+    } else {
+      // Interpolate the user count at the cursor's X position so the tooltip follows the line
+      // smoothly between samples (linear interpolation, carry-forward outside the data range).
+      hover = this.computeHoverAtX(mouseX, displayWidth, displayHeight, visibleData);
+    }
     
     const padding = this.options.padding;
     const isWithinGraphX =
@@ -1173,7 +1554,6 @@ class CapeUsageGraph {
     const closestX = hover ? hover.x : 0;
     const closestY = hover ? hover.y : 0;
     
-    // Different processing depending on whether we are in simplified or detailed view
     if (this.options.simplified) {
       if (hover && isWithinGraphX) {
         this.hoverPoint = hover;
@@ -1181,9 +1561,12 @@ class CapeUsageGraph {
         this.canvas.style.cursor = 'pointer';
         
         const formattedDate = this.formatTooltipDate(hover.timestamp);
+        const predictedLabel = hover._predicted
+          ? `<br><em style="opacity:0.75;">Predicted (~${formatNumber(Math.round(hover._predLower))}-${formatNumber(Math.round(hover._predUpper))})</em>`
+          : '';
         const tooltipContent = `
           <strong>${formattedDate}</strong><br>
-          ${formatNumber(Math.max(0, hover.users))} users
+          ${formatNumber(Math.max(0, hover.users))} users${predictedLabel}
         `;
         
         this.positionTooltip(
@@ -1200,8 +1583,6 @@ class CapeUsageGraph {
         this.canvas.style.cursor = 'pointer';
       }
     } else {
-      // For the detailed view (modal)
-      // Verify if the cursor is within the graph bounds (between the margins)
       const padding = this.options.padding;
       const isWithinGraphBounds = 
         mouseX >= padding && 
@@ -1209,7 +1590,6 @@ class CapeUsageGraph {
         mouseY >= padding && 
         mouseY <= displayHeight - padding;
       
-      // Also check if the modal containing this graph is visible
       let isModalVisible = true;
       const modal = document.getElementById('graph-modal');
       if (modal) {
@@ -1220,11 +1600,15 @@ class CapeUsageGraph {
         this.hoverPoint = closestPoint;
         this.canvas.style.cursor = 'crosshair';
         
-        // Display the detailed tooltip
         const formattedDate = this.formatDetailedTooltipDate(closestPoint.timestamp);
+        const predictedExtra = closestPoint._predicted
+          ? `<div style="opacity:0.75; font-size: 11px;">Predicted &middot; ~${formatNumber(Math.round(closestPoint._predLower))} - ${formatNumber(Math.round(closestPoint._predUpper))}</div>`
+          : '';
+        const labelPrefix = closestPoint._predicted ? 'Predicted: ' : '';
         const tooltipContent = `
           <div style="font-weight: bold;">${formattedDate}</div>
-          <div>${formatNumber(Math.max(0, closestPoint.users))} users</div>
+          <div>${labelPrefix}${formatNumber(Math.max(0, closestPoint.users))} users</div>
+          ${predictedExtra}
         `;
 
         this.positionTooltip(
@@ -1234,7 +1618,6 @@ class CapeUsageGraph {
           tooltipContent
         );
         
-        // Show hover line at the position of the closest point
         if (this.options.hoverLineElement) {
           const hoverLine = this.options.hoverLineElement;
           hoverLine.style.display = 'block';
@@ -1243,13 +1626,11 @@ class CapeUsageGraph {
           hoverLine.style.height = `${displayHeight - 2 * padding}px`;
           hoverLine.style.zIndex = '998';
           
-          // Hide the value element that follows the curve
           if (this.options.hoverValueElement) {
             this.options.hoverValueElement.style.display = 'none';
           }
         }
       } else {
-        // If outside graph bounds, hide tooltip and hover line
         if (this.options.tooltipContainer) {
           this.options.tooltipContainer.style.display = 'none';
         }
@@ -1260,7 +1641,6 @@ class CapeUsageGraph {
       }
     }
     
-    // Clean up when mouse leaves
     this.canvas.addEventListener('mouseleave', () => {
       if (this.options.tooltipContainer) {
         this.options.tooltipContainer.style.display = 'none';
@@ -1279,7 +1659,6 @@ class CapeUsageGraph {
     const timeRange = this.viewportEnd - this.viewportStart;
     
     if (timeRange < 24 * 60 * 60 * 1000) {
-      // Less than a day, show hour:minute
       return date.toLocaleString(undefined, { 
         month: 'short', 
         day: 'numeric', 
@@ -1287,7 +1666,6 @@ class CapeUsageGraph {
         minute: '2-digit' 
       });
     } else if (timeRange < 7 * 24 * 60 * 60 * 1000) {
-      // Less than a week, show day and time
       return date.toLocaleString(undefined, { 
         month: 'short', 
         day: 'numeric', 
@@ -1295,7 +1673,6 @@ class CapeUsageGraph {
         minute: '2-digit' 
       });
     } else {
-      // Otherwise date with time
       return date.toLocaleString(undefined, { 
         year: 'numeric', 
         month: 'short', 
@@ -1312,7 +1689,6 @@ class CapeUsageGraph {
     const timeRange = this.viewportEnd - this.viewportStart;
     
     if (timeRange < 24 * 60 * 60 * 1000) {
-      // Less than a day, show hour:minute:second
       return date.toLocaleString(undefined, { 
         month: 'short', 
         day: 'numeric', 
@@ -1321,7 +1697,6 @@ class CapeUsageGraph {
         second: '2-digit'
       });
     } else if (timeRange < 7 * 24 * 60 * 60 * 1000) {
-      // Less than a week, show day and time
       return date.toLocaleString(undefined, { 
         weekday: 'short',
         month: 'short', 
@@ -1330,7 +1705,6 @@ class CapeUsageGraph {
         minute: '2-digit' 
       });
     } else if (timeRange < 30 * 24 * 60 * 60 * 1000) {
-      // Less than a month
       return date.toLocaleString(undefined, { 
         weekday: 'short',
         month: 'short', 
@@ -1339,7 +1713,6 @@ class CapeUsageGraph {
         minute: '2-digit'
       });
     } else {
-      // More than a month
       return date.toLocaleString(undefined, { 
         year: 'numeric', 
         month: 'short', 
@@ -1354,7 +1727,6 @@ class CapeUsageGraph {
   simplifyData(data, targetPoints) {
     if (data.length <= targetPoints) return data;
     
-    // For simplified view, use more data points
     const targetPointCount = this.options.simplified ? 100 : targetPoints;
     
     const skipFactor = Math.floor(data.length / targetPointCount);
@@ -1362,7 +1734,6 @@ class CapeUsageGraph {
   }
   
   
-  // Add this new method to fetch data when viewport changes
   async fetchDataForViewport() {
     // If we're in the middle of dragging, just set a flag to fetch later
     if (this.isDragging) {
@@ -1374,7 +1745,6 @@ class CapeUsageGraph {
     this.debouncedFetchData();
   }
   
-  // Add this new method for the actual implementation
   async _fetchDataForViewport() {
     // No need to fetch if we don't have a Cape ID
     if (!this.capeId || this.capeId === 'unknown') return;
@@ -1385,16 +1755,13 @@ class CapeUsageGraph {
     // If already fetching, don't start another fetch
     if (this.isFetching) return;
     
-    // Reset the pending fetch flag
     this.pendingFetch = false;
     
-    // Calculate the time range currently visible
     const currentViewportRange = this.viewportEnd - this.viewportStart;
     
     // Define a threshold (e.g., 20% of the current viewport)
     const threshold = currentViewportRange * 0.2;
     
-    // Check if we need to fetch more data
     const needToFetchStart = 
       !this.lastFetchedViewport.start || 
       this.viewportStart < this.lastFetchedViewport.start + threshold;
@@ -1403,11 +1770,9 @@ class CapeUsageGraph {
       !this.lastFetchedViewport.end || 
       this.viewportEnd > this.lastFetchedViewport.end - threshold;
     
-    // Only fetch if we actually need new data
     if (!needToFetchStart && !needToFetchEnd) return;
     
-    // Calculate padding for fetching more data
-    const padding = Math.floor(currentViewportRange * this.fetchPadding); // Ensure integer
+    const padding = Math.floor(currentViewportRange * this.fetchPadding);
     
     const nowMs = Date.now();
     const fetchStart = Math.floor(Math.max(
@@ -1424,11 +1789,9 @@ class CapeUsageGraph {
       return;
     }
     
-    // Check if we already have this data in cache
     if (window.capeDataCache && window.capeDataCache.isTimeRangeCached(this.capeId, fetchStart, fetchEnd)) {
       const data = window.capeDataCache.getDataForTimeRange(this.capeId, fetchStart, fetchEnd);
       
-      // Merge with existing data if needed
       if (this.data && this.data.length > 0) {
         const existingTimestamps = new Set(this.data.map(d => d.timestamp.getTime()));
         const newData = data.filter(d => !existingTimestamps.has(d.timestamp.getTime()));
@@ -1436,13 +1799,13 @@ class CapeUsageGraph {
         if (newData.length > 0) {
           this.data = [...this.data, ...newData].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
           this.recomputeUserBounds();
+          this.predictionModel = null;
           this.draw();
         }
       } else {
         this.setData(data);
       }
       
-      // Update last fetched viewport
       this.lastFetchedViewport = {
         start: Math.min(this.lastFetchedViewport.start || Infinity, fetchStart),
         end: Math.max(this.lastFetchedViewport.end || 0, fetchEnd)
@@ -1462,7 +1825,6 @@ class CapeUsageGraph {
     }
     
     try {
-      // Fetch data from API (v2 columnar endpoint)
       const apiUrl = `${apiBase}/v2/${this.capeId}/usage?start=${fetchStart}&end=${fetchEnd}`;
       
       const response = await fetch(apiUrl);
@@ -1489,7 +1851,6 @@ class CapeUsageGraph {
       
       const data = await response.json();
       
-      // Process and validate the data using shared function
       const validData = processApiData(data, this.capeId);
       
       if (showLoading) {
@@ -1498,12 +1859,10 @@ class CapeUsageGraph {
         });
       }
       
-      // Add to cache if available
       if (window.capeDataCache) {
         window.capeDataCache.addData(this.capeId, validData, fetchStart, fetchEnd);
       }
       
-      // Merge with existing data
       if (this.data && this.data.length > 0) {
         const existingTimestamps = new Set(this.data.map(d => d.timestamp.getTime()));
         const newData = validData.filter(d => !existingTimestamps.has(d.timestamp.getTime()));
@@ -1511,13 +1870,13 @@ class CapeUsageGraph {
         if (newData.length > 0) {
           this.data = [...this.data, ...newData].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
           this.recomputeUserBounds();
+          this.predictionModel = null;
           this.draw();
         }
       } else {
         this.setData(validData);
       }
       
-      // Update last fetched viewport
       this.lastFetchedViewport = {
         start: Math.min(this.lastFetchedViewport.start || Infinity, fetchStart),
         end: Math.max(this.lastFetchedViewport.end || 0, fetchEnd)
@@ -1531,7 +1890,6 @@ class CapeUsageGraph {
         window.capeDataCache.addFailedRequest(this.capeId, fetchStart, fetchEnd);
       }
       
-      // Show error message to user
       if (showErrorMessage) {
         showErrorMessage(`Failed to load data for cape ${this.capeId}. Please try again later.`);
       }
@@ -1558,11 +1916,14 @@ class CapeUsageGraph {
   validateViewport() {
     const now = Math.floor(Date.now());
     const minAllowedTime = 0;
-    const maxAllowedTime = now;
+    // Allow the viewport to extend into the future when prediction is active so
+    // users can pan/zoom into the predicted region.
+    const maxAllowedTime = this.predictionEnabled
+      ? now + this.getEffectiveMaxFutureMs()
+      : now;
     
     this.viewportStart = Math.floor(Math.max(this.viewportStart, minAllowedTime));
     
-    // Limit end time
     this.viewportEnd = Math.floor(Math.min(this.viewportEnd, maxAllowedTime));
     
     // Ensure the viewport isn't too small (min 1 hour)
@@ -1571,7 +1932,8 @@ class CapeUsageGraph {
       this.viewportEnd = Math.floor(this.viewportStart + minTimeRange);
     }
     
-    // Fetch data for new viewport if needed
+    // Fetch data for new viewport if needed (clamped to the past to avoid
+    // pointless requests for the predicted region).
     this.fetchDataForViewport();
   }
 
@@ -1592,7 +1954,6 @@ class CapeUsageGraph {
     console.log('Is fetching:', this.isFetching);
     console.log('Last fetched viewport:', this.lastFetchedViewport);
     
-    // Check visible data
     const visibleData = this.data.filter(d => {
       const timestamp = d.timestamp.getTime();
       return timestamp >= this.viewportStart && timestamp <= this.viewportEnd;
@@ -1667,7 +2028,6 @@ class CapeUsageGraph {
       });
     }
     
-    // Draw area fill under the line
     ctx.beginPath();
     dataToPlot.forEach((point, i) => {
       const x = this.timeToX(point.timestamp, displayWidth);
@@ -1701,14 +2061,11 @@ class CapeDataCache {
     this.failedRequestBackoff = 5 * 60 * 1000; // Wait 5 minutes before retrying failed requests
   }
 
-  // Return cached data for a specific time range
   getDataForTimeRange(capeId, startTime, endTime) {
     if (!this.cacheData[capeId]) {
       return null;
     }
     
-    // Filter data already available in the requested range
-    // Convert timestamps to numbers for proper comparison
     return this.cacheData[capeId].data.filter(
       item => {
         const itemTimestamp = item.timestamp instanceof Date ? item.timestamp.getTime() : item.timestamp;
@@ -1717,7 +2074,6 @@ class CapeDataCache {
     );
   }
 
-  // Check if the time range is completely covered by the cache
   isTimeRangeCached(capeId, startTime, endTime) {
     if (!this.cacheData[capeId] || !this.cacheData[capeId].timeRanges.length) {
       return false;
@@ -1727,18 +2083,14 @@ class CapeDataCache {
     const validRanges = [];
     const invalidRanges = [];
     
-    // Check if the requested range is completely covered by the cached ranges and still valid
     for (const range of this.cacheData[capeId].timeRanges) {
-      // Check if the range has a timestamp (format: [start, end, timestamp])
       if (range.length >= 3) {
         if (now - range[2] < this.cacheDuration) {
-          // The cache is still valid
           validRanges.push(range);
           if (range[0] <= startTime && range[1] >= endTime) {
             return true;
           }
         } else {
-          // The cache has expired
           invalidRanges.push(range);
         }
       } else {
@@ -1748,7 +2100,6 @@ class CapeDataCache {
       }
     }
     
-    // Clean invalid ranges
     if (invalidRanges.length > 0) {
       this.cacheData[capeId].timeRanges = validRanges;
       
@@ -1768,7 +2119,6 @@ class CapeDataCache {
     }
     
     for (const failure of this.failedRequests[capeId]) {
-      // Check if this request overlaps with a failed one
       const [failedStart, failedEnd, timestamp] = failure;
       const overlaps = !(failedEnd < startTime || failedStart > endTime);
       const isRecent = (Date.now() - timestamp) < this.failedRequestBackoff;
@@ -1783,7 +2133,6 @@ class CapeDataCache {
     return false;
   }
   
-  // Add a failed request to the tracking list
   addFailedRequest(capeId, startTime, endTime) {
     if (!this.failedRequests[capeId]) {
       this.failedRequests[capeId] = [];
@@ -1801,7 +2150,6 @@ class CapeDataCache {
       failure => now - failure[2] <= this.failedRequestBackoff
     );
     
-    // Remove empty arrays
     if (this.failedRequests[capeId].length === 0) {
       delete this.failedRequests[capeId];
     }
@@ -1816,11 +2164,9 @@ class CapeDataCache {
       };
     }
     
-    // Add the new time range with a timestamp
     const timestamp = Date.now();
     this.cacheData[capeId].timeRanges.push([startTime, endTime, timestamp]);
     
-    // Merge the new data with existing data, without duplicates
     const existingTimestamps = new Set(this.cacheData[capeId].data.map(d => d.timestamp.getTime()));
     
     data.forEach(item => {
@@ -1829,10 +2175,8 @@ class CapeDataCache {
       }
     });
     
-    // Sort data by timestamp
     this.cacheData[capeId].data.sort((a, b) => a.timestamp - b.timestamp);
     
-    // Merge overlapping time ranges
     this.mergeTimeRanges(capeId);
   }
 
@@ -1842,7 +2186,6 @@ class CapeDataCache {
       return;
     }
     
-    // Sort time ranges
     const ranges = [...this.cacheData[capeId].timeRanges].sort((a, b) => a[0] - b[0]);
     const mergedRanges = [ranges[0]];
     
@@ -1851,7 +2194,6 @@ class CapeDataCache {
       const previous = mergedRanges[mergedRanges.length - 1];
       
       if (current[0] <= previous[1]) {
-        // The ranges overlap, merge
         previous[1] = Math.max(previous[1], current[1]);
         // Keep the latest timestamp
         if (current.length >= 3 && previous.length >= 3) {
@@ -1860,7 +2202,6 @@ class CapeDataCache {
           previous[2] = current[2];
         }
       } else {
-        // No overlap, add as new range
         mergedRanges.push(current);
       }
     }
@@ -1868,7 +2209,6 @@ class CapeDataCache {
     this.cacheData[capeId].timeRanges = mergedRanges;
   }
 
-  // Check if a request is pending for the requested range
   isPendingRequest(capeId, startTime, endTime) {
     if (!this.pendingRequests[capeId]) {
       return false;
@@ -1879,7 +2219,6 @@ class CapeDataCache {
     );
   }
 
-  // Add a pending request
   addPendingRequest(capeId, startTime, endTime, promise) {
     if (!this.pendingRequests[capeId]) {
       this.pendingRequests[capeId] = [];
@@ -1906,10 +2245,9 @@ class CapeDataCache {
   }
 }
 
-// Create a global instance of the cache
 window.capeDataCache = new CapeDataCache();
 window.lastErrorMessageTimestamp = 0;
-window.errorMessageDebounceTime = 1000; // minimum 1 seconde entre les messages
+window.errorMessageDebounceTime = 1000;
 
 // Helper function to show error messages in graph containers
 function showErrorMessage(message) {
@@ -1919,14 +2257,11 @@ function showErrorMessage(message) {
     return;
   }
   
-  // Update the timestamp of the last message
   window.lastErrorMessageTimestamp = now;
   
-  // Use the predefined error containers
   const simplifiedContainer = document.getElementById('simplified-graph-error-container');
   const modalContainer = document.getElementById('modal-graph-error-container');
   
-  // Display the message in the containers if they exist
   if (simplifiedContainer) {
     simplifiedContainer.textContent = message;
     simplifiedContainer.style.display = 'block';
@@ -1948,7 +2283,6 @@ function showErrorMessage(message) {
   }
 }
 
-// Expose the function globally
 window.showErrorMessage = showErrorMessage;
 
 // Function to create the usage graph card
@@ -1996,7 +2330,6 @@ function createUsageGraphCard(capeId) {
     </div>
   `;
   
-  // Create modal HTML structure
   const modalHtml = `
     <div id="graph-modal" class="modal fade">
       <div class="modal-dialog modal-xl" style="max-width: 1200px;">
@@ -2020,6 +2353,9 @@ function createUsageGraphCard(capeId) {
                 <div class="btn-group btn-group-sm clean-control btn-control" role="group">
                   <button type="button" class="btn btn-outline-secondary btn-sm" id="modal-reset-zoom">
                     <i class="fas fa-sync-alt me-1"></i>Reset Zoom
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="modal-predict" aria-pressed="false">
+                    <i class="fas fa-chart-line me-1"></i>Prediction
                   </button>
                   <button type="button" class="btn btn-outline-info btn-sm" id="modal-help">
                     <i class="fas fa-info-circle me-1"></i>Help
@@ -2082,12 +2418,37 @@ function createUsageGraphCard(capeId) {
     </div>
   `;
   
-  // Check if modal already exists - if not, add it to the document
   if (!document.getElementById('graph-modal')) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
   }
   
   return graphCard;
+}
+
+// Single delegated listener for the prediction toggle. The BUTTON's `.active` class is the
+// single source of truth (the button persists in the DOM, whereas the graph instance can be
+// recreated and would reset its internal flag) -- this is what makes the toggle reliable.
+function ensurePredictionToggleListener() {
+  if (window.__nmcePredictionToggleWired) return;
+  window.__nmcePredictionToggleWired = true;
+  
+  document.addEventListener('click', (e) => {
+    const btn = e.target && e.target.closest ? e.target.closest('#modal-predict') : null;
+    if (!btn) return;
+    
+    const willEnable = !btn.classList.contains('active');
+    btn.classList.toggle('active', willEnable);
+    btn.setAttribute('aria-pressed', willEnable ? 'true' : 'false');
+    
+    const g = window.modalCapeGraph;
+    if (g && typeof g.setPrediction === 'function') {
+      try {
+        g.setPrediction(willEnable);
+      } catch (err) {
+        console.error('Prediction toggle failed:', err);
+      }
+    }
+  });
 }
 
 // Initialize the graph
@@ -2099,7 +2460,6 @@ function initializeGraph(capeId) {
   
   if (!canvas) return;
   
-  // Initialize main graph with simplified option and capeId
   const graph = new CapeUsageGraph(canvas, {
     tooltipContainer: tooltip,
     hoverLineElement: hoverLine,
@@ -2115,41 +2475,63 @@ function initializeGraph(capeId) {
   });
   window.capeGraph = graph;
   
-  // Load data
   getCapeUsageData(capeId, 'week').then(data => {
     graph.setData(data);
     
-    // Initialize modal graph when data is available
     const modalCanvas = document.getElementById('modal-usage-graph');
     if (modalCanvas) {
-      const modalGraph = new CapeUsageGraph(modalCanvas, {
-        tooltipContainer: document.getElementById('modal-tooltip'),
-        hoverLineElement: document.getElementById('modal-hover-line'),
-        hoverValueElement: null, // Remove the value element that follows the curve
-        simplified: false, // Full details for modal graph
-        timeframe: 'week', // Match main graph's default
-        capeId: capeId, // Pass the capeId for data fetching
-        statElements: {
-          current: document.getElementById('modal-stat-current'),
-          max: document.getElementById('modal-stat-max'),
-          min: document.getElementById('modal-stat-min')
-        }
-      });
-      window.modalCapeGraph = modalGraph;
+      // Reuse a single modal graph instance. The modal DOM (and its canvas) persists across
+      // re-inits, so creating a new CapeUsageGraph every time would stack window-level
+      // mousemove/draw listeners onto the same canvas -- stale instances would then redraw
+      // and wipe the prediction overlay on every mouse move, making the toggle look broken.
+      let modalGraph = window.modalCapeGraph;
+      const reuseExisting = modalGraph && modalGraph.canvas === modalCanvas;
+      if (!reuseExisting) {
+        modalGraph = new CapeUsageGraph(modalCanvas, {
+          tooltipContainer: document.getElementById('modal-tooltip'),
+          hoverLineElement: document.getElementById('modal-hover-line'),
+          hoverValueElement: null, // Remove the value element that follows the curve
+          simplified: false, // Full details for modal graph
+          timeframe: 'week', // Match main graph's default
+          capeId: capeId, // Pass the capeId for data fetching
+          statElements: {
+            current: document.getElementById('modal-stat-current'),
+            max: document.getElementById('modal-stat-max'),
+            min: document.getElementById('modal-stat-min')
+          }
+        });
+        window.modalCapeGraph = modalGraph;
+      } else {
+        // Keep the reused instance pointed at the current cape.
+        modalGraph.capeId = capeId;
+      }
       modalGraph.setData(data);
       
-      // Set up reset zoom button
       const resetZoomButton = document.getElementById('modal-reset-zoom');
-      if (resetZoomButton) {
+      if (resetZoomButton && !resetZoomButton.dataset.wired) {
+        resetZoomButton.dataset.wired = '1';
         resetZoomButton.addEventListener('click', () => {
-          modalGraph.setTimeframe(document.querySelector('.modal-timeframe.active').getAttribute('data-timeframe'));
+          const g = window.modalCapeGraph;
+          if (g) g.setTimeframe(document.querySelector('.modal-timeframe.active').getAttribute('data-timeframe'));
         });
       }
       
-      // Set up help button
+      // Prediction toggle: single delegated listener (installed once). The button is the
+      // source of truth, so here we make the (possibly fresh) graph instance adopt whatever
+      // state the button currently shows.
+      ensurePredictionToggleListener();
+      const predictButton = document.getElementById('modal-predict');
+      if (predictButton) {
+        const enabled = predictButton.classList.contains('active');
+        if (modalGraph.predictionEnabled !== enabled) {
+          modalGraph.setPrediction(enabled);
+        }
+      }
+      
       const helpButton = document.getElementById('modal-help');
       const helpText = document.getElementById('modal-help-text');
-      if (helpButton && helpText) {
+      if (helpButton && helpText && !helpButton.dataset.wired) {
+        helpButton.dataset.wired = '1';
         helpButton.addEventListener('click', () => {
           if (helpText.style.display === 'none') {
             helpText.style.display = 'block';
@@ -2161,7 +2543,6 @@ function initializeGraph(capeId) {
     }
   });
   
-  // Set up timeframe buttons for main graph
   document.querySelectorAll('.graph-timeframe').forEach(button => {
     button.addEventListener('click', () => {
       document.querySelectorAll('.graph-timeframe').forEach(b => b.classList.remove('active'));
@@ -2170,7 +2551,6 @@ function initializeGraph(capeId) {
       const timeframe = button.getAttribute('data-timeframe');
       graph.setTimeframe(timeframe);
       
-      // Sync modal timeframe if modal graph exists
       if (window.modalCapeGraph) {
         document.querySelectorAll('.modal-timeframe').forEach(b => {
           if (b.getAttribute('data-timeframe') === timeframe) {
@@ -2184,7 +2564,6 @@ function initializeGraph(capeId) {
     });
   });
   
-  // Set up timeframe buttons for modal graph
   document.querySelectorAll('.modal-timeframe').forEach(button => {
     button.addEventListener('click', () => {
       document.querySelectorAll('.modal-timeframe').forEach(b => b.classList.remove('active'));
@@ -2195,7 +2574,6 @@ function initializeGraph(capeId) {
         window.modalCapeGraph.setTimeframe(timeframe);
       }
       
-      // Sync main graph timeframe
       document.querySelectorAll('.graph-timeframe').forEach(b => {
         if (b.getAttribute('data-timeframe') === timeframe) {
           b.classList.add('active');
@@ -2207,7 +2585,6 @@ function initializeGraph(capeId) {
     });
   });
   
-  // Set up expand button
   const expandButton = document.getElementById('expand-graph');
   if (expandButton) {
     expandButton.addEventListener('click', () => {
@@ -2215,7 +2592,6 @@ function initializeGraph(capeId) {
     });
   }
   
-  // Make the entire graph canvas clickable to open modal
   if (canvas) {
     canvas.style.cursor = 'pointer';
     canvas.addEventListener('click', (e) => {
@@ -2231,7 +2607,6 @@ function initializeGraph(capeId) {
     });
   }
   
-  // Function to open the graph modal
   function openGraphModal() {
     const modal = document.getElementById('graph-modal');
     if (modal) {
@@ -2244,7 +2619,6 @@ function initializeGraph(capeId) {
     }
   }
   
-  // Set up close modal button
   const closeButton = document.getElementById('close-modal');
   if (closeButton) {
     closeButton.addEventListener('click', () => {
@@ -2257,13 +2631,11 @@ function initializeGraph(capeId) {
           window.modalCapeGraph.draw();
         }
         
-        // Hide all tooltips when modal is closed
         hideAllTooltips();
       }
     });
   }
   
-  // Close modal when clicking outside
   const modal = document.getElementById('graph-modal');
   if (modal) {
     modal.addEventListener('click', (event) => {
@@ -2275,12 +2647,10 @@ function initializeGraph(capeId) {
           window.modalCapeGraph.draw();
         }
         
-        // Hide all tooltips when modal is closed
         hideAllTooltips();
       }
     });
     
-    // Close modal with Escape key
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && modal.style.display === 'block') {
         $('#graph-modal').modal('hide');
@@ -2290,13 +2660,11 @@ function initializeGraph(capeId) {
           window.modalCapeGraph.draw();
         }
         
-        // Hide all tooltips when modal is closed
         hideAllTooltips();
       }
     });
   }
   
-  // Function to hide all tooltips
   function hideAllTooltips() {
     const graphs = [window.capeGraph, window.modalCapeGraph];
     graphs.forEach(graph => {
@@ -2304,13 +2672,11 @@ function initializeGraph(capeId) {
         graph.options.tooltipContainer.style.display = 'none';
       }
       
-      // Reset hover point state
       if (graph) {
         graph.hoverPoint = null;
       }
     });
     
-    // Hide hover lines
     const hoverLines = [
       document.getElementById('hover-line'),
       document.getElementById('modal-hover-line')
@@ -2320,7 +2686,6 @@ function initializeGraph(capeId) {
       if (line) line.style.display = 'none';
     });
     
-    // Force redraw
     if (window.capeGraph) window.capeGraph.draw();
     if (window.modalCapeGraph) window.modalCapeGraph.draw();
   }
@@ -2336,9 +2701,7 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
   const extendedStart = startTime;
   const extendedEnd = endTime;
   
-  // Check if this request recently failed
   if (window.capeDataCache && window.capeDataCache.hasRecentlyFailed(capeId, extendedStart, extendedEnd)) {
-    // Show error message
     showErrorMessage('Could not load data. Please try again later.');
     
     // Return empty array instead of mock data
@@ -2346,14 +2709,11 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
   }
   
   
-  // Check if the data is already cached
   if (window.capeDataCache && window.capeDataCache.isTimeRangeCached(capeId, startTime, endTime)) {
     return window.capeDataCache.getDataForTimeRange(capeId, startTime, endTime);
   }
   
-  // Check if a similar request is already in progress
   if (window.capeDataCache && window.capeDataCache.isPendingRequest(capeId, extendedStart, extendedEnd)) {
-    // Wait for the request to finish then filter the data
     const pendingRequest = window.capeDataCache.pendingRequests[capeId].find(
       req => req.startTime <= extendedStart && req.endTime >= extendedEnd
     );
@@ -2362,20 +2722,15 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
     return window.capeDataCache.getDataForTimeRange(capeId, startTime, endTime);
   }
   
-  // Prepare the API request
   
-  // Create and track the loading promise
   const fetchPromise = (async () => {
     try {
-      // URL of the API with parameters for the time range (v2 columnar endpoint)
       const apiUrl = `${apiBase}/v2/${capeId}/usage?start=${extendedStart}&end=${extendedEnd}`;
       
-      // Display a loading indicator on the graph
       document.querySelectorAll('.graph-loading-indicator').forEach(el => {
         el.style.display = 'flex';
       });
       
-      // Fetch data from the API
       const response = await fetch(apiUrl);
       
       // v2 returns 404 for a non-existent cape (legacy returned []); treat as empty
@@ -2394,15 +2749,12 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
       
       const data = await response.json();
       
-      // Process and validate the data using shared function
       const validData = processApiData(data, capeId);
       
-      // Hide the loading indicator
       document.querySelectorAll('.graph-loading-indicator').forEach(el => {
         el.style.display = 'none';
       });
       
-      // Add to cache if available
       if (window.capeDataCache) {
         window.capeDataCache.addData(capeId, validData, extendedStart, extendedEnd);
       }
@@ -2416,12 +2768,10 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
         window.capeDataCache.addFailedRequest(capeId, extendedStart, extendedEnd);
       }
       
-      // Hide the loading indicator
       document.querySelectorAll('.graph-loading-indicator').forEach(el => {
         el.style.display = 'none';
       });
       
-      // Show error message
       showErrorMessage('Failed to load data. Please try again later.');
       
       // Return empty array instead of mock data
@@ -2429,20 +2779,16 @@ async function getCapeUsageData(capeId, timeframe = 'week') {
     }
   })();
   
-  // Register the request in cache
   if (window.capeDataCache) {
     window.capeDataCache.addPendingRequest(capeId, extendedStart, extendedEnd, fetchPromise);
   }
   
-  // Wait for the request to finish
   const result = await fetchPromise;
   
-  // Remove the request from the list of pending requests
   if (window.capeDataCache) {
     window.capeDataCache.removePendingRequest(capeId, fetchPromise);
   }
   
-  // Filter the data for the requested time range
   return result.filter(
     item => {
       const itemTimestamp = item.timestamp instanceof Date ? item.timestamp.getTime() : item.timestamp;
