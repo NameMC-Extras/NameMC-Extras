@@ -2372,6 +2372,7 @@ function createUsageGraphCard(capeId) {
                 <li>Click on time period buttons to change the time range</li>
               </ul>
               <p class="mb-0">This graph shows the evolution of the number of users using this cape over time. The data is updated regularly.</p>
+              <p class="mb-0">As you may notice, some of the older data points on the graph are still inaccurate or incomplete. If you have access to the correct values or know where to find them, please contact fyz (fy5) on Discord.</p>
             </div>
             <div class="mb-3">
               <div class="card">
