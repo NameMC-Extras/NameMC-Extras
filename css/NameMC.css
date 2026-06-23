@@ -218,6 +218,17 @@ body main {
     opacity: 1;
 }
 
+.customTheme .card,
+.customTheme .page-item,
+.customTheme .dropdown-menu,
+.customTheme .popover,
+.customTheme .nav {
+    --bs-card-bg: var(--bs-body-bg) !important;
+    --bs-pagination-bg: var(--bs-body-bg) !important;
+    --bs-dropdown-bg: var(--bs-body-bg) !important;
+    --bs-popover-bg: var(--bs-body-bg) !important;
+}
+
 .customTheme a.copy-button:not(.color-inherit),
 .customTheme a:not([class]):not(:has([class*=fa-eye])),
 .customTheme a[class=""],
