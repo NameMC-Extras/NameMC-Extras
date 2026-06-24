@@ -66,6 +66,50 @@ observer.observe(window.top.document.documentElement, {
 
     document.documentElement.append(iframeEl);
 
+    const AD_SELECTOR = `div:has(> [id^="nn_"]:not([class])):not(main):not(body):not(html),
+[style*="z-index: 100000"]:not(#test),
+[style*="visibility: hidden"]:not(#test),
+div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
+.ad-container:not(#test),
+.mpu-container:not(#test),
+.mt-0:has(+ .ad-container),
+.mt-0:has(+ .mpu-container),
+[id*=nn_]:not(main):not(body):not(html),
+[class*=nn_]:not(main):not(body):not(html),
+[id*=celtra]:not(#test),
+[class*=celtra]:not(#test),
+[id*=jpx]:not(#test),
+[class*=jpx]:not(#test),
+[id*=lb1_]:not(#test),
+[class*=lb1_]:not(#test),
+[id*=pl_]:not(#test),
+[class*=pl_]:not(#test),
+[id*=ads_]:not(#test),
+[class*=ads_]:not(#test),
+[id*=gpt_]:not(#test),
+[class*=gpt_]:not(#test),
+[id*=adRootContainer_]:not(#test),
+[class*=publift]:not(#test),
+.notranslate:has(iframe)`;
+
+    const removeAds = () => {
+        let nodes;
+        try { nodes = document.querySelectorAll(AD_SELECTOR); } catch { return; }
+        for (let i = 0; i < nodes.length; i++) nodes[i].remove();
+    };
+
+    let __adTimer = null;
+    const scheduleAdRemoval = () => {
+        if (__adTimer) return;
+        __adTimer = setTimeout(() => { __adTimer = null; removeAds(); }, 100);
+    };
+
+    removeAds();
+    new MutationObserver(scheduleAdRemoval).observe(document.documentElement, {
+        childList: true,
+        subtree: true
+    });
+
     let currentUrl = location.href;
 
     let cleanUrl = currentUrl.replace(/\/+$/, '');
@@ -104,10 +148,15 @@ observer.observe(window.top.document.documentElement, {
 
             // Setup timeout (optional)
             if (timeout) {
-                listener.timer = setTimeout(() => {
-                    removeListener(listener);
-                    reject(new Error(`waitForSelector timeout: ${selector}`));
-                }, timeout);
+                const armTimeout = () => {
+                    if (__wfs_listeners.indexOf(listener) === -1) return; // already resolved
+                    listener.timer = setTimeout(() => {
+                        removeListener(listener);
+                        resolve(null);
+                    }, timeout);
+                };
+                if (document.readyState === 'complete') armTimeout();
+                else window.addEventListener('load', armTimeout, { once: true });
             }
 
             // Start shared observer if not running
@@ -121,34 +170,20 @@ observer.observe(window.top.document.documentElement, {
         });
     }
 
-    function handleMutations(mutations) {
-        for (const mutation of mutations) {
-            for (const node of mutation.addedNodes) {
-                if (!(node instanceof Element)) continue;
+    // Re-scan the full selector from each listener's root on any DOM change. Checking
+    // only the added node misses selectors with ancestor / :has() / :nth-child context
+    // (the target is inserted inside a chunk where node.querySelector can't see the
+    // selector's leading ancestor), which is what made the settings cog and other
+    // injected UI intermittently fail to appear until a refresh.
+    function handleMutations() {
+        for (let i = __wfs_listeners.length - 1; i >= 0; i--) {
+            const listener = __wfs_listeners[i];
+            const match = listener.root.querySelector(listener.selector);
+            if (!match) continue;
 
-                for (let i = __wfs_listeners.length - 1; i >= 0; i--) {
-                    const listener = __wfs_listeners[i];
-
-                    if (!listener.root.contains(node)) continue;
-
-                    let match = null;
-
-                    if (node.matches?.(listener.selector)) {
-                        match = node;
-                    } else {
-                        match = node.querySelector?.(listener.selector);
-                    }
-
-                    if (match) {
-                        listener.callback?.(match);
-                        listener.resolve(match);
-
-                        if (listener.once) {
-                            removeListener(listener);
-                        }
-                    }
-                }
-            }
+            if (listener.once) removeListener(listener);
+            try { listener.callback?.(match); } catch (e) { console.error(e); }
+            listener.resolve(match);
         }
     }
 
@@ -165,7 +200,7 @@ observer.observe(window.top.document.documentElement, {
     }
 
     const waitForHtmlDataTheme = (callback, { timeout = 10000 } = {}) => {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const html = document.documentElement;
 
             // Fast path
@@ -175,15 +210,14 @@ observer.observe(window.top.document.documentElement, {
                 return resolve(html);
             }
 
-            const timer = timeout && setTimeout(() => {
-                observer.disconnect();
-                reject(new Error("waitForHtmlDataTheme timeout"));
-            }, timeout);
+            let done = false;
+            let timer = null;
 
             const observer = new MutationObserver(mutations => {
                 for (let i = 0; i < mutations.length; i++) {
                     const mutation = mutations[i];
                     if (mutation.type === "attributes" && mutation.target.getAttribute("data-bs-theme") !== null) {
+                        done = true;
                         observer.disconnect();
                         clearTimeout(timer);
                         callback?.(html);
@@ -196,6 +230,18 @@ observer.observe(window.top.document.documentElement, {
                 attributes: true,
                 attributeFilter: ["data-bs-theme"]
             });
+
+            // Only arm the grace timeout after the page has loaded; resolve(null)
+            // (not reject) so a slow load never throws or breaks the settings button.
+            const armTimeout = () => {
+                if (done || !timeout) return;
+                timer = setTimeout(() => {
+                    observer.disconnect();
+                    resolve(null);
+                }, timeout);
+            };
+            if (document.readyState === 'complete') armTimeout();
+            else window.addEventListener('load', armTimeout, { once: true });
         });
     };
 
@@ -828,9 +874,9 @@ observer.observe(window.top.document.documentElement, {
     };
 
     const customPage = (page, name, title, icon, order = 0) => {
-        waitForSelector('.nav-link[href="https://store.namemc.com/category/emerald"]', () => {
+        waitForSelector('.nav-link[href="https://store.namemc.com/category/emerald"]', (emeraldLink) => {
             var isPage = location.pathname == "/extras/" + page;
-            var storeNavBar = document.querySelector('.nav-link[href="https://store.namemc.com/category/emerald"]')?.parentElement;
+            var storeNavBar = emeraldLink?.parentElement;
             if (!storeNavBar) return;
 
             // Navbar item — placed by order index so timing races can't shuffle it.

@@ -11,7 +11,7 @@ function getCookie(name) {
 const waitForSelector = (
   selector,
   callback,
-  { root = document, timeout = 10000, once = true } = {}
+  { root = document, timeout = 60000, once = true } = {}
 ) => {
   return new Promise((resolve, reject) => {
     const existing = root.querySelector(selector);
@@ -22,32 +22,19 @@ const waitForSelector = (
 
     const timer = timeout && setTimeout(() => {
       observer.disconnect();
-      reject(new Error(`waitForSelector timeout: ${selector}`));
+      resolve(null);
     }, timeout);
 
-    const observer = new MutationObserver(mutations => {
-      for (let i = 0; i < mutations.length; i++) {
-        const nodes = mutations[i].addedNodes;
-        for (let j = 0; j < nodes.length; j++) {
-          const node = nodes[j];
-          if (node.nodeType !== 1) continue;
-
-          if (node.matches(selector)) {
-            if (once) observer.disconnect();
-            clearTimeout(timer);
-            callback?.(node);
-            return resolve(node);
-          }
-
-          const found = node.querySelector(selector);
-          if (found) {
-            if (once) observer.disconnect();
-            clearTimeout(timer);
-            callback?.(found);
-            return resolve(found);
-          }
-        }
-      }
+    const observer = new MutationObserver(() => {
+        // Re-scan the full selector from the root on any DOM change. Checking only
+        // the added node misses ancestor / :has() / :nth-child selectors, which
+        // made injected UI intermittently fail to appear until a refresh.
+        const found = root.querySelector(selector);
+        if (!found) return;
+        if (once) observer.disconnect();
+        clearTimeout(timer);
+        callback?.(found);
+        resolve(found);
     });
 
     observer.observe(root.documentElement || root, { childList: true, subtree: true });

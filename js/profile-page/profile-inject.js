@@ -26,54 +26,90 @@ function getCookie(name) {
 }
 
 /** Utility waiters */
+// Shared 50ms poller: many waitFor() conditions run on ONE timer instead of N.
+const __wf_tasks = [];
+let __wf_timer = null;
+const __wf_tick = () => {
+  for (let i = __wf_tasks.length - 1; i >= 0; i--) {
+    const task = __wf_tasks[i];
+    let ready = false;
+    try { ready = !!task.cond(); } catch { }
+    if (ready) {
+      __wf_tasks.splice(i, 1);
+      setTimeout(task.cb);
+    }
+  }
+  if (!__wf_tasks.length && __wf_timer) { clearInterval(__wf_timer); __wf_timer = null; }
+};
 const waitFor = (conditionFn, callback) => {
-  if (conditionFn()) return setTimeout(callback);
-  setTimeout(() => waitFor(conditionFn, callback), 50);
+  let ready = false;
+  try { ready = !!conditionFn(); } catch { }
+  if (ready) return setTimeout(callback);
+  __wf_tasks.push({ cond: conditionFn, cb: callback });
+  if (!__wf_timer) __wf_timer = setInterval(__wf_tick, 50);
 };
 
+// Shared MutationObserver: many waitForSelector() calls share ONE observer
+// instead of each creating its own (less work per DOM mutation during load).
+const __wfs_listeners = [];
+let __wfs_observer = null;
+const __wfs_removeListener = (listener) => {
+  clearTimeout(listener.timer);
+  const index = __wfs_listeners.indexOf(listener);
+  if (index !== -1) __wfs_listeners.splice(index, 1);
+  if (!__wfs_listeners.length && __wfs_observer) {
+    __wfs_observer.disconnect();
+    __wfs_observer = null;
+  }
+};
+// Re-scan the full selector from each listener's root on any DOM change. Checking
+// only the added node (matches/querySelector) misses selectors with ancestor,
+// :has() or :nth-child context — the target gets inserted inside a chunk where
+// node.querySelector can't see the selector's leading ancestor, so the element is
+// in the DOM but never matched. That's what made features intermittently fail to
+// appear (name history, settings cog, created-at/links) until a refresh.
+const __wfs_handleMutations = () => {
+  for (let i = __wfs_listeners.length - 1; i >= 0; i--) {
+    const listener = __wfs_listeners[i];
+    const match = listener.root.querySelector(listener.selector);
+    if (!match) continue;
+    if (listener.once) __wfs_removeListener(listener);
+    try { listener.callback?.(match); } catch (e) { console.error(e); }
+    listener.resolve(match);
+  }
+};
 const waitForSelector = (
   selector,
   callback,
   { root = document, timeout = 10000, once = true } = {}
 ) => {
-  return new Promise((resolve, reject) => {
-    const existing = root.querySelector(selector);
+  return new Promise((resolve) => {
+    const searchRoot = root.documentElement || root;
+    const existing = searchRoot.querySelector(selector);
     if (existing) {
       callback?.(existing);
       return resolve(existing);
     }
 
-    const timer = timeout && setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`waitForSelector timeout: ${selector}`));
-    }, timeout);
+    const listener = { selector, callback, resolve, once, root: searchRoot };
+    __wfs_listeners.push(listener);
 
-    const observer = new MutationObserver(mutations => {
-      for (let i = 0; i < mutations.length; i++) {
-        const nodes = mutations[i].addedNodes;
-        for (let j = 0; j < nodes.length; j++) {
-          const node = nodes[j];
-          if (node.nodeType !== 1) continue;
+    if (timeout) {
+      const armTimeout = () => {
+        if (__wfs_listeners.indexOf(listener) === -1) return; // already resolved
+        listener.timer = setTimeout(() => {
+          __wfs_removeListener(listener);
+          resolve(null);
+        }, timeout);
+      };
+      if (document.readyState === 'complete') armTimeout();
+      else window.addEventListener('load', armTimeout, { once: true });
+    }
 
-          if (node.matches(selector)) {
-            if (once) observer.disconnect();
-            clearTimeout(timer);
-            callback?.(node);
-            return resolve(node);
-          }
-
-          const found = node.querySelector(selector);
-          if (found) {
-            if (once) observer.disconnect();
-            clearTimeout(timer);
-            callback?.(found);
-            return resolve(found);
-          }
-        }
-      }
-    });
-
-    observer.observe(root.documentElement || root, { childList: true, subtree: true });
+    if (!__wfs_observer) {
+      __wfs_observer = new MutationObserver(__wfs_handleMutations);
+      __wfs_observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
   });
 };
 
@@ -673,7 +709,8 @@ window.addEventListener("superstorage-ready", async () => {
     waitForSelector('.profile-column-right .card.mb-3:has(.table > tbody > tr) > .card-header', (historyTitle) => {
       historyTitle.style.cssText = "display:flex;justify-content:space-between";
 
-      var hasHidden = [...document.querySelectorAll('tr')].some(el => el.textContent.includes('—'));
+      var hasHidden = [...historyTitle.parentElement.querySelectorAll('tbody tr')]
+        .some(tr => tr.querySelector('td:nth-child(2)')?.textContent.trim() === '—');
       if (hasHidden) {
         if (isHidden) hideHidden();
 
@@ -1080,10 +1117,12 @@ window.addEventListener("superstorage-ready", async () => {
           }
           const isPinned = userDataUtils.isPinned(uuid);
           const pinButton = document.createElement('button');
-          pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
+          pinButton.className = `btn ${isPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm px-0 pin-user-btn`;
           pinButton.id = 'pin-user-btn';
-          pinButton.innerHTML = `<i class="fas fa-thumbtack"></i> ${isPinned ? 'Unpin' : 'Pin'}`;
+          pinButton.innerHTML = '<i class="fas fa-thumbtack"></i>';
           pinButton.title = `${isPinned ? 'Remove from' : 'Add to'} pinned users`;
+          pinButton.style.marginRight = '0.9rem';
+          pinButton.style.width = '30px';
 
           pinButton.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1091,7 +1130,7 @@ window.addEventListener("superstorage-ready", async () => {
             const wasUnpinning = btn.classList.contains('btn-warning');
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
               let success = false;
@@ -1103,28 +1142,28 @@ window.addEventListener("superstorage-ready", async () => {
 
               if (success) {
                 const newIsPinned = !wasUnpinning;
-                btn.className = `btn ${newIsPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-                btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${newIsPinned ? 'Unpin' : 'Pin'}`;
+                btn.className = `btn ${newIsPinned ? 'btn-warning' : 'btn-outline-secondary'} btn-sm px-0 pin-user-btn`;
+                btn.innerHTML = '<i class="fas fa-thumbtack"></i>';
                 btn.title = `${newIsPinned ? 'Remove from' : 'Add to'} pinned users`;
               } else {
-                btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-                btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+                btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm px-0 pin-user-btn`;
+                btn.innerHTML = '<i class="fas fa-thumbtack"></i>';
               }
             } catch (error) {
               console.error('Error toggling pin status:', error);
-              btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm ms-2 pin-user-btn`;
-              btn.innerHTML = `<i class="fas fa-thumbtack"></i> ${wasUnpinning ? 'Unpin' : 'Pin'}`;
+              btn.className = `btn ${wasUnpinning ? 'btn-warning' : 'btn-outline-secondary'} btn-sm px-0 pin-user-btn`;
+              btn.innerHTML = '<i class="fas fa-thumbtack"></i>';
             } finally {
               btn.disabled = false;
             }
           });
 
           if (form.querySelector('div')) {
-            form.querySelector('div').append(pinButton);
+            form.querySelector('div').prepend(pinButton);
           } else {
             form.innerHTML = `<div class="mb-3">${form.innerHTML}</div>`;
             form.querySelector('button')?.classList.remove('mb-3');
-            form.querySelector('div').append(pinButton);
+            form.querySelector('div').prepend(pinButton);
           }
         });
       });
