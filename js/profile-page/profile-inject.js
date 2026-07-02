@@ -551,7 +551,7 @@ window.addEventListener("superstorage-ready", async () => {
     var descText = linksTextArea.toString().split('{uuid}').join(uuid).split('{username}').join(username);
     var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
 
-    if (!hasMdLink || descText.match(/["'`<>]/g)) {
+    if (!hasMdLink) {
       descText = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`.toString().split('{uuid}').join(uuid);
       hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
     }

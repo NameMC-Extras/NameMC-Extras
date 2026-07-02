@@ -99,9 +99,17 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
     };
 
     let __adTimer = null;
-    const scheduleAdRemoval = () => {
+    // Only rescan when nodes were ADDED — removals (including our own) can't create
+    // new ads, so this avoids a self-triggered scan loop — and debounce so the
+    // :has()-heavy selector isn't evaluated more often than needed.
+    const scheduleAdRemoval = (mutations) => {
         if (__adTimer) return;
-        __adTimer = setTimeout(() => { __adTimer = null; removeAds(); }, 100);
+        let added = false;
+        for (let i = 0; i < mutations.length; i++) {
+            if (mutations[i].addedNodes.length) { added = true; break; }
+        }
+        if (!added) return;
+        __adTimer = setTimeout(() => { __adTimer = null; removeAds(); }, 250);
     };
 
     removeAds();
@@ -254,6 +262,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
     var customLink = superStorage.getItem("customLink") || (theme == "dark" ? "#7ba7ce" : "#236dad");
     var customBtn = superStorage.getItem("customBtn") || "#236dad";
     var customBase = superStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
+    var customFont = superStorage.getItem("customFont") || "";
+    var customFontSize = superStorage.getItem("customFontSize") || "100";
     var hideHeadCmd2 = superStorage.getItem("hideHeadCmd2") === "false";
     var hideDegreesOfSep2 = superStorage.getItem("hideDegreesOfSep2") === "false";
     var hideBadges2 = superStorage.getItem("hideBadges2") === "false";
@@ -334,7 +344,52 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
         }
     }
 
+    // Scale all site text by adjusting the root font-size (rem-based, so text and
+    // spacing scale together, like zoom). 100% = default. An inline style on <html>
+    // beats any stylesheet rule, so this needs no !important and no page-world helper.
+    function applyFontSize(pct) {
+        var n = parseInt(pct, 10);
+        if (n && n >= 50 && n <= 200 && n !== 100) root.style.fontSize = n + "%";
+        else root.style.removeProperty("font-size");
+    }
+
     if (customThemeOn) setCustomTheme();
+    applyFontSize(customFontSize);
+
+    // Font list for the settings dropdown. Ordered by category so the unfiltered list
+    // reads sensibly: system fonts (no download), the most-used Google Fonts, full
+    // category coverage (sans / serif / mono / display / pixel), and a few pixel faces.
+    const FONT_LIST = [
+        // System (no download)
+        "Arial", "Helvetica", "Verdana", "Tahoma", "Trebuchet MS", "Segoe UI", "Calibri",
+        "Georgia", "Times New Roman", "Garamond", "Courier New", "Consolas", "Comic Sans MS", "Impact",
+        // Sans-serif (Google, most popular)
+        "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Inter", "Nunito", "Raleway",
+        "Work Sans", "Rubik", "Ubuntu", "Source Sans 3", "Noto Sans", "DM Sans", "Manrope",
+        "Kanit", "Barlow", "Oswald", "Bebas Neue", "Anton",
+        // Serif
+        "Merriweather", "Playfair Display", "Lora", "PT Serif",
+        // Monospace
+        "JetBrains Mono", "Fira Code", "Source Code Pro", "Space Mono", "IBM Plex Mono",
+        // Display / handwriting / pixel
+        "Comfortaa", "Quicksand", "Pacifico", "Dancing Script", "Caveat", "Lobster",
+        "Permanent Marker", "Orbitron", "Press Start 2P", "VT323", "Silkscreen"
+    ];
+    // These render without a download; everything else in FONT_LIST is a Google Font.
+    const SYSTEM_FONTS = new Set(["Arial", "Helvetica", "Verdana", "Tahoma", "Trebuchet MS", "Segoe UI", "Calibri", "Georgia", "Times New Roman", "Garamond", "Courier New", "Consolas", "Comic Sans MS", "Impact"]);
+
+    // The custom font is applied by a PAGE-CONTEXT helper (js/font-inject.js).
+    // A <link> created in the page's own world is a normal request, so it isn't
+    // blocked by ORB the way a content-script-injected one is. The current value and
+    // the dropdown's preview-font list are passed via dataset (read same-world, so it
+    // works in Firefox — a cross-world CustomEvent detail does not); later font changes
+    // propagate over the superstorage-sync event.
+    var fontInject = document.createElement('script');
+    fontInject.src = chrome.runtime.getURL('js/font-inject.js');
+    fontInject.dataset.font = customFont;
+    fontInject.dataset.previewFonts = FONT_LIST.filter(f => !SYSTEM_FONTS.has(f)).join(",");
+    fontInject.onload = function () { this.remove(); };
+    (document.head || root).appendChild(fontInject);
     if (hideHeadCmd2) root.style.setProperty("--head-cmd", hideHeadCmd2 ? 'none' : 'flex');
     if (hideServers) root.style.setProperty("--servers", hideServers ? 'none' : 'flex');
     if (hideFollowing) root.style.setProperty("--following", hideFollowing ? 'none' : 'flex');
@@ -421,6 +476,20 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                                                 <input type="text" class="form-control" placeholder="#236DAD" value="${customBtn}" aria-label="Custom Button Color" id="custombtncolor" data-jscolor="{previewPosition:'right'}">
                                                 <div class="form-text w-100">Color for interactive buttons and controls</div>
                                             </div>
+                                        </div>
+                                        <div class="input-group mt-3">
+                                            <span class="input-group-text">Font</span>
+                                            <input type="text" class="form-control" placeholder="Default — search fonts…" value="${customFont.replace(/"/g, '&quot;').replace(/</g, '&lt;')}" aria-label="Custom Font" id="customfont" autocomplete="off">
+                                        </div>
+                                        <div id="customFontMenu" class="dropdown-menu p-1 w-100 border" style="display:none;position:static;max-height:240px;overflow-y:auto;margin-top:.25rem"></div>
+                                        <div class="form-text mt-1">Search or type any font. <a href="javascript:void(0)" id="customFontReset">Reset to default</a></div>
+                                        <div class="mt-3">
+                                            <label class="form-label mb-1 d-flex justify-content-between align-items-center w-100">
+                                                <strong>Font Size</strong>
+                                                <span id="customfontsizeval" class="text-muted">${parseInt(customFontSize, 10) || 100}%</span>
+                                            </label>
+                                            <input type="range" class="form-range" id="customfontsize" min="80" max="150" step="5" value="${parseInt(customFontSize, 10) || 100}">
+                                            <div class="form-text">Scales all text. 100% = default.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -540,6 +609,98 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                 var resetcustom = document.querySelector("#resetcustom");
                 var exportcustom = document.querySelector("#exportcustom");
                 var importcustom = document.querySelector("#importcustom");
+                var customfont = document.querySelector("#customfont");
+                var customFontMenu = document.querySelector("#customFontMenu");
+                var customFontReset = document.querySelector("#customFontReset");
+                var customfontsize = document.querySelector("#customfontsize");
+                var customfontsizeval = document.querySelector("#customfontsizeval");
+
+                if (customfont && customFontMenu) {
+                    // Preview fonts are loaded by font-inject.js (page world) when this input
+                    // is focused (its focusin handler) — done there to dodge ORB, with no
+                    // cross-world messaging so it works in Firefox. System fonts need no load.
+                    const renderFontMenu = (filter) => {
+                        const q = (filter || "").trim().toLowerCase();
+                        customFontMenu.innerHTML = "";
+                        if (!q || "default".includes(q)) {
+                            const d = document.createElement("a");
+                            d.className = "dropdown-item";
+                            d.href = "javascript:void(0)";
+                            d.textContent = "Default (site font)";
+                            d.dataset.font = "";
+                            // Preview the real site default, not the current custom font it
+                            // would otherwise inherit from the (overridden) body.
+                            d.style.fontFamily = "Roboto, system-ui, sans-serif";
+                            customFontMenu.appendChild(d);
+                        }
+                        FONT_LIST.filter(f => !q || f.toLowerCase().includes(q)).forEach(f => {
+                            const a = document.createElement("a");
+                            a.className = "dropdown-item text-truncate";
+                            a.href = "javascript:void(0)";
+                            a.textContent = f;
+                            a.style.fontFamily = `"${f}", sans-serif`; // preview in its own font
+                            a.dataset.font = f;
+                            customFontMenu.appendChild(a);
+                        });
+                        if (!customFontMenu.children.length) {
+                            const none = document.createElement("span");
+                            none.className = "dropdown-item-text text-muted small";
+                            none.textContent = filter ? `Press Enter to use "${filter}"` : "No fonts";
+                            customFontMenu.appendChild(none);
+                        }
+                    };
+
+                    const openFontMenu = () => {
+                        renderFontMenu(customfont.value);
+                        customFontMenu.style.display = "block";
+                    };
+                    const closeFontMenu = () => { customFontMenu.style.display = "none"; };
+                    const chooseFont = (val) => {
+                        customfont.value = val;
+                        superStorage.customFont = val;                // persist (used on next load)
+                        customFont = val;
+                        root.setAttribute("data-ne-font", val);        // cross-world signal → font-inject.js applies it live
+                        closeFontMenu();
+                    };
+
+                    customfont.addEventListener("focus", openFontMenu);
+                    customfont.addEventListener("input", () => { customFontMenu.style.display = "block"; renderFontMenu(customfont.value); });
+                    customfont.addEventListener("keydown", (e) => {
+                        if (e.key === "Enter") { e.preventDefault(); chooseFont(customfont.value.trim()); }
+                        else if (e.key === "Escape") closeFontMenu();
+                    });
+                    customFontMenu.addEventListener("mousedown", (e) => {
+                        const item = e.target.closest("[data-font]");
+                        if (!item) return;
+                        e.preventDefault(); // choose before the input blurs
+                        chooseFont(item.dataset.font);
+                    });
+                    document.addEventListener("mousedown", (e) => {
+                        if (customfont !== e.target && !customFontMenu.contains(e.target)) closeFontMenu();
+                    });
+                }
+
+                if (customFontReset) {
+                    customFontReset.onclick = () => {
+                        customfont.value = "";
+                        superStorage.customFont = "";
+                        customFont = "";
+                        root.setAttribute("data-ne-font", "");
+                    }
+                }
+
+                if (customfontsize) {
+                    // Live preview while dragging...
+                    customfontsize.oninput = () => {
+                        if (customfontsizeval) customfontsizeval.textContent = customfontsize.value + "%";
+                        applyFontSize(customfontsize.value);
+                    }
+                    // ...persist on release.
+                    customfontsize.onchange = () => {
+                        superStorage.customFontSize = customfontsize.value;
+                        customFontSize = customfontsize.value;
+                    }
+                }
 
                 if (typeof superStorage.customBase == "undefined") superStorage.customBase = customBase;
 

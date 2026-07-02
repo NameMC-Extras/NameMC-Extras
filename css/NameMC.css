@@ -382,6 +382,42 @@ select * {
     width: 90% !important;
 }
 
+/* ---- Settings modal polish (subtle; keeps the existing look) ---- */
+#settingsModal .modal-content {
+    border-radius: 0.85rem;
+}
+
+#settingsModal .modal-header {
+    border-bottom-color: var(--bs-border-color);
+}
+
+/* Section headings: accent the icon, tidy spacing */
+#settingsModal .settings-heading {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+}
+
+#settingsModal .settings-heading i {
+    color: rgba(var(--ne-btn-rgb, var(--bs-primary-rgb)), 1);
+}
+
+#settingsModal .settings-section > .card {
+    border-radius: 0.65rem;
+}
+
+/* Line up the label column of the theme/font rows so the inputs align */
+#settingsModal .input-group-text {
+    min-width: 6.5rem;
+}
+
+/* Smooth the toggle + control interactions */
+#settingsModal .toggle-group > button,
+#settingsModal .clean-control > .btn {
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
 #modal-usage-graph {
     width: 100%;
     height: 100%;
