@@ -358,7 +358,7 @@ window.addEventListener("superstorage-ready", async () => {
       const layerBtn = document.createElement("button");
       layerBtn.id = "layer-btn";
       layerBtn.className = "btn btn-secondary position-absolute top-0 end-0 m-2 p-0";
-      layerBtn.style = "width:32px;height:32px;margin-top:50px!important;";
+      layerBtn.style = "width:36px;height:36px;margin-top:50px!important;";
       layerBtn.title = "No Layers";
       layerBtn.innerHTML = '<i class="fas fa-clone"></i>';
       btn.insertAdjacentElement("afterend", layerBtn);
@@ -377,7 +377,7 @@ window.addEventListener("superstorage-ready", async () => {
       let margin = 135;
       if (hideLayers) margin -= 42.5;
       if (hideSkinStealer) margin -= 42.5;
-      elytraBtn.style = `width:32px;height:32px;margin-top:${margin}px!important;`;
+      elytraBtn.style = `width:36px;height:36px;margin-top:${margin}px!important;`;
       elytraBtn.title = "Elytra";
       elytraBtn.innerHTML = '<i class="fas fa-dove"></i>';
       btn.insertAdjacentElement("afterend", elytraBtn);
@@ -402,7 +402,7 @@ window.addEventListener("superstorage-ready", async () => {
       stealBtn.id = "steal-btn";
       stealBtn.className = "btn btn-secondary position-absolute top-0 end-0 m-2 p-0";
       const margin = hideLayers ? 50 : 92.5;
-      stealBtn.style = `width:32px;height:32px;margin-top:${margin}px!important;`;
+      stealBtn.style = `width:36px;height:36px;margin-top:${margin}px!important;`;
       stealBtn.title = "Steal Skin/Cape";
       stealBtn.innerHTML = '<i class="fas fa-user-secret"></i>';
       btn.insertAdjacentElement("afterend", stealBtn);
