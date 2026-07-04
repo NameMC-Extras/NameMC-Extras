@@ -264,6 +264,7 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
     var customBase = superStorage.getItem("customBase") || (theme == "dark" ? "dark" : "light");
     var customFont = superStorage.getItem("customFont") || "";
     var customFontSize = superStorage.getItem("customFontSize") || "100";
+    var customFontCode = superStorage.getItem("customFontCode") === "true";
     var hideHeadCmd2 = superStorage.getItem("hideHeadCmd2") === "false";
     var hideDegreesOfSep2 = superStorage.getItem("hideDegreesOfSep2") === "false";
     var hideBadges2 = superStorage.getItem("hideBadges2") === "false";
@@ -331,13 +332,24 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
             localStorage.theme = customBase;
 
             var bgRgb = hexToRgb(customBg);
+
+            // dropdown
+            root.style.setProperty("--ne-dropdown", `rgb(${bgRgb["r"] * 1.667}, ${bgRgb["g"] * 1.545}, ${bgRgb["b"] * 1.462})`);
+
             let multiplier = 1.15;
             let opacity = .5;
             if (customBase === 'dark') {
                 multiplier = 1.35;
                 opacity = .45;
+
+                root.style.setProperty("--ne-tertiary-bg", `rgb(${bgRgb["r"] * 2.389}, ${bgRgb["g"] * 2.182}, ${bgRgb["b"] * 2.038})`);
+                root.style.setProperty("--ne-tertiary-bg-rgb", `${bgRgb["r"] * 2.389}, ${bgRgb["g"] * 2.182}, ${bgRgb["b"] * 2.038}`);
+            } else {
+                root.style.setProperty("--ne-tertiary-bg", `rgb(${bgRgb["r"] * 1.042}, ${bgRgb["g"] * 1.038}, ${bgRgb["b"] * 1.033})`);
+                root.style.setProperty("--ne-tertiary-bg-rgb", `${bgRgb["r"] * 1.042}, ${bgRgb["g"] * 1.038}, ${bgRgb["b"] * 1.033}`);
             }
 
+            // checkered
             root.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * multiplier}, ${bgRgb["g"] * multiplier}, ${bgRgb["b"] * multiplier}, ${opacity})`);
         } catch {
 
@@ -390,6 +402,30 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
     fontInject.dataset.previewFonts = FONT_LIST.filter(f => !SYSTEM_FONTS.has(f)).join(",");
     fontInject.onload = function () { this.remove(); };
     (document.head || root).appendChild(fontInject);
+
+    // Apply the font override rule from the content script. This is just a CSS rule
+    // (font-family only, no web-font request) so it doesn't hit ORB — the font FILE is
+    // loaded page-side by font-inject.js. NameMC hardcodes font-family on body/headings,
+    // so beat those with !important, skipping elements with their own inline font-family.
+    // Reads the persistent settings straight from superStorage, like the other options.
+    function applyFontOverride() {
+        var clean = (customFont || "").replace(/["'<>]/g, "").trim();
+        document.getElementById("ne-custom-font-style")?.remove();
+        if (!clean) {
+            root.style.removeProperty("--bs-body-font-family");
+            return;
+        }
+        var stack = `"${clean}", var(--bs-font-sans-serif, system-ui, sans-serif)`;
+        root.style.setProperty("--bs-body-font-family", stack);
+        var targets = ["body", "h1", "h2", "h3", "h4", "h5", "h6", ".navbar-brand"];
+        if (customFontCode) targets.push("code", "pre", "kbd", "samp", ".mono", ".font-monospace", "#uuid-select", "#uuid-select:focus");
+        var sel = targets.map(function (s) { return s + ':not([style*="font-family"])'; }).join(",");
+        var style = document.createElement("style");
+        style.id = "ne-custom-font-style";
+        style.textContent = sel + "{font-family:" + stack + " !important}";
+        (document.head || root).appendChild(style);
+    }
+    applyFontOverride();
     if (hideHeadCmd2) root.style.setProperty("--head-cmd", hideHeadCmd2 ? 'none' : 'flex');
     if (hideServers) root.style.setProperty("--servers", hideServers ? 'none' : 'flex');
     if (hideFollowing) root.style.setProperty("--following", hideFollowing ? 'none' : 'flex');
@@ -483,6 +519,10 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                                         </div>
                                         <div id="customFontMenu" class="dropdown-menu p-1 w-100 border" style="display:none;position:static;max-height:240px;overflow-y:auto;margin-top:.25rem"></div>
                                         <div class="form-text mt-1">Search or type any font. <a href="javascript:void(0)" id="customFontReset">Reset to default</a></div>
+                                        <div class="form-check form-switch mt-2">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="customfontcode"${customFontCode ? " checked" : ""}>
+                                            <label class="form-check-label" for="customfontcode">Override monospace text</label>
+                                        </div>
                                         <div class="mt-3">
                                             <label class="form-label mb-1 d-flex justify-content-between align-items-center w-100">
                                                 <strong>Font Size</strong>
@@ -614,6 +654,7 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                 var customFontReset = document.querySelector("#customFontReset");
                 var customfontsize = document.querySelector("#customfontsize");
                 var customfontsizeval = document.querySelector("#customfontsizeval");
+                var customfontcode = document.querySelector("#customfontcode");
 
                 if (customfont && customFontMenu) {
                     // Preview fonts are loaded by font-inject.js (page world) when this input
@@ -659,7 +700,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                         customfont.value = val;
                         superStorage.customFont = val;                // persist (used on next load)
                         customFont = val;
-                        root.setAttribute("data-ne-font", val);        // cross-world signal → font-inject.js applies it live
+                        applyFontOverride();                           // update the override rule (this world)
+                        root.setAttribute("data-ne-font", val);        // signal font-inject.js to load the font file
                         closeFontMenu();
                     };
 
@@ -685,7 +727,16 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                         customfont.value = "";
                         superStorage.customFont = "";
                         customFont = "";
+                        applyFontOverride();
                         root.setAttribute("data-ne-font", "");
+                    }
+                }
+
+                if (customfontcode) {
+                    customfontcode.onchange = () => {
+                        superStorage.customFontCode = customfontcode.checked;
+                        customFontCode = customfontcode.checked;
+                        applyFontOverride();   // just re-applies the CSS rule (same world) — no font reload, no attribute
                     }
                 }
 

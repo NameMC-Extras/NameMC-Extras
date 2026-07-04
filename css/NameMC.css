@@ -204,10 +204,16 @@ body main {
     transition: color 200ms linear;
 }
 
-.customTheme ul.navbar-nav>li>a[class="nav-link"],
-.customTheme span[class=""][translate="no"] {
+.customTheme ul.navbar-nav>li>a[class="nav-link"]:not([data-bs-toggle]),
+.customTheme a.nav-link>span[class=""][translate="no"] {
     color: var(--bs-body-color) !important;
     opacity: 0.75;
+    transition: color 200ms linear, opacity 200ms linear;
+}
+
+.customTheme .dropdown-header {
+    color: var(--bs-body-color) !important;
+    opacity: 0.4;
     transition: color 200ms linear, opacity 200ms linear;
 }
 
@@ -226,10 +232,10 @@ body main {
 .customTheme .dropdown-menu,
 .customTheme .popover,
 .customTheme .nav {
-    --bs-card-bg: var(--bs-body-bg) !important;
-    --bs-pagination-bg: var(--bs-body-bg) !important;
-    --bs-dropdown-bg: var(--bs-body-bg) !important;
-    --bs-popover-bg: var(--bs-body-bg) !important;
+    --bs-card-bg: var(--ne-dropdown) !important;
+    --bs-pagination-bg: var(--ne-dropdown) !important;
+    --bs-dropdown-bg: var(--ne-dropdown) !important;
+    --bs-popover-bg: var(--ne-dropdown) !important;
 }
 
 .customTheme a.copy-button:not(.color-inherit),
@@ -316,6 +322,7 @@ select * {
 
 .customTheme * {
     accent-color: rgba(var(--ne-btn-rgb), 1);
+    --bs-tertiary-bg: var(--ne-tertiary-bg);
 }
 
 .color-inherit {
