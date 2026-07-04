@@ -513,7 +513,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                                                 <div class="form-text w-100">Color for interactive buttons and controls</div>
                                             </div>
                                         </div>
-                                        <div class="input-group mt-3">
+                                        <hr class="my-3">
+                                        <div class="input-group">
                                             <span class="input-group-text">Font</span>
                                             <input type="text" class="form-control" placeholder="Default — search fonts…" value="${customFont.replace(/"/g, '&quot;').replace(/</g, '&lt;')}" aria-label="Custom Font" id="customfont" autocomplete="off">
                                         </div>
