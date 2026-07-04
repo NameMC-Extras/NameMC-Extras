@@ -323,6 +323,7 @@ select * {
 .customTheme * {
     accent-color: rgba(var(--ne-btn-rgb), 1);
     --bs-tertiary-bg: var(--ne-tertiary-bg);
+    --bs-tertiary-bg-rgb: var(--ne-tertiary-bg-rgb);
 }
 
 .color-inherit {
