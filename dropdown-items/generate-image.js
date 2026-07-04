@@ -10,8 +10,7 @@ const waitForModal = function (callback) {
     }
 };
 
-var profileEls = [...document.querySelectorAll('img.skin-2d')].map(a => a.parentElement);
-if (profileEls.length > 1) profileEls = document.querySelectorAll('[href*="/my-profile/switch"]');
+var profileEls = [...document.querySelectorAll('.dropdown-menu a.dropdown-item > img.skin-2d')].map(a => a.parentElement);
 
 var profiles = [...profileEls].map(profile => ({
     name: profile.innerText.split(" ")[0],
@@ -62,7 +61,7 @@ if (profiles.length > 0) {
     }));
 
     var ctx = profilesCanvas.getContext("2d");
-    ctx.fillStyle = window.getComputedStyle(profileEls[0].parentElement.parentElement).backgroundColor;
+    ctx.fillStyle = window.getComputedStyle(profileEls[0].closest('.dropdown-menu')).backgroundColor;
     ctx.fillRect(0, 0, profilesCanvas.width, profilesCanvas.height);
 
     function roundedImage(x, y, width, height, radius) {
