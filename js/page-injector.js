@@ -319,6 +319,36 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
         } : null;
     }
 
+    // Background-derived theme variables (dropdown, tertiary bg, checkered). Shared by
+    // setCustomTheme() and the live background-color handler so the logic lives in one place.
+    function applyBgVars() {
+        var bgRgb = hexToRgb(customBg);
+        if (!bgRgb) return;
+
+        // dropdown
+        root.style.setProperty("--ne-dropdown", `rgb(${bgRgb["r"] * 1.667}, ${bgRgb["g"] * 1.545}, ${bgRgb["b"] * 1.462})`);
+
+        let multiplier = 1.15;
+        let opacity = .5;
+        if (customBase === 'dark') {
+            multiplier = 1.35;
+            opacity = .45;
+
+            if (bgRgb["r"] !== 0 && bgRgb["g"] !== 0 && bgRgb["b"] !== 0 && bgRgb["r"] !== 255 && bgRgb["g"] !== 255 && bgRgb["b"] !== 255) {
+                root.style.setProperty("--bs-tertiary-bg", `rgb(${bgRgb["r"] * 2.389}, ${bgRgb["g"] * 2.182}, ${bgRgb["b"] * 2.038})`);
+                root.style.setProperty("--bs-tertiary-bg-rgb", `${bgRgb["r"] * 2.389}, ${bgRgb["g"] * 2.182}, ${bgRgb["b"] * 2.038}`);
+            }
+        } else {
+            if (bgRgb["r"] !== 0 && bgRgb["g"] !== 0 && bgRgb["b"] !== 0 && bgRgb["r"] !== 255 && bgRgb["g"] !== 255 && bgRgb["b"] !== 255) {
+                root.style.setProperty("--bs-tertiary-bg", `rgb(${bgRgb["r"] * 1.042}, ${bgRgb["g"] * 1.038}, ${bgRgb["b"] * 1.033})`);
+                root.style.setProperty("--bs-tertiary-bg-rgb", `${bgRgb["r"] * 1.042}, ${bgRgb["g"] * 1.038}, ${bgRgb["b"] * 1.033}`);
+            }
+        }
+
+        // checkered
+        root.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * multiplier}, ${bgRgb["g"] * multiplier}, ${bgRgb["b"] * multiplier}, ${opacity})`);
+    }
+
     function setCustomTheme() {
         try {
             var linkRgb = hexToRgb(customLink);
@@ -331,26 +361,7 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
             root.classList.add("customTheme");
             localStorage.theme = customBase;
 
-            var bgRgb = hexToRgb(customBg);
-
-            // dropdown
-            root.style.setProperty("--ne-dropdown", `rgb(${bgRgb["r"] * 1.667}, ${bgRgb["g"] * 1.545}, ${bgRgb["b"] * 1.462})`);
-
-            let multiplier = 1.15;
-            let opacity = .5;
-            if (customBase === 'dark') {
-                multiplier = 1.35;
-                opacity = .45;
-
-                root.style.setProperty("--ne-tertiary-bg", `rgb(${bgRgb["r"] * 2.389}, ${bgRgb["g"] * 2.182}, ${bgRgb["b"] * 2.038})`);
-                root.style.setProperty("--ne-tertiary-bg-rgb", `${bgRgb["r"] * 2.389}, ${bgRgb["g"] * 2.182}, ${bgRgb["b"] * 2.038}`);
-            } else {
-                root.style.setProperty("--ne-tertiary-bg", `rgb(${bgRgb["r"] * 1.042}, ${bgRgb["g"] * 1.038}, ${bgRgb["b"] * 1.033})`);
-                root.style.setProperty("--ne-tertiary-bg-rgb", `${bgRgb["r"] * 1.042}, ${bgRgb["g"] * 1.038}, ${bgRgb["b"] * 1.033}`);
-            }
-
-            // checkered
-            root.style.setProperty("--ne-checkered", `rgba(${bgRgb["r"] * multiplier}, ${bgRgb["g"] * multiplier}, ${bgRgb["b"] * multiplier}, ${opacity})`);
+            applyBgVars();
         } catch {
 
         }
@@ -774,6 +785,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                     root.setAttribute("data-bs-theme", "light");
 
                     root.style.setProperty("--ne-checkered", "unset");
+                    root.style.setProperty("--ne-tertiary-bg", "unset");
+                    root.style.setProperty("--ne-tertiary-bg-rgb", "unset");
 
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         var iframeEl = document.createElement("iframe");
@@ -814,6 +827,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                     root.setAttribute("data-bs-theme", "dark");
 
                     root.style.setProperty("--ne-checkered", "unset");
+                    root.style.setProperty("--ne-tertiary-bg", "unset");
+                    root.style.setProperty("--ne-tertiary-bg-rgb", "unset");
 
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         var iframeEl = document.createElement("iframe");
@@ -847,8 +862,7 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                     superStorage.customBg = custombgcolor.value;
                     customBg = custombgcolor.value;
 
-                    var rgbBg = hexToRgb(custombgcolor.value);
-                    root.style.setProperty("--ne-checkered", `rgba(${rgbBg["r"] * 1.75}, ${rgbBg["g"] * 1.75}, ${rgbBg["b"] * 1.75}, .5)`);
+                    applyBgVars();
                     customTheme.click();
                 }
 
