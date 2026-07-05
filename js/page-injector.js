@@ -334,14 +334,20 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
             multiplier = 1.35;
             opacity = .45;
 
-            if (bgRgb["r"] !== 0 && bgRgb["g"] !== 0 && bgRgb["b"] !== 0 && bgRgb["r"] !== 255 && bgRgb["g"] !== 255 && bgRgb["b"] !== 255) {
+            if (!(bgRgb["r"] == 0 && bgRgb["g"] == 0 && bgRgb["b"] == 0) && !(bgRgb["r"] == 255 && bgRgb["g"] == 255 && bgRgb["b"] == 255)) {
                 root.style.setProperty("--bs-tertiary-bg", `rgb(${bgRgb["r"] * 2.389}, ${bgRgb["g"] * 2.182}, ${bgRgb["b"] * 2.038})`);
                 root.style.setProperty("--bs-tertiary-bg-rgb", `${bgRgb["r"] * 2.389}, ${bgRgb["g"] * 2.182}, ${bgRgb["b"] * 2.038}`);
+            } else {
+                root.style.removeProperty("--bs-tertiary-bg");
+                root.style.removeProperty("--bs-tertiary-bg-rgb");
             }
         } else {
-            if (bgRgb["r"] !== 0 && bgRgb["g"] !== 0 && bgRgb["b"] !== 0 && bgRgb["r"] !== 255 && bgRgb["g"] !== 255 && bgRgb["b"] !== 255) {
+            if (!(bgRgb["r"] == 0 && bgRgb["g"] == 0 && bgRgb["b"] == 0) && !(bgRgb["r"] == 255 && bgRgb["g"] == 255 && bgRgb["b"] == 255)) {
                 root.style.setProperty("--bs-tertiary-bg", `rgb(${bgRgb["r"] * 1.042}, ${bgRgb["g"] * 1.038}, ${bgRgb["b"] * 1.033})`);
                 root.style.setProperty("--bs-tertiary-bg-rgb", `${bgRgb["r"] * 1.042}, ${bgRgb["g"] * 1.038}, ${bgRgb["b"] * 1.033}`);
+            } else {
+                root.style.removeProperty("--bs-tertiary-bg");
+                root.style.removeProperty("--bs-tertiary-bg-rgb");
             }
         }
 
@@ -785,8 +791,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                     root.setAttribute("data-bs-theme", "light");
 
                     root.style.setProperty("--ne-checkered", "unset");
-                    root.style.setProperty("--bs-tertiary-bg", "unset");
-                    root.style.setProperty("--bs-tertiary-bg-rgb", "unset");
+                    root.style.removeProperty("--bs-tertiary-bg");
+                    root.style.removeProperty("--bs-tertiary-bg-rgb");
 
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         var iframeEl = document.createElement("iframe");
@@ -827,8 +833,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                     root.setAttribute("data-bs-theme", "dark");
 
                     root.style.setProperty("--ne-checkered", "unset");
-                    root.style.setProperty("--bs-tertiary-bg", "unset");
-                    root.style.setProperty("--bs-tertiary-bg-rgb", "unset");
+                    root.style.removeProperty("--bs-tertiary-bg");
+                    root.style.removeProperty("--bs-tertiary-bg-rgb");
 
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         var iframeEl = document.createElement("iframe");
