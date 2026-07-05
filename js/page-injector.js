@@ -785,8 +785,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                     root.setAttribute("data-bs-theme", "light");
 
                     root.style.setProperty("--ne-checkered", "unset");
-                    root.style.setProperty("--ne-tertiary-bg", "unset");
-                    root.style.setProperty("--ne-tertiary-bg-rgb", "unset");
+                    root.style.setProperty("--bs-tertiary-bg", "unset");
+                    root.style.setProperty("--bs-tertiary-bg-rgb", "unset");
 
                     if (customBg == "#12161A" && customText == "#dee2e6") {
                         var iframeEl = document.createElement("iframe");
@@ -827,8 +827,8 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                     root.setAttribute("data-bs-theme", "dark");
 
                     root.style.setProperty("--ne-checkered", "unset");
-                    root.style.setProperty("--ne-tertiary-bg", "unset");
-                    root.style.setProperty("--ne-tertiary-bg-rgb", "unset");
+                    root.style.setProperty("--bs-tertiary-bg", "unset");
+                    root.style.setProperty("--bs-tertiary-bg-rgb", "unset");
 
                     if (customBg == "#EEF0F2" && customText == "#212529") {
                         var iframeEl = document.createElement("iframe");
