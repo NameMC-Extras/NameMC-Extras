@@ -366,7 +366,7 @@ select * {
     color: var(--bs-body-color);
 }
 
-.btn:has(i) {
+.btn:has(i):not(.dropdown-item) {
     display: inline-flex;
     flex-direction: row;
     flex-wrap: nowrap;
