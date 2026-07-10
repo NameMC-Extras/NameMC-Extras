@@ -95,7 +95,13 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
     const removeAds = () => {
         let nodes;
         try { nodes = document.querySelectorAll(AD_SELECTOR); } catch { return; }
-        for (let i = 0; i < nodes.length; i++) nodes[i].remove();
+        for (let i = 0; i < nodes.length; i++) {
+            if (nodes[i].parentElement.children.length === 1) {
+                nodes[i].parentElement.remove();
+            } else {
+                nodes[i].remove();
+            }
+        }
     };
 
     let __adTimer = null;
@@ -436,7 +442,7 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
         root.style.setProperty("--bs-body-font-family", stack);
         var targets = ["body", "h1", "h2", "h3", "h4", "h5", "h6", ".navbar-brand"];
         if (customFontCode) targets.push("code", "pre", "kbd", "samp", ".mono", ".font-monospace", "#uuid-select", "#uuid-select:focus");
-        var sel = targets.map(function (s) { return s + ':not([style*="font-family"])'; }).join(",");
+        var sel = targets.map(function (s) { return s + ':not([style*="font-family"])'; }).join(",")+',[style*="monospace"]';
         var style = document.createElement("style");
         style.id = "ne-custom-font-style";
         style.textContent = sel + "{font-family:" + stack + " !important}";
@@ -539,7 +545,7 @@ div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
                                         <div class="form-text mt-1">Search or type any font. <a href="javascript:void(0)" id="customFontReset">Reset to default</a></div>
                                         <div class="form-check form-switch mt-2">
                                             <input class="form-check-input" type="checkbox" role="switch" id="customfontcode"${customFontCode ? " checked" : ""}>
-                                            <label class="form-check-label" for="customfontcode">Override monospace text</label>
+                                            <label class="form-check-label" for="customfontcode">Override monospace font</label>
                                         </div>
                                         <div class="mt-3">
                                             <label class="form-label mb-1 d-flex justify-content-between align-items-center w-100">
