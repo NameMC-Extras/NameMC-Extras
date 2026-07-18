@@ -66,64 +66,6 @@ observer.observe(window.top.document.documentElement, {
 
     document.documentElement.append(iframeEl);
 
-    const AD_SELECTOR = `div:has(> [id^="nn_"]:not([class])):not(main):not(body):not(html),
-[style*="z-index: 100000"]:not(#test),
-[style*="visibility: hidden"]:not(#test),
-div:has(> [id^="img_"]:not([class])):not(main):not(body):not(html),
-.ad-container:not(#test),
-.mpu-container:not(#test),
-.mt-0:has(+ .ad-container),
-.mt-0:has(+ .mpu-container),
-[id*=nn_]:not(main):not(body):not(html),
-[class*=nn_]:not(main):not(body):not(html),
-[id*=celtra]:not(#test),
-[class*=celtra]:not(#test),
-[id*=jpx]:not(#test),
-[class*=jpx]:not(#test),
-[id*=lb1_]:not(#test),
-[class*=lb1_]:not(#test),
-[id*=pl_]:not(#test),
-[class*=pl_]:not(#test),
-[id*=ads_]:not(#test),
-[class*=ads_]:not(#test),
-[id*=gpt_]:not(#test),
-[class*=gpt_]:not(#test),
-[id*=adRootContainer_]:not(#test),
-[class*=publift]:not(#test),
-.notranslate:has(iframe)`;
-
-    const removeAds = () => {
-        let nodes;
-        try { nodes = document.querySelectorAll(AD_SELECTOR); } catch { return; }
-        for (let i = 0; i < nodes.length; i++) {
-            if (nodes[i].parentElement.children.length === 1) {
-                nodes[i].parentElement.remove();
-            } else {
-                nodes[i].remove();
-            }
-        }
-    };
-
-    let __adTimer = null;
-    // Only rescan when nodes were ADDED — removals (including our own) can't create
-    // new ads, so this avoids a self-triggered scan loop — and debounce so the
-    // :has()-heavy selector isn't evaluated more often than needed.
-    const scheduleAdRemoval = (mutations) => {
-        if (__adTimer) return;
-        let added = false;
-        for (let i = 0; i < mutations.length; i++) {
-            if (mutations[i].addedNodes.length) { added = true; break; }
-        }
-        if (!added) return;
-        __adTimer = setTimeout(() => { __adTimer = null; removeAds(); }, 250);
-    };
-
-    removeAds();
-    new MutationObserver(scheduleAdRemoval).observe(document.documentElement, {
-        childList: true,
-        subtree: true
-    });
-
     let currentUrl = location.href;
 
     let cleanUrl = currentUrl.replace(/\/+$/, '');
