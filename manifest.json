@@ -8,11 +8,12 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "version": "4.1.7",
+  "version": "4.1.8",
   "content_scripts": [
     {
       "js": [
         "js/superStorage.js",
+        "js/advanced-settings.js",
         "js/url-cleaner.js",
         "js/data-preload.js",
         "js/user-data-utils.js",
@@ -188,7 +189,8 @@
         "pages/*.js",
         "pages/**/*.js",
         "dropdown-items/*.js",
-        "dropdown-items/**/*.js"
+        "dropdown-items/**/*.js",
+        "css/adblock.css"
       ],
       "matches": [
         "*://*.namemc.com/*"

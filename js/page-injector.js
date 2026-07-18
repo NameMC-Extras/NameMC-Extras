@@ -4,7 +4,10 @@
 
     const root = document.documentElement;
 
+    await superStorage._ready;
+
     // bypass anti ad blocker
+    if (superStorage.getItem("disableAdBlock") !== "true") {
     var iframeEl = document.createElement("iframe");
     iframeEl.width = 0;
     iframeEl.height = 0;
@@ -65,6 +68,7 @@ observer.observe(window.top.document.documentElement, {
 </script>`;
 
     document.documentElement.append(iframeEl);
+    }
 
     let currentUrl = location.href;
 
@@ -213,6 +217,8 @@ observer.observe(window.top.document.documentElement, {
     var customFont = superStorage.getItem("customFont") || "";
     var customFontSize = superStorage.getItem("customFontSize") || "100";
     var customFontCode = superStorage.getItem("customFontCode") === "true";
+    var disableAdBlock = superStorage.getItem("disableAdBlock") === "true";
+    var customCss = superStorage.getItem("customCss") || "";
     var hideHeadCmd2 = superStorage.getItem("hideHeadCmd2") === "false";
     var hideDegreesOfSep2 = superStorage.getItem("hideDegreesOfSep2") === "false";
     var hideBadges2 = superStorage.getItem("hideBadges2") === "false";
@@ -400,7 +406,7 @@ observer.observe(window.top.document.documentElement, {
     const createSettingsButton = () => {
         const modalHTML = `
             <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width:600px">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document" style="max-width:600px">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="settingsModalLabel">NameMC Extras Settings</h5>
@@ -559,7 +565,7 @@ observer.observe(window.top.document.documentElement, {
                                 </div>
                             </div>
 
-                            <div class="settings-section">
+                            <div class="settings-section mb-4">
                                 <h6 class="settings-heading">
                                     <i class="fas fa-link me-2"></i>Quick Links
                                 </h6>
@@ -573,6 +579,34 @@ observer.observe(window.top.document.documentElement, {
                                             <textarea class="form-control" id="linksTextArea" rows="3" placeholder="[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})">${linksTextArea}</textarea>
                                             <div class="form-text mb-3">Use Markdown format: [Label](URL) with {uuid} and {username} as placeholders</div>
                                             <button style="min-width:6rem" class="btn btn-primary" id="linksTextBtn">Save</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-section">
+                                <button class="btn btn-link settings-heading advanced-settings-toggle w-100 text-start p-0 mb-2 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings">
+                                    <i class="fas fa-code me-2"></i>Advanced Settings
+                                    <i class="fas fa-chevron-down ms-auto advanced-settings-chevron"></i>
+                                </button>
+                                <div class="collapse" id="advancedSettings">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="disableAdBlock"${disableAdBlock ? " checked" : ""}>
+                                                <label class="form-check-label" for="disableAdBlock">
+                                                    <strong>Disable ad block</strong>
+                                                </label>
+                                                <div class="form-text">Allow NameMC advertisements to display.</div>
+                                            </div>
+                                            <label for="customCss" class="form-label"><strong>Custom CSS</strong></label>
+                                            <textarea class="form-control font-monospace" id="customCss" rows="8" placeholder="/* Add CSS applied to every NameMC page */">${customCss.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
+                                            <div class="form-text mb-3">Saved CSS is applied after the extension styles and updates across open tabs.</div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-primary" id="saveCustomCss">Save CSS</button>
+                                                <button class="btn btn-outline-secondary" id="resetCustomCss">Clear</button>
+                                                <span class="text-muted small align-self-center" id="customCssStatus" aria-live="polite"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -621,6 +655,31 @@ observer.observe(window.top.document.documentElement, {
                 var customfontsize = document.querySelector("#customfontsize");
                 var customfontsizeval = document.querySelector("#customfontsizeval");
                 var customfontcode = document.querySelector("#customfontcode");
+                var disableAdBlockEl = document.querySelector("#disableAdBlock");
+                var customCssEl = document.querySelector("#customCss");
+                var saveCustomCss = document.querySelector("#saveCustomCss");
+                var resetCustomCss = document.querySelector("#resetCustomCss");
+                var customCssStatus = document.querySelector("#customCssStatus");
+
+                disableAdBlockEl.onchange = () => {
+                    disableAdBlock = disableAdBlockEl.checked;
+                    superStorage.disableAdBlock = disableAdBlock;
+                };
+
+                const persistCustomCss = () => {
+                    customCss = customCssEl.value;
+                    superStorage.customCss = customCss;
+                    customCssStatus.textContent = customCss ? "Saved" : "Cleared";
+                    setTimeout(() => { customCssStatus.textContent = ""; }, 1500);
+                };
+                saveCustomCss.onclick = persistCustomCss;
+                resetCustomCss.onclick = () => {
+                    customCssEl.value = "";
+                    persistCustomCss();
+                };
+                customCssEl.addEventListener("keydown", (event) => {
+                    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") persistCustomCss();
+                });
 
                 if (customfont && customFontMenu) {
                     // Preview fonts are loaded by font-inject.js (page world) when this input

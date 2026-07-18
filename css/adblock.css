@@ -1,0 +1,42 @@
+div:has(>[id^="nn_"]:not([class])):not(main):not(body):not(html),
+[style*="z-index: 100000"]:not(#test),
+[style*="visibility: hidden"]:not(#test),
+div:has(>[id^="img_"]:not([class])):not(main):not(body):not(html),
+.ad-container:not(#test),
+.mpu-container:not(#test),
+.mt-0:has(+ .ad-container),
+.mt-0:has(+ .mpu-container),
+[id*=nn_]:not(main):not(body):not(html),
+[class*=nn_]:not(main):not(body):not(html),
+[id*=celtra]:not(#test), [id*=primis]:not(#test), [class*=celtra]:not(#test),
+[id*=jpx]:not(#test), [class*=jpx]:not(#test),
+[id*=lb1_]:not(#test), [class*=lb1_]:not(#test),
+[id*=lb2_]:not(#test), [class*=lb2_]:not(#test),
+[id*=lb3_]:not(#test), [class*=lb3_]:not(#test),
+[id*=pl_]:not(#test), [class*=pl_]:not(#test),
+[id*=ads_]:not(#test), [class*=ads_]:not(#test),
+[id*=gpt_]:not(#test), [class*=gpt_]:not(#test),
+[id*=adRootContainer_]:not(#test), [class*=publift]:not(#test),
+div:has(>[id*=nn_]):not(main):not(body):not(html),
+div:has(>[class*=nn_]):not(main):not(body):not(html),
+div:has(>[id*=celtra]):not(#test), div:has(>[id*=primis]):not(#test),
+div:has(>[class*=celtra]):not(#test), div:has(>[id*=jpx]):not(#test),
+div:has(>[class*=jpx]):not(#test), div:has(>[id*=lb1_]):not(#test),
+div:has(>[class*=lb1_]):not(#test), div:has(>[id*=pl_]):not(#test),
+div:has(>[class*=pl_]):not(#test), div:has(>[id*=ads_]):not(#test),
+div:has(>[class*=ads_]):not(#test), div:has(>[id*=gpt_]):not(#test),
+div:has(>[class*=gpt_]):not(#test), div:has(>[id*=adRootContainer_]):not(#test),
+div:has(>[class*=publift]):not(#test),
+.mb-3:has(>[style*=max-width]):not(#test):not(.card),
+.my-3:has(>[style*=max-width]):not(#test):not(.card),
+.notranslate:has(iframe) {
+    filter: opacity(0%) !important;
+    opacity: 0 !important;
+    transform: scale(0) !important;
+    clip-path: circle(0) !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
