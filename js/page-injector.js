@@ -79,7 +79,6 @@ observer.observe(window.top.document.documentElement, {
     // Shared state
     const __wfs_listeners = [];
     let __wfs_observer = null;
-    let __wfs_scan_timer = 0;
 
     function waitForSelector(
         selector,
@@ -122,7 +121,7 @@ observer.observe(window.top.document.documentElement, {
 
             // Start shared observer if not running
             if (!__wfs_observer) {
-                __wfs_observer = new MutationObserver(scheduleWaiterScan);
+                __wfs_observer = new MutationObserver(handleMutations);
                 __wfs_observer.observe(document.documentElement, {
                     childList: true,
                     subtree: true
@@ -136,8 +135,7 @@ observer.observe(window.top.document.documentElement, {
     // (the target is inserted inside a chunk where node.querySelector can't see the
     // selector's leading ancestor), which is what made the settings cog and other
     // injected UI intermittently fail to appear until a refresh.
-    function scanWaiters() {
-        __wfs_scan_timer = 0;
+    function handleMutations() {
         for (let i = __wfs_listeners.length - 1; i >= 0; i--) {
             const listener = __wfs_listeners[i];
             const match = listener.root.querySelector(listener.selector);
@@ -149,10 +147,6 @@ observer.observe(window.top.document.documentElement, {
         }
     }
 
-    function scheduleWaiterScan() {
-        if (!__wfs_scan_timer) __wfs_scan_timer = setTimeout(scanWaiters, 16);
-    }
-
     function removeListener(listener) {
         clearTimeout(listener.timer);
         const index = __wfs_listeners.indexOf(listener);
@@ -162,8 +156,6 @@ observer.observe(window.top.document.documentElement, {
         if (__wfs_listeners.length === 0 && __wfs_observer) {
             __wfs_observer.disconnect();
             __wfs_observer = null;
-            if (__wfs_scan_timer) clearTimeout(__wfs_scan_timer);
-            __wfs_scan_timer = 0;
         }
     }
 

@@ -183,11 +183,6 @@
                 iframe.src = `/profile/${uuid}`;
                 document.documentElement.appendChild(iframe);
 
-                const timeout = setTimeout(() => {
-                    clearInterval(interval);
-                    iframe.remove();
-                    reject(new Error(`Timed out loading profile ${uuid}`));
-                }, 30000);
                 const interval = setInterval(async () => {
                     try {
                         const doc = iframe.contentDocument;
@@ -205,7 +200,6 @@
                         }
 
                         clearInterval(interval);
-                        clearTimeout(timeout);
 
                         // ✅ Success
                         if (title.includes(expectedTitle)) {
@@ -267,11 +261,10 @@
 
                     } catch (err) {
                         clearInterval(interval);
-                        clearTimeout(timeout);
                         iframe.remove();
                         reject(err);
                     }
-                }, 250);
+                }, 50);
             });
         }
 

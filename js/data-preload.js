@@ -16,25 +16,19 @@
     emojis_free: "emojis_free"
   };
 
+  try {
+    const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
+    const expires = Number(superStorage.getItem("supabase_expires"));
+    if (
+      supabase_data &&
+      Object.keys(supabase_data).length === Object.keys(endPoints).length + 1 &&
+      expires > Date.now()
+    ) return;
+  } catch {}
+
   function initBooleanKey(key) {
     if (!superStorage.getItem(key)) superStorage.setItem(key, "false");
   }
-
-  initBooleanKey("skinArt");
-  initBooleanKey("customTheme");
-
-  function hasFreshData() {
-    try {
-      const data = JSON.parse(superStorage.getItem("supabase_data"));
-      return data &&
-        Object.keys(data).length === Object.keys(endPoints).length + 1 &&
-        Number(superStorage.getItem("supabase_expires")) > Date.now();
-    } catch {
-      return false;
-    }
-  }
-
-  if (hasFreshData()) return;
 
   async function fetchSupabase(endPoints) {
     const keys = [...endPoints, "bedrock_capes"];
@@ -48,7 +42,6 @@
       urls.map(async (url, i) => {
         try {
           const res = await fetch(url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return await res.json();
         } catch (err) {
           console.warn(`Failed to fetch ${keys[i]} from ${url}:`, err);
@@ -79,14 +72,8 @@
     console.log("Supabase data updated (partial updates allowed).");
   }
 
-  const refresh = async () => {
-    if (hasFreshData()) return;
-    await storeResults(await fetchSupabase(Object.values(endPoints)));
-  };
+  fetchSupabase(Object.values(endPoints)).then(storeResults);
 
-  if (navigator.locks?.request) {
-    await navigator.locks.request("namemc-extras-data-refresh", refresh);
-  } else {
-    await refresh();
-  }
+  initBooleanKey("skinArt");
+  initBooleanKey("customTheme");
 })();

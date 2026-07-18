@@ -32,10 +32,6 @@ let __wf_timer = null;
 const __wf_tick = () => {
   for (let i = __wf_tasks.length - 1; i >= 0; i--) {
     const task = __wf_tasks[i];
-    if (Date.now() >= task.deadline) {
-      __wf_tasks.splice(i, 1);
-      continue;
-    }
     let ready = false;
     try { ready = !!task.cond(); } catch { }
     if (ready) {
@@ -49,15 +45,14 @@ const waitFor = (conditionFn, callback) => {
   let ready = false;
   try { ready = !!conditionFn(); } catch { }
   if (ready) return setTimeout(callback);
-  __wf_tasks.push({ cond: conditionFn, cb: callback, deadline: Date.now() + 15000 });
-  if (!__wf_timer) __wf_timer = setInterval(__wf_tick, 100);
+  __wf_tasks.push({ cond: conditionFn, cb: callback });
+  if (!__wf_timer) __wf_timer = setInterval(__wf_tick, 50);
 };
 
 // Shared MutationObserver: many waitForSelector() calls share ONE observer
 // instead of each creating its own (less work per DOM mutation during load).
 const __wfs_listeners = [];
 let __wfs_observer = null;
-let __wfs_scan_timer = 0;
 const __wfs_removeListener = (listener) => {
   clearTimeout(listener.timer);
   const index = __wfs_listeners.indexOf(listener);
@@ -65,8 +60,6 @@ const __wfs_removeListener = (listener) => {
   if (!__wfs_listeners.length && __wfs_observer) {
     __wfs_observer.disconnect();
     __wfs_observer = null;
-    if (__wfs_scan_timer) clearTimeout(__wfs_scan_timer);
-    __wfs_scan_timer = 0;
   }
 };
 // Re-scan the full selector from each listener's root on any DOM change. Checking
@@ -75,8 +68,7 @@ const __wfs_removeListener = (listener) => {
 // node.querySelector can't see the selector's leading ancestor, so the element is
 // in the DOM but never matched. That's what made features intermittently fail to
 // appear (name history, settings cog, created-at/links) until a refresh.
-const __wfs_scan = () => {
-  __wfs_scan_timer = 0;
+const __wfs_handleMutations = () => {
   for (let i = __wfs_listeners.length - 1; i >= 0; i--) {
     const listener = __wfs_listeners[i];
     const match = listener.root.querySelector(listener.selector);
@@ -85,9 +77,6 @@ const __wfs_scan = () => {
     try { listener.callback?.(match); } catch (e) { console.error(e); }
     listener.resolve(match);
   }
-};
-const __wfs_scheduleScan = () => {
-  if (!__wfs_scan_timer) __wfs_scan_timer = setTimeout(__wfs_scan, 16);
 };
 const waitForSelector = (
   selector,
@@ -118,7 +107,7 @@ const waitForSelector = (
     }
 
     if (!__wfs_observer) {
-      __wfs_observer = new MutationObserver(__wfs_scheduleScan);
+      __wfs_observer = new MutationObserver(__wfs_handleMutations);
       __wfs_observer.observe(document.documentElement, { childList: true, subtree: true });
     }
   });
