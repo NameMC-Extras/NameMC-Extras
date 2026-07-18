@@ -79,6 +79,7 @@ observer.observe(window.top.document.documentElement, {
     // Shared state
     const __wfs_listeners = [];
     let __wfs_observer = null;
+    let __wfs_scan_timer = 0;
 
     function waitForSelector(
         selector,
@@ -121,7 +122,7 @@ observer.observe(window.top.document.documentElement, {
 
             // Start shared observer if not running
             if (!__wfs_observer) {
-                __wfs_observer = new MutationObserver(handleMutations);
+                __wfs_observer = new MutationObserver(scheduleWaiterScan);
                 __wfs_observer.observe(document.documentElement, {
                     childList: true,
                     subtree: true
@@ -135,7 +136,8 @@ observer.observe(window.top.document.documentElement, {
     // (the target is inserted inside a chunk where node.querySelector can't see the
     // selector's leading ancestor), which is what made the settings cog and other
     // injected UI intermittently fail to appear until a refresh.
-    function handleMutations() {
+    function scanWaiters() {
+        __wfs_scan_timer = 0;
         for (let i = __wfs_listeners.length - 1; i >= 0; i--) {
             const listener = __wfs_listeners[i];
             const match = listener.root.querySelector(listener.selector);
@@ -147,6 +149,10 @@ observer.observe(window.top.document.documentElement, {
         }
     }
 
+    function scheduleWaiterScan() {
+        if (!__wfs_scan_timer) __wfs_scan_timer = setTimeout(scanWaiters, 16);
+    }
+
     function removeListener(listener) {
         clearTimeout(listener.timer);
         const index = __wfs_listeners.indexOf(listener);
@@ -156,6 +162,8 @@ observer.observe(window.top.document.documentElement, {
         if (__wfs_listeners.length === 0 && __wfs_observer) {
             __wfs_observer.disconnect();
             __wfs_observer = null;
+            if (__wfs_scan_timer) clearTimeout(__wfs_scan_timer);
+            __wfs_scan_timer = 0;
         }
     }
 
@@ -597,7 +605,7 @@ observer.observe(window.top.document.documentElement, {
                                                 <label class="form-check-label" for="disableAdBlock">
                                                     <strong>Disable ad block</strong>
                                                 </label>
-                                                <div class="form-text">Allow NameMC advertisements to display.</div>
+                                                <div class="form-text">Allow NameMC advertisements to display. You may need to refresh the page for this setting to take effect.</div>
                                             </div>
                                             <label for="customCss" class="form-label"><strong>Custom CSS</strong></label>
                                             <textarea class="form-control font-monospace" id="customCss" rows="8" placeholder="/* Add CSS applied to every NameMC page */">${customCss.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
@@ -636,6 +644,26 @@ observer.observe(window.top.document.documentElement, {
             waitForSelector("[href*=namemc]", () => {
                 // inject modal html
                 root.insertAdjacentHTML('beforeend', modalHTML);
+                const settingsModalEl = document.querySelector("#settingsModal");
+
+                const releaseStaleModalLock = () => {
+                    // Never unlock the page underneath another legitimately open modal.
+                    if (document.querySelector(".modal.show")) return;
+
+                    document.body?.classList.remove("modal-open");
+                    document.body?.style.removeProperty("overflow");
+                    document.body?.style.removeProperty("padding-right");
+                    root.style.removeProperty("overflow");
+                    root.style.removeProperty("padding-right");
+                    document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
+                };
+
+                settingsModalEl.addEventListener("hidden.bs.modal", releaseStaleModalLock);
+                settingsModalEl.addEventListener("hide.bs.modal", () => {
+                    // Bootstrap's fade is normally complete well before this. The
+                    // fallback covers a show/hide race where hidden.bs.modal is skipped.
+                    setTimeout(releaseStaleModalLock, 500);
+                });
 
                 // firefox support
                 var customTheme = document.querySelector("#customTheme");

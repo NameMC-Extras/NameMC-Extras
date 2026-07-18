@@ -29,6 +29,9 @@ div:has(>[class*=gpt_]):not(#test), div:has(>[id*=adRootContainer_]):not(#test),
 div:has(>[class*=publift]):not(#test),
 .mb-3:has(>[style*=max-width]):not(#test):not(.card),
 .my-3:has(>[style*=max-width]):not(#test):not(.card),
+[class=tl-transparent], [class*=jpx-]:not(#test), div:has(>[class*=jpx-]):not(#test),
+[class*=tracking-iframe-]:not(#test), div:has(>[class*=tracking-iframe-]):not(#test),
+[id*=ad_is_]:not(#test), div:has(>[id*=ad_is_]):not(#test),
 .notranslate:has(iframe) {
     filter: opacity(0%) !important;
     opacity: 0 !important;

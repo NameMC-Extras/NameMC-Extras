@@ -1,5 +1,4 @@
-// Inject page-context scripts. async=false => parallel download, ordered execution
-// (graph-utils executes before capes-inject in case it relies on its globals).
+// The capes index does not render usage graphs; graph-utils stays on cape detail pages.
 function injectScript(src) {
     const script = document.createElement('script');
     script.src = chrome.runtime.getURL(src);
@@ -11,5 +10,4 @@ function injectScript(src) {
     return script;
 }
 
-injectScript('js/capes-page/graph-utils.js');
 injectScript('js/capes-page/capes-inject.js');

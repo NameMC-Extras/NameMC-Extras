@@ -10,29 +10,26 @@ class AnnouncementManager {
         if (!document.contentType.startsWith('text/html')) return;
         if (window.location.hostname === 'store.namemc.com') return;
 
-        let attempts = 0;
-        const interval = setInterval(() => {
-            // Stop polling after ~15s so an offline/no-cache load doesn't spin forever.
-            if (++attempts > 300) {
-                clearInterval(interval);
-                return;
-            }
-            const supabaseDataRaw = superStorage.getItem('supabase_data');
-            if (supabaseDataRaw) {
-                clearInterval(interval);
-                try {
-                    const supabaseData = JSON.parse(supabaseDataRaw);
-                    const announcements = supabaseData.announcements || [];
-                    const latestAnnouncement = announcements[0];
-                    if (latestAnnouncement && !this.isDismissed(latestAnnouncement.id)) {
-                        this.currentAnnouncement = latestAnnouncement;
-                        this.createAnnouncementBanner();
-                    }
-                } catch (error) {
-                    console.error('[Announcements] Failed to load announcements:', error);
+        const load = (raw) => {
+            if (!raw) return false;
+            try {
+                const latestAnnouncement = JSON.parse(raw).announcements?.[0];
+                if (latestAnnouncement && !this.isDismissed(latestAnnouncement.id)) {
+                    this.currentAnnouncement = latestAnnouncement;
+                    this.createAnnouncementBanner();
                 }
+            } catch (error) {
+                console.error('[Announcements] Failed to load announcements:', error);
             }
-        }, 50); // check every 50ms instead of recursive setTimeout
+            return true;
+        };
+
+        if (load(superStorage.getItem('supabase_data'))) return;
+        const onStorageSync = (event) => {
+            if (event.detail?.key !== 'supabase_data') return;
+            if (load(event.detail.value)) window.removeEventListener('superstorage-sync', onStorageSync);
+        };
+        window.addEventListener('superstorage-sync', onStorageSync);
     }
 
     isDismissed(id) {

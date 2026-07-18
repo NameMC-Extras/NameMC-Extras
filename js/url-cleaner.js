@@ -16,7 +16,5 @@
     window.addEventListener('hashchange', cleanGoogleVignette);
     window.addEventListener('popstate', cleanGoogleVignette);
 
-    // Optional: very short interval as fallback (can be 100ms)
-    const interval = setInterval(cleanGoogleVignette, 500);
-    setTimeout(() => clearInterval(interval), 5000);
+    // hashchange covers fragment updates and popstate covers history traversal.
 })();

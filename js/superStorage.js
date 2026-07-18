@@ -104,8 +104,11 @@
         for (const k in changes) {
             const val = changes[k].newValue;
             if (val === undefined) {
-                if (k in cache) { delete cache[k]; size--; }
+                if (!(k in cache)) continue;
+                delete cache[k];
+                size--;
             } else {
+                if (k in cache && cache[k] === val) continue;
                 if (!(k in cache)) size++;
                 cache[k] = val;
             }

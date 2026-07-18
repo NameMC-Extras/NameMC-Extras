@@ -142,17 +142,17 @@
     }
 
     if (value === null) {
-      if (key in cache) {
-        usedBytes -= byteSize(key, cache[key]);
-        delete cache[key];
+      if (!(key in cache)) return;
+      usedBytes -= byteSize(key, cache[key]);
+      delete cache[key];
 
-        const i = keys.indexOf(key);
-        if (i !== -1) keys.splice(i, 1);
+      const i = keys.indexOf(key);
+      if (i !== -1) keys.splice(i, 1);
 
-        size--;
-      }
+      size--;
     } else {
       const v = String(value);
+      if (key in cache && cache[key] === v) return;
       const newSize = byteSize(key, v);
 
       if (key in cache) {
