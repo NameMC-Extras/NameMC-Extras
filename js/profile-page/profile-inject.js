@@ -549,11 +549,11 @@ window.addEventListener("superstorage-ready", async () => {
     document.querySelector('[style="max-width: 700px; min-height: 216px; margin: auto"]')?.remove();
 
     var descText = linksTextArea.toString().split('{uuid}').join(uuid).split('{username}').join(username);
-    var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
-
+    var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\))[\s\S]*$/.test(descText);
+    console.log(hasMdLink)
     if (!hasMdLink) {
       descText = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`.toString().split('{uuid}').join(uuid);
-      hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*$/.test(descText);
+      hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\))[\s\S]*$/.test(descText);
     }
 
     if (hasMdLink) {
@@ -602,6 +602,12 @@ window.addEventListener("superstorage-ready", async () => {
         parent.append(editLink);
         editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
       }
+    });
+
+    waitForTooltip(() => {
+      $('[data-bs-content]').click(function () {
+        $('[data-bs-content]').not(this).popover('hide');
+      });
     });
 
     waitForSelector('.profile-column-right .card-body.py-1 > div:nth-child(2)', (views) => {
