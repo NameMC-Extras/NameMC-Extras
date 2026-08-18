@@ -194,6 +194,7 @@ window.addEventListener("superstorage-ready", async () => {
   var enableBedrockCapes = superStorage.getItem("bedrockCapes") === "true";
   var hideBadges2 = superStorage.getItem("hideBadges2") === "false";
   var hideCreatedAt = superStorage.getItem("hideCreatedAt") === "false";
+  var createdAtNotFound = superStorage.getItem("createdAtNotFound") === "true";
   var hideElytra = superStorage.getItem("hideElytra") === "false";
   var hideLayers = superStorage.getItem("hideLayers") === "false";
   var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
@@ -520,8 +521,10 @@ window.addEventListener("superstorage-ready", async () => {
             "boundary": "viewport",
             "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
           }))
+        } else if (createdAtNotFound) {
+          cdate.classList.remove("saving");
+          cdate.textContent = "Not Found";
         } else {
-          // If no date is found, remove the entire "Created At" section
           var createdAtSection = document.getElementById("created-at-section");
           if (createdAtSection) {
             createdAtSection.remove();
@@ -550,7 +553,6 @@ window.addEventListener("superstorage-ready", async () => {
 
     var descText = linksTextArea.toString().split('{uuid}').join(uuid).split('{username}').join(username);
     var hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\))[\s\S]*$/.test(descText);
-    console.log(hasMdLink)
     if (!hasMdLink) {
       descText = `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`.toString().split('{uuid}').join(uuid);
       hasMdLink = /^(?=.*\[)(?=.*\])(?=.*\()(?=.*\))[\s\S]*$/.test(descText);

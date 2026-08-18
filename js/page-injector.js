@@ -234,6 +234,8 @@ observer.observe(window.top.document.documentElement, {
     var hideServers = superStorage.getItem("hideServers") === "false";
     var hideFollowing = superStorage.getItem("hideFollowing") === "false";
     var hideOptifine = superStorage.getItem("hideOptifine") === "false";
+    var hideLocatorBar = superStorage.getItem("hideLocatorBar") === "false";
+    var createdAtNotFound = superStorage.getItem("createdAtNotFound") === "true";
 
     // Function to inject user-data-utils and check for pinned users
     const checkPinnedUsers = () => {
@@ -402,6 +404,7 @@ observer.observe(window.top.document.documentElement, {
     if (hideFollowing) root.style.setProperty("--following", hideFollowing ? 'none' : 'flex');
     if (hideDegreesOfSep2) root.style.setProperty("--degrees-of-sep", hideDegreesOfSep2 ? 'none' : 'flex');
     if (hideOptifine) root.style.setProperty("--optifine", hideOptifine ? 'none' : 'flex');
+    if (hideLocatorBar) root.style.setProperty("--locatorbar", hideLocatorBar ? 'none' : 'flex');
 
     const createSettingsButton = () => {
         const modalHTML = `
@@ -551,6 +554,7 @@ observer.observe(window.top.document.documentElement, {
                                                 <button type="button" class="btn btn-outline-primary${!hideServers ? ' active' : ''}" id="hideServers" data-bs-toggle="tooltip" title="Show favorite servers on profile">Favorite Servers</button>
                                                 <button type="button" class="btn btn-outline-primary${!hideHeadCmd2 ? ' active' : ''}" id="hideHeadCmd2" data-bs-toggle="tooltip" title="Display head command">Head Command</button>
                                                 <button type="button" class="btn btn-outline-primary${!hideDegreesOfSep2 ? ' active' : ''}" id="hideDegreesOfSep2" data-bs-toggle="tooltip" title="Show degree of separation">Degree of Separation</button>
+                                                <button type="button" class="btn btn-outline-primary${!hideLocatorBar ? ' active' : ''}" id="hideLocatorBar" data-bs-toggle="tooltip" title="Hide locator bar color">Locator Bar Color</button>
                                             </div>
                                         </div>
 
@@ -598,6 +602,13 @@ observer.observe(window.top.document.documentElement, {
                                                     <strong>Disable ad block</strong>
                                                 </label>
                                                 <div class="form-text">Allow NameMC advertisements to display. You may need to refresh the page for this setting to take effect.</div>
+                                            </div>
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="createdAtNotFound"${createdAtNotFound ? " checked" : ""}>
+                                                <label class="form-check-label" for="createdAtNotFound">
+                                                    <strong>Show "Not Found" for missing Created At</strong>
+                                                </label>
+                                                <div class="form-text">Show "Not Found" instead of hiding the Created At section when no creation date is available.</div>
                                             </div>
                                             <label for="customCss" class="form-label"><strong>Custom CSS</strong></label>
                                             <textarea class="form-control font-monospace" id="customCss" rows="8" placeholder="/* Add CSS applied to every NameMC page */">${customCss.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
@@ -676,6 +687,7 @@ observer.observe(window.top.document.documentElement, {
                 var customfontsizeval = document.querySelector("#customfontsizeval");
                 var customfontcode = document.querySelector("#customfontcode");
                 var disableAdBlockEl = document.querySelector("#disableAdBlock");
+                var createdAtNotFoundEl = document.querySelector("#createdAtNotFound");
                 var customCssEl = document.querySelector("#customCss");
                 var saveCustomCss = document.querySelector("#saveCustomCss");
                 var resetCustomCss = document.querySelector("#resetCustomCss");
@@ -684,6 +696,11 @@ observer.observe(window.top.document.documentElement, {
                 disableAdBlockEl.onchange = () => {
                     disableAdBlock = disableAdBlockEl.checked;
                     superStorage.disableAdBlock = disableAdBlock;
+                };
+
+                createdAtNotFoundEl.onchange = () => {
+                    createdAtNotFound = createdAtNotFoundEl.checked;
+                    superStorage.createdAtNotFound = createdAtNotFound;
                 };
 
                 const persistCustomCss = () => {

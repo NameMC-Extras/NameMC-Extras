@@ -4,6 +4,7 @@ html {
     --following: flex;
     --degrees-of-sep: flex;
     --optifine: flex;
+    --locatorbar: flex;
     --bedrock-only: contents;
 }
 
@@ -313,6 +314,10 @@ select * {
 
 .mb-3:has(a[href*='optifine.net/banners']) {
     display: var(--optifine);
+}
+
+.mb-3:has(a[style*='background-color: #']) {
+    display: var(--locatorbar);
 }
 
 [data-java_equivalent] {
