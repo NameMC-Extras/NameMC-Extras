@@ -194,6 +194,7 @@ window.addEventListener("superstorage-ready", async () => {
   var hideBadges2 = superStorage.getItem("hideBadges2") === "false";
   var hideCreatedAt = superStorage.getItem("hideCreatedAt") === "false";
   var createdAtNotFound = superStorage.getItem("createdAtNotFound") === "true";
+  var hideElytra = (superStorage.getItem("hideElytra") ?? "true") === "false";
   var hideLayers = superStorage.getItem("hideLayers") === "false";
   var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
   var hideOptifine = superStorage.getItem("hideOptifine") === "false";
@@ -358,7 +359,7 @@ window.addEventListener("superstorage-ready", async () => {
 
     const syncElytraVisibility = () => {
       if (!elytraBtn) return;
-      elytraBtn.classList.toggle("nmce-hide-no-cape", !hasCape);
+      elytraBtn.classList.toggle("nmce-hide-no-cape", hideElytra || !hasCape);
     };
 
     // Preserve NameMC's Elytra selection whenever Extras changes the cape.

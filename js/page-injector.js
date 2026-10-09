@@ -228,6 +228,7 @@ observer.observe(window.top.document.documentElement, {
     var bedrockCapes = superStorage.getItem("bedrockCapes") === "true";
     var linksTextArea = superStorage.getItem("linksTextArea") ?? `[capes.me](https://capes.me/{uuid}), [LABY](https://laby.net/@{uuid}), [Livz](https://livzmc.net/user/{uuid}), [25Karma](https://25karma.xyz/player/{uuid}), [Crafty](https://crafty.gg/players/{uuid})`;
     var hideCreatedAt = superStorage.getItem("hideCreatedAt") === "false";
+    var hideElytra = (superStorage.getItem("hideElytra") ?? "true") === "false";
     var hideLayers = superStorage.getItem("hideLayers") === "false";
     var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
     var hideServers = superStorage.getItem("hideServers") === "false";
@@ -523,6 +524,9 @@ observer.observe(window.top.document.documentElement, {
                                                 </button>
                                                 <button type="button" class="btn btn-outline-primary${!hideSkinStealer ? ' active' : ''}" id="hideSkinStealer" data-bs-toggle="tooltip" title="Enable skin download functionality">
                                                     <i class="fas fa-user-secret"></i> Steal Skin
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary${!hideElytra ? ' active' : ''}" id="hideElytra" data-bs-toggle="tooltip" title="Show NameMC's native Elytra control">
+                                                    <i class="fas fa-dove"></i> Elytra
                                                 </button>
                                             </div>
                                         </div>

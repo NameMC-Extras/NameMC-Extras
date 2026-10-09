@@ -108,6 +108,7 @@ window.addEventListener("superstorage-ready", async () => {
    */
 
   var paused = (getCookie("animate") === "false");
+  var hideElytra = (superStorage.getItem("hideElytra") ?? "true") === "false";
   var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
 
   // Fix for pause button
@@ -157,6 +158,7 @@ window.addEventListener("superstorage-ready", async () => {
     );
 
     waitForSelector('#elytra-btn', elytraBtn => {
+      elytraBtn.classList.toggle('nmce-hide-no-cape', hideElytra);
       if (elytraBtn.dataset.nmceViewerBound === "true") return;
       elytraBtn.dataset.nmceViewerBound = "true";
       elytraBtn.removeAttribute("onclick");
