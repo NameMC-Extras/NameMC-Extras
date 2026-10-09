@@ -8,14 +8,12 @@
     }
 
     var paused = getCookie("animate") === "false";
-    var elytraOn = false;
     var layer = true;
     var currentCape = null;
     var currentOptifineMode = "steal";
     var officialCapes = {};
     var officialCapesCategoryOrder = [];
     var specialCapes = {};
-    var noElytra = new Set();
     const UUIDRegex = /([0-9a-f]{8})(?:-|)([0-9a-f]{4})(?:-|)(4[0-9a-f]{3})(?:-|)([89ab][0-9a-f]{3})(?:-|)([0-9a-f]{12})/;
     var model = "auto-detect";
 
@@ -91,39 +89,6 @@
             setCookie("animate", !paused);
             skinViewer.animation.paused = paused;
         };
-    };
-
-    /** Create elytra toggle button */
-    const createElytraBtn = () => {
-        waitForSelector('#play-pause-btn', () => {
-            if (document.querySelector('#elytra-btn')) return;
-
-            const pauseBtn = document.querySelector('#play-pause-btn');
-            const elytraBtn = document.createElement('button');
-            elytraBtn.id = 'elytra-btn';
-            elytraBtn.className = 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0';
-            elytraBtn.style.cssText = 'width:36px;height:36px;margin-top:177.5px!important;';
-            elytraBtn.title = "Elytra";
-
-            const elytraIcon = document.createElement('i');
-            elytraIcon.className = 'fas fa-dove';
-
-            elytraBtn.appendChild(elytraIcon);
-            pauseBtn.insertAdjacentElement('afterend', elytraBtn);
-
-            elytraBtn.onclick = () => {
-                elytraOn = !elytraOn;
-                if (elytraOn) {
-                    elytraIcon.classList.replace('fa-dove', 'fa-rectangle-portrait');
-                    elytraIcon.parentElement.title = "No Elytra";
-                    skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), { backEquipment: "elytra" });
-                } else {
-                    elytraIcon.classList.replace('fa-rectangle-portrait', 'fa-dove');
-                    elytraIcon.parentElement.title = "Elytra";
-                    skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
-                }
-            };
-        });
     };
 
     /** Get skin texture URL from UUID */
@@ -374,20 +339,10 @@
 
             apply.onclick = async () => {
                 const isNameMCID = /^[a-f0-9]{16}$/i;
-                if (elytraOn && !noElytra.has(currentCape.split("/").at(-1))) {
-                    try {
-                        await skinViewer.loadCape(currentCape, {
-                            backEquipment: "elytra"
-                        });
-                    } catch {
-                        alert("The cape you uploaded is invalid.");
-                    }
-                } else {
-                    try {
-                        await skinViewer.loadCape(currentCape);
-                    } catch {
-                        alert("The cape you uploaded is invalid.");
-                    }
+                try {
+                    await skinViewer.loadCape(currentCape);
+                } catch {
+                    alert("The cape you uploaded is invalid.");
                 }
 
                 if (isNameMCID.test(skinValue)) {
@@ -423,16 +378,6 @@
                     });
                 }
 
-                if (currentCape && !noElytra.has(currentCape.split("/").at(-1))) {
-                    if (document.querySelector("#elytra-btn")) {
-                        document.querySelector("#elytra-btn").style.display = "block";
-                    } else {
-                        createElytraBtn();
-                        fixPauseBtn();
-                    }
-                } else {
-                    if (document.querySelector("#elytra-btn")) document.querySelector("#elytra-btn").style.display = "none";
-                }
             }
 
             none.onchange = () => {
@@ -626,8 +571,6 @@
             });
 
             waitForSupabase((supabase_data) => {
-                noElytra = new Set(supabase_data.tester_capes.filter(a => a.elytra === false).map(a => a.id));
-
                 // load official capes
                 vanilla.onchange = () => {
                     if (vanilla.checked) {
@@ -671,7 +614,6 @@
                 // load official cape if a url param is present
                 if (capeParam && !nmceCapeParam) {
                     skinViewer.loadCape(`https://cors.faav.top/namemc/texture/${encodeURIComponent(capeParam)}`);
-                    createElytraBtn();
                     document.querySelector("#vanilla").checked = true;
                     document.querySelector("#vanilla").onchange();
                     const optionEl = document.getElementById(capeParam);
@@ -733,7 +675,6 @@
                     const cape = supabase_data.capes.find(cape => cape.id == capeParam);
                     if (cape) {
                         skinViewer.loadCape(cape.image_src);
-                        createElytraBtn();
                         special.checked = true;
                         special.onchange();
                         document.getElementById(capeParam).selected = true;

@@ -108,8 +108,6 @@ window.addEventListener("superstorage-ready", async () => {
    */
 
   var paused = (getCookie("animate") === "false");
-  var elytraOn = false;
-  var hideElytra = superStorage.getItem("hideElytra") === "false";
   var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
 
   // Fix for pause button
@@ -149,44 +147,56 @@ window.addEventListener("superstorage-ready", async () => {
     a.click();
   }
 
+  const connectNativeElytraButton = (viewer) => {
+    let elytraOn = false;
+    const loadCape = viewer.loadCape.bind(viewer);
+
+    viewer.loadCape = (source, options = {}) => loadCape(
+      source,
+      elytraOn ? { ...options, backEquipment: "elytra" } : options
+    );
+
+    waitForSelector('#elytra-btn', elytraBtn => {
+      if (elytraBtn.dataset.nmceViewerBound === "true") return;
+      elytraBtn.dataset.nmceViewerBound = "true";
+      elytraBtn.removeAttribute("onclick");
+
+      elytraBtn.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        elytraOn = !elytraOn;
+        const icon = elytraBtn.querySelector('i');
+        if (icon) {
+          icon.classList.toggle('fa-dove', !elytraOn);
+          icon.classList.toggle('fa-rectangle-portrait', elytraOn);
+        }
+        elytraBtn.title = elytraOn ? "No Elytra" : "Elytra";
+
+        if (viewer.capeTexture) {
+          viewer.loadCape(viewer.capeCanvas.toDataURL());
+        }
+      }, true);
+    });
+  };
+
   // Create download button
   const createDownloadBtn = () => {
     waitForSelector('#play-pause-btn', () => {
       var pauseBtn = document.querySelector('#play-pause-btn');
+      if (document.querySelector('#download-btn')) return;
       var downloadBtn = document.createElement('button');
       downloadBtn.id = 'download-btn';
-      downloadBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
-      downloadBtn.setAttribute('style', 'width:36px;height:36px;margin-top:50px!important;')
+      downloadBtn.setAttribute('class', 'btn btn-secondary m-1 p-0');
+      downloadBtn.setAttribute('style', 'width:36px;height:36px;')
       downloadBtn.title = "Download Cape";
       downloadIcon = document.createElement('i');
       downloadIcon.classList.add('fas');
       downloadIcon.classList.add('fa-download');
       downloadBtn.innerHTML = downloadIcon.outerHTML;
-      pauseBtn.outerHTML += downloadBtn.outerHTML;
-
-      document.querySelector('#download-btn').onclick = downloadCape;
+      pauseBtn.parentElement.append(downloadBtn);
+      downloadBtn.onclick = downloadCape;
     });
-  }
-
-  // Create elytra button
-  const createElytraBtn = () => {
-    if (!hideElytra) {
-      waitForSelector('#play-pause-btn', () => {
-        var pauseBtn = document.querySelector('#play-pause-btn');
-        var elytraBtn = document.createElement('button');
-        elytraBtn.id = 'elytra-btn';
-        let margin = 135;
-        if (hideSkinStealer) margin -= 42.5;
-        elytraBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0');
-        elytraBtn.setAttribute('style', `width:36px;height:36px;margin-top:${margin}px!important;`)
-        elytraBtn.title = "Elytra";
-        let elytraIcon = document.createElement('i');
-        elytraIcon.classList.add('fas');
-        elytraIcon.classList.add('fa-dove');
-        elytraBtn.innerHTML = elytraIcon.outerHTML;
-        pauseBtn.outerHTML += elytraBtn.outerHTML;
-      });
-    }
   }
 
   // Create steal button
@@ -197,16 +207,16 @@ window.addEventListener("superstorage-ready", async () => {
         if (!document.querySelector("#steal-btn")) {
           let stealBtn = document.createElement('button');
           stealBtn.id = 'steal-btn';
-          stealBtn.setAttribute('class', 'btn btn-secondary position-absolute top-0 end-0 m-2 p-0')
-          stealBtn.setAttribute('style', `width:36px;height:36px;margin-top:92.5px!important;`)
+          stealBtn.setAttribute('class', 'btn btn-secondary m-1 p-0')
+          stealBtn.setAttribute('style', 'width:36px;height:36px;')
           stealBtn.title = "Steal Cape";
           let stealIcon = document.createElement('i');
           stealIcon.classList.add('fas');
           stealIcon.classList.add('fa-user-secret');
           stealBtn.innerHTML = stealIcon.outerHTML;
-          pauseBtn.outerHTML += stealBtn.outerHTML;
+          pauseBtn.parentElement.append(stealBtn);
 
-          document.querySelector('#steal-btn').onclick = () => {
+          stealBtn.onclick = () => {
             const url = `${location.origin}/extras/skin-cape-test?cape=${location.pathname.split("/").slice(-1)[0].split("?")[0]}`;
             window.location.href = url;
           }
@@ -305,7 +315,6 @@ window.addEventListener("superstorage-ready", async () => {
       oldContainer.outerHTML = newContainer.outerHTML;
 
       createDownloadBtn();
-      createElytraBtn();
       createStealBtn();
 
       const steveDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAABJlBMVEVMaXEAf38AqKgAmZmqfWaWX0EAaGhGOqUwKHIAr691Ry8qHQ1qQDA/Pz9ra2smIVuHVTuWb1sAYGBWScwoKCgmGgovHw8AzMw6MYkkGAgoGwoAW1sjIyMAnp5RMSWGUzQsHg4pHAyBUzkrHg0fEAsoGg0mGAstHQ6aY0QnGwstIBB3QjWcZ0gzJBEyIxBiQy8rHg6dak8mGgwsHhGKWTsoGwsjFwmEUjF0SC+iakd6TjOHWDokGAqDVTucY0WIWjk6KBQoHAsvIhGcaUz///+0hG27iXJSPYlSKCaaZEqfaEmPXj4vIA2AUzQ0JRJvRSxtQyqQXkOsdlo/KhWcY0aWX0Cze2K+iGytgG1CKhK1e2e9jnK9i3K2iWycclzGloC9jnS3gnKSJOIgAAAAAXRSTlMAQObYZgAAAvxJREFUWMPtlmebojAQx5cEkAiecHcgwrGArPW2997b9d779/8SN0nMruK6oL71//iYocyPmTA6MzPTla5X4VOdK3Y1M6r0quMAoFo0QiMMxwE4js0BT0DG6ICqQ3Nw9LEB4GvbziQA5i8A12MAbCe25yiAaQxAbIN0feTX6Hl2O17sdF4mzknVTvROZzFu254n6iIPwI7iZCFJkoVvH6KThSSObAro1kUmIGrY8fLGfpz8+vHn59/3r+P9jeXYbkSiLrIjqDcjrx2dyhfy19+XZ2enUduLmnVP1EWOFLzVzb3D44vzq++XV+fy8eHe5iqcFHWRA1BvrG0pRx8//zOMLzuvjpSttUadbiKvi+w98JpLK62w+O7TU9CLWjFsrSw1vUjURSYgDFvhvLK+/eZtrbZ7cLC7vf58/tl8C36QtC6KYa5aeAR6DBLHFV5LlYddifOoUkHGrDGbDeDlPACogCYFIPA3JkphAKBpZa0AgoWuriRJPg5qO7VaEIAtBQghQhDiNmErAd0Cyn2AgqSqEkIB+BMCtoro3QAAUyKIBPR6CqD1AdiNBAUYPMFWCRdiYMKg9wN8VfXheoDhi9uYIMwBENQ9EYDhglTf9zGmbhiD6TNvOFYUxZRBJhh07Qe4boHuBQWAj4r5QzHAVMIOEAdYsqyYdwF694ACIADEALAH1BsgJgdYDGBZPQBNG3gLAiCxTbwB0CdTgNkfgQBotwDCvAgWG0YFfhygpAClkgCUSg9AkipJGNMAOABstg0KB8gKjQRS6QFwR7FCKmUKLLgAoEXmughjt8ABlswiyQCwiICARXlj+KJPBj/LTEcw1VRTTTXKvICGdeXcAwdoIgAaNliMkkJuQO+84NI+AYL/+GBgLsgGlG8aTQBNQuq2+vwArdzbqdBAWx8FcOdcMBSQmheGzgXDAWU+L9wAREvLC0ilQAEWB5h9c0E2gKdiMgDrymbOCLQUQOEAMycgPS8o3dzpaENTyQHob/fsydYkAMjdsthocyfgP7DZYc3t4J05AAAAAElFTkSuQmCC";
@@ -321,29 +330,11 @@ window.addEventListener("superstorage-ready", async () => {
         preserveDrawingBuffer: true
       });
 
+      connectNativeElytraButton(skinViewer);
+
       waitForImage(() => {
         skinViewer.loadCape(window.namemc.images[skinContainer.getAttribute("data-cape-hash")].src);
 
-        waitForCape(() => {
-          if (!hideElytra) document.querySelector('#elytra-btn').onclick = () => {
-            var elytraIconEl = document.querySelector('#elytra-btn i');
-            if (!elytraOn) {
-              elytraOn = true;
-              elytraIconEl.classList.remove('fa-dove');
-              elytraIconEl.classList.add('fa-rectangle-portrait');
-              elytraIconEl.parentElement.title = "No Elytra"
-              skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-                backEquipment: "elytra"
-              });
-            } else {
-              elytraOn = false;
-              elytraIconEl.classList.remove('fa-rectangle-portrait');
-              elytraIconEl.classList.add('fa-dove');
-              elytraIconEl.parentElement.title = "Elytra"
-              skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
-            }
-          }
-        })
       }, skinContainer.getAttribute("data-cape-hash"))
 
       skinViewer.controls.enableRotate = true;

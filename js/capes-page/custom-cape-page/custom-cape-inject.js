@@ -105,8 +105,6 @@ window.addEventListener("superstorage-ready", async () => {
   const categoryId = location.pathname.split("/")[2];
   const capeId = location.pathname.split("/")[3];
   var paused = (getCookie("animate") === "false");
-  var elytraOn = false;
-  var hideElytra = superStorage.getItem("hideElytra") === "false";
   var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
 
 
@@ -136,31 +134,6 @@ window.addEventListener("superstorage-ready", async () => {
         skinViewer.animation.paused = paused;
       }
     })
-  }
-
-  const fixElytraBtn = () => {
-    if (!hideElytra) {
-      setTimeout(() => {
-        document.querySelector('#elytra-btn').onclick = () => {
-          var elytraIconEl = document.querySelector('#elytra-btn i');
-          if (!elytraOn) {
-            elytraOn = true;
-            elytraIconEl.classList.remove('fa-dove');
-            elytraIconEl.classList.add('fa-rectangle-portrait');
-            elytraIconEl.parentElement.title = "No Elytra"
-            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), {
-              backEquipment: "elytra"
-            });
-          } else {
-            elytraOn = false;
-            elytraIconEl.classList.remove('fa-rectangle-portrait');
-            elytraIconEl.classList.add('fa-dove');
-            elytraIconEl.parentElement.title = "Elytra"
-            skinViewer.loadCape(skinViewer.capeCanvas.toDataURL());
-          }
-        }
-      });
-    }
   }
 
   const fixStealBtn = () => {
@@ -257,9 +230,6 @@ window.addEventListener("superstorage-ready", async () => {
             <button id="download-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;margin-top:50px!important;" title="Download Cape">
               <i class="fas fa-download"></i>
             </button>
-            ${!hideElytra ? `<button id="elytra-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;margin-top:${(capeCategory !== "Bedrock" && !hideSkinStealer) ? 135 : 92.5}px!important;" title="Elytra">
-              <i class="fas fa-dove"></i>
-            </button>` : ''}
             ${(capeCategory !== "Bedrock" && !hideSkinStealer) ? `
               <button id="steal-btn" class="btn btn-secondary position-absolute top-0 end-0 m-2 p-0" style="width:36px;height:36px;margin-top:92.5px!important;" title="Steal Cape">
                 <i class="fas fa-user-secret"></i>
@@ -454,7 +424,6 @@ window.addEventListener("superstorage-ready", async () => {
 
         fixPauseBtn()
         waitForCape(fixDownloadBtn)
-        waitForCape(fixElytraBtn);
         if (capeCategory != "Bedrock") waitForCape(fixStealBtn);
       })
 

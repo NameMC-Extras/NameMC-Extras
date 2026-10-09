@@ -187,7 +187,6 @@ window.addEventListener("superstorage-ready", async () => {
   const size = 32;
 
   var paused = getCookie("animate") === "false";
-  var elytraOn = false;
   var isHidden = superStorage.getItem("isHidden") !== "false";
   var skinArt = superStorage.getItem("skinArt") == "true";
   var layer = true;
@@ -195,7 +194,6 @@ window.addEventListener("superstorage-ready", async () => {
   var hideBadges2 = superStorage.getItem("hideBadges2") === "false";
   var hideCreatedAt = superStorage.getItem("hideCreatedAt") === "false";
   var createdAtNotFound = superStorage.getItem("createdAtNotFound") === "true";
-  var hideElytra = superStorage.getItem("hideElytra") === "false";
   var hideLayers = superStorage.getItem("hideLayers") === "false";
   var hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
   var hideOptifine = superStorage.getItem("hideOptifine") === "false";
@@ -320,8 +318,7 @@ window.addEventListener("superstorage-ready", async () => {
       if (!hash) return;
 
       if (hash.startsWith("custom-")) {
-        const options = elytraOn ? { backEquipment: "elytra" } : {};
-        skinViewer.loadCape(capeDB[hash], options);
+        skinViewer.loadCape(capeDB[hash]);
       } else {
         const url = `https://texture.namemc.com/${hash.slice(0, 2)}/${hash.slice(2, 4)}/${hash}.png`;
         skinViewer.loadCape(url);
@@ -353,43 +350,81 @@ window.addEventListener("superstorage-ready", async () => {
     };
   };
 
-  const createLayerBtn = () => {
-    if (hideLayers) return;
-    waitForSelector("#play-pause-btn", btn => {
-      const layerBtn = document.createElement("button");
-      layerBtn.id = "layer-btn";
-      layerBtn.className = "btn btn-secondary position-absolute top-0 end-0 m-2 p-0";
-      layerBtn.style = "width:36px;height:36px;margin-top:50px!important;";
-      layerBtn.title = "No Layers";
-      layerBtn.innerHTML = '<i class="fas fa-clone"></i>';
-      btn.insertAdjacentElement("afterend", layerBtn);
+  const connectNativeElytraButton = (viewer, initialCape) => {
+    let elytraOn = false;
+    let elytraBtn = null;
+    let hasCape = initialCape;
+    const loadCape = viewer.loadCape.bind(viewer);
+
+    const syncElytraVisibility = () => {
+      if (!elytraBtn) return;
+      elytraBtn.classList.toggle("nmce-hide-no-cape", !hasCape);
+    };
+
+    // Preserve NameMC's Elytra selection whenever Extras changes the cape.
+    viewer.loadCape = (source, options = {}) => {
+      hasCape = source !== null && source !== undefined && source !== "";
+      syncElytraVisibility();
+
+      let result;
+      try {
+        result = loadCape(
+          source,
+          elytraOn ? { ...options, backEquipment: "elytra" } : options
+        );
+      } catch (error) {
+        hasCape = Boolean(viewer.capeTexture);
+        syncElytraVisibility();
+        throw error;
+      }
+
+      if (result && typeof result.finally === "function") {
+        return result.catch(error => {
+          hasCape = Boolean(viewer.capeTexture);
+          throw error;
+        }).finally(syncElytraVisibility);
+      }
+      syncElytraVisibility();
+      return result;
+    };
+
+    waitForSelector("#elytra-btn", button => {
+      elytraBtn = button;
+      syncElytraVisibility();
+      if (elytraBtn.dataset.nmceViewerBound === "true") return;
+      elytraBtn.dataset.nmceViewerBound = "true";
+      elytraBtn.removeAttribute("onclick");
+
+      elytraBtn.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        elytraOn = !elytraOn;
+        const icon = elytraBtn.querySelector("i");
+        if (icon) {
+          icon.classList.toggle("fa-dove", !elytraOn);
+          icon.classList.toggle("fa-rectangle-portrait", elytraOn);
+        }
+        elytraBtn.title = elytraOn ? "No Elytra" : "Elytra";
+
+        if (viewer.capeTexture) {
+          viewer.loadCape(viewer.capeCanvas.toDataURL());
+        }
+      }, true);
     });
   };
 
-  const createElytraBtn = () => {
-    if (hideElytra) return;
+  const createLayerBtn = () => {
+    if (hideLayers) return;
     waitForSelector("#play-pause-btn", btn => {
-      if (!skinViewer.capeTexture || document.querySelector("#elytra-btn")) return;
-
-      const elytraBtn = document.createElement("button");
-      elytraBtn.id = "elytra-btn";
-      elytraBtn.className = "btn btn-secondary position-absolute top-0 end-0 m-2 p-0";
-
-      let margin = 135;
-      if (hideLayers) margin -= 42.5;
-      if (hideSkinStealer) margin -= 42.5;
-      elytraBtn.style = `width:36px;height:36px;margin-top:${margin}px!important;`;
-      elytraBtn.title = "Elytra";
-      elytraBtn.innerHTML = '<i class="fas fa-dove"></i>';
-      btn.insertAdjacentElement("afterend", elytraBtn);
-
-      elytraBtn.onclick = () => {
-        const icon = elytraBtn.querySelector("i");
-        elytraOn = !elytraOn;
-        icon.className = elytraOn ? "fas fa-rectangle-portrait" : "fas fa-dove";
-        elytraBtn.title = elytraOn ? "No Elytra" : "Elytra";
-        skinViewer.loadCape(skinViewer.capeCanvas.toDataURL(), elytraOn ? { backEquipment: "elytra" } : {});
-      };
+      if (document.querySelector("#layer-btn")) return;
+      const layerBtn = document.createElement("button");
+      layerBtn.id = "layer-btn";
+      layerBtn.className = "btn btn-secondary m-1 p-0";
+      layerBtn.style = "width:36px;height:36px;";
+      layerBtn.title = "No Layers";
+      layerBtn.innerHTML = '<i class="fas fa-clone"></i>';
+      btn.parentElement.append(layerBtn);
     });
   };
 
@@ -401,12 +436,11 @@ window.addEventListener("superstorage-ready", async () => {
 
       const stealBtn = document.createElement("button");
       stealBtn.id = "steal-btn";
-      stealBtn.className = "btn btn-secondary position-absolute top-0 end-0 m-2 p-0";
-      const margin = hideLayers ? 50 : 92.5;
-      stealBtn.style = `width:36px;height:36px;margin-top:${margin}px!important;`;
+      stealBtn.className = "btn btn-secondary m-1 p-0";
+      stealBtn.style = "width:36px;height:36px;";
       stealBtn.title = "Steal Skin/Cape";
       stealBtn.innerHTML = '<i class="fas fa-user-secret"></i>';
-      btn.insertAdjacentElement("afterend", stealBtn);
+      btn.parentElement.append(stealBtn);
 
       stealBtn.onclick = () => {
         const params = new URLSearchParams();
@@ -421,8 +455,8 @@ window.addEventListener("superstorage-ready", async () => {
   };
 
   // Update border-bottom on mobile rows based on visibility
-  const updateMobileBorders = () => {
-    const mobileRows = [...document.querySelectorAll("tbody tr.d-lg-none")];
+  const updateMobileBorders = (root = document) => {
+    const mobileRows = [...root.querySelectorAll("tbody tr.d-lg-none")];
 
     // Reset all border-bottom
     mobileRows.forEach(row => row.classList.add("border-bottom"));
@@ -437,50 +471,25 @@ window.addEventListener("superstorage-ready", async () => {
     }
   };
 
-  // Hide rows with a dash (—)
-  const hideHidden = () => {
-    const rows = [...document.querySelectorAll("tbody tr")];
+  const setHiddenNamesVisibility = (historyCard, hide) => {
+    const rows = [...historyCard.querySelectorAll("tbody tr")];
 
     for (let i = 0; i < rows.length; i++) {
       const desktop = rows[i];
+      if (desktop.classList.contains("d-lg-none")) continue;
       const cell = desktop.querySelector("td:nth-child(2)");
 
       if (cell && cell.textContent.trim() === "—") {
-        // Hide desktop row
-        desktop.classList.add("d-none");
+        desktop.classList.toggle("d-none", hide);
 
-        // Hide paired mobile row if exists
         const mobile = rows[i + 1];
         if (mobile && mobile.classList.contains("d-lg-none")) {
-          mobile.classList.add("d-none");
+          mobile.classList.toggle("d-none", hide);
         }
       }
     }
 
-    updateMobileBorders(); // Update borders after hiding
-  };
-
-  // Show all rows that were hidden
-  const showHidden = () => {
-    const rows = [...document.querySelectorAll("tbody tr")];
-
-    for (let i = 0; i < rows.length; i++) {
-      const desktop = rows[i];
-      const cell = desktop.querySelector("td:nth-child(2)");
-
-      if (cell && cell.textContent.trim() === "—") {
-        // Show desktop row
-        desktop.classList.remove("d-none");
-
-        // Show paired mobile row if exists
-        const mobile = rows[i + 1];
-        if (mobile && mobile.classList.contains("d-lg-none")) {
-          mobile.classList.remove("d-none");
-        }
-      }
-    }
-
-    updateMobileBorders(); // Update borders after showing
+    updateMobileBorders(historyCard);
   };
 
   // fix bug
@@ -717,60 +726,68 @@ window.addEventListener("superstorage-ready", async () => {
     waitForSelector('.profile-column-right .card.mb-3:has(.table > tbody > tr) > .card-header', (historyTitle) => {
       historyTitle.style.cssText = "display:flex;justify-content:space-between";
 
-      var hasHidden = [...historyTitle.parentElement.querySelectorAll('tbody tr')]
-        .some(tr => tr.querySelector('td:nth-child(2)')?.textContent.trim() === '—');
-      if (hasHidden) {
-        if (isHidden) hideHidden();
+      const historyCard = historyTitle.parentElement;
+      const historyBody = historyCard.querySelector('tbody');
+      const historyButtons = document.createElement('div');
+      historyButtons.id = 'historyButtons';
 
-        // add show hidden button
-        historyTitle.innerHTML += `<div id="historyButtons">
-          <a href="javascript:void(0)" class="color-inherit" title="Show/Hide Hidden Names" id="histBtn">
-            ${isHidden ? '<i class="fas fa-fw fa-eye"></i>' : '<i class="fas fa-fw fa-eye-slash"></i>'}
-          </a>
-          <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
-          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
-        </div>`;
+      const histBtn = document.createElement('a');
+      histBtn.href = 'javascript:void(0)';
+      histBtn.className = 'color-inherit';
+      histBtn.title = 'Show/Hide Hidden Names';
+      histBtn.id = 'histBtn';
+      historyButtons.append(histBtn);
 
-        histBtn.onclick = () => {
-          if (isHidden) {
-            showHidden();
-            isHidden = false;
-            superStorage.setItem("isHidden", "false");
-            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
-            histBtn.innerHTML = '<i class="fas fa-fw fa-eye-slash"></i>';
-          } else {
-            hideHidden();
-            isHidden = true;
-            superStorage.setItem("isHidden", "true");
-            copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n"));
-            histBtn.innerHTML = '<i class="fas fa-fw fa-eye"></i>';
-          }
-        }
-      } else {
-        historyTitle.innerHTML += `<div id="historyButtons">
-          <a href="javascript:void(0)" class="color-inherit copy-button" data-clipboard-text="${[...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")}" id="copyHist"><i class="far fa-fw fa-copy"></i></a>
-          ${historyTitle.querySelector(".fa-edit") ? historyTitle.querySelector(".fa-edit")?.parentElement?.outerHTML : ""}
-        </div>`;
-      }
+      const copyHist = document.createElement('a');
+      copyHist.href = 'javascript:void(0)';
+      copyHist.className = 'color-inherit copy-button';
+      copyHist.id = 'copyHist';
+      copyHist.title = 'Copy';
+      copyHist.innerHTML = '<i class="far fa-fw fa-copy"></i>';
+      historyButtons.append(copyHist);
 
-      // fix
-      var trash = historyTitle.querySelector(".fa-trash")?.parentElement;
-      if (trash) {
+      const edit = historyTitle.querySelector('.fa-edit')?.parentElement;
+      const trash = historyTitle.querySelector('.fa-trash')?.parentElement;
+      if (edit) historyButtons.append(edit);
+      if (trash && trash !== edit) {
         trash.classList.remove('position-absolute');
-        document.getElementById("historyButtons").append(trash);
+        historyButtons.append(trash);
       }
+      historyTitle.append(historyButtons);
+
+      const visibleHistoryText = () => [...historyCard.querySelectorAll('tbody tr:not(.d-none):not(.d-lg-none)')]
+        .map(row => row.innerText.split("\t").slice(0, 2).join(" "))
+        .join("\n");
+
+      const reconcileHistory = () => {
+        const hasHidden = [...historyCard.querySelectorAll('tbody tr:not(.d-lg-none)')]
+          .some(row => row.querySelector('td:nth-child(2)')?.textContent.trim() === '—');
+
+        histBtn.hidden = !hasHidden;
+        histBtn.innerHTML = isHidden
+          ? '<i class="fas fa-fw fa-eye"></i>'
+          : '<i class="fas fa-fw fa-eye-slash"></i>';
+
+        if (hasHidden) setHiddenNamesVisibility(historyCard, isHidden);
+        copyHist.dataset.clipboardText = visibleHistoryText();
+      };
+
+      histBtn.addEventListener('click', () => {
+        isHidden = !isHidden;
+        superStorage.setItem('isHidden', String(isHidden));
+        reconcileHistory();
+      });
+
+      reconcileHistory();
+      const historyObserver = new MutationObserver(reconcileHistory);
+      historyObserver.observe(historyBody, { childList: true, subtree: true, characterData: true });
 
       // fix alignment
       document.querySelectorAll("a.px-1").forEach(a => a.classList.remove("px-1"))
 
-      // fix title
-      setTimeout(() => copyHist.title = "Copy", 1000)
-
       // make it so when holding shift and copy is copies name changes instead
-      window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-lg-none)')].length - 1) : null)
-      window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", [...historyTitle.parentElement.querySelectorAll('tr:not(.d-none):not(.d-lg-none)')].map(a => a.innerText.split("\t")[0] + " " + a.innerText.split("\t")[1]).join("\n")))
-
-      historyTitle.querySelector(".fa-edit")?.parentElement?.remove();
+      window.addEventListener("keydown", (event) => event.shiftKey ? copyHist.setAttribute("data-clipboard-text", [...historyCard.querySelectorAll('tbody tr:not(.d-lg-none)')].length - 1) : null)
+      window.addEventListener("keyup", () => copyHist.setAttribute("data-clipboard-text", visibleHistoryText()))
 
       // give developers verification
       if (uuid === '1cf1a286-acbd-4810-8137-0fcd7a0969f2' || uuid === 'd76ca44e-af76-41ad-8b24-d012673ac436') {
@@ -956,6 +973,11 @@ window.addEventListener("superstorage-ready", async () => {
         preserveDrawingBuffer: true
       });
 
+      connectNativeElytraButton(
+        skinViewer,
+        Boolean(skinContainer.getAttribute('data-cape-hash'))
+      );
+
       skinViewer.controls.enableRotate = true;
       skinViewer.controls.enableZoom = false;
       skinViewer.controls.enablePan = false;
@@ -1016,7 +1038,6 @@ window.addEventListener("superstorage-ready", async () => {
             nmceCape = false;
             if (!(hideOptifine && optifineSelected)) await skinViewer.loadCape(window.namemc.images[capeHash].src);
 
-            setTimeout(createElytraBtn);
           }, capeHash);
         }
 
@@ -1032,7 +1053,6 @@ window.addEventListener("superstorage-ready", async () => {
             currentCape = userCapes[0].id;
             nmceCape = true;
 
-            setTimeout(createElytraBtn);
           }
         });
 
@@ -1082,14 +1102,7 @@ window.addEventListener("superstorage-ready", async () => {
             currentCape = el.getAttribute('data-cape');
             nmceCape = false;
             waitForImage(() => {
-              if (elytraOn) {
-                skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src, {
-                  backEquipment: "elytra"
-                });
-              } else {
-                skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src);
-              }
-              setTimeout(createElytraBtn);
+              skinViewer.loadCape(window.namemc.images[el.getAttribute('data-cape')].src);
             }, el.getAttribute('data-cape'));
             setTimeout(fixPauseBtn);
           }

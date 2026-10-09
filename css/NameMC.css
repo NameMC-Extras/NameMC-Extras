@@ -529,3 +529,6 @@ a:has([class*=fa-eye]) {
 .jscolor-picker-wrap {
     z-index: 2147483647 !important;
 }
+.nmce-hide-no-cape {
+  display: none !important;
+}

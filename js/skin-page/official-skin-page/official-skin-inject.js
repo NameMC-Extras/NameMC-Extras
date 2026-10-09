@@ -55,6 +55,12 @@ window.addEventListener("superstorage-ready", async () => {
    */
   const hideSkinStealer = superStorage.getItem("hideSkinStealer") === "false";
 
+  const removeCapeOnlyControls = () => {
+    waitForSelector('#elytra-btn', (elytraBtn) => {
+      elytraBtn.remove();
+    });
+  };
+
   /*
    * MAIN
    */
@@ -169,6 +175,7 @@ window.addEventListener("superstorage-ready", async () => {
   }
 
   addHolidayTools();
+  removeCapeOnlyControls();
   createStealBtn();
 }, { once: true });
 if (typeof superStorage !== "undefined") window.dispatchEvent(new Event("superstorage-ready"));

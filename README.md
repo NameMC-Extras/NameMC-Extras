@@ -20,10 +20,6 @@ View deadmau5's ears on his NameMC profile.
 
 <img src="https://github.com/user-attachments/assets/2f0389bb-ab38-4cb4-b6ae-1230339db507" width="250"/>
 
-### Elytra Preview
-Quick access button to preview skins with Elytra.
-
-<img src="https://github.com/user-attachments/assets/6188a43f-e3c4-4e39-b3a9-da93f0e74566" width="250"/>
 
 ### Clean Name History
 Option to hide dashed-out names from name history for a cleaner view.
