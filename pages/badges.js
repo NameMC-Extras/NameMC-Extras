@@ -81,7 +81,7 @@
 
   function addBadges(main) {
     const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));
-    main.innerHTML = "";
+    main.replaceChildren();
 
     // get user count
     const counts = new Map();

@@ -62,7 +62,7 @@ const badgeId = location.pathname.split("/")[3];
 async function loadPage(mainDiv) {
   console.log("Loading page!")
 
-  mainDiv.innerHTML = "";
+  mainDiv.replaceChildren();
 
   // get badge and update page title
   const supabase_data = JSON.parse(superStorage.getItem("supabase_data"));

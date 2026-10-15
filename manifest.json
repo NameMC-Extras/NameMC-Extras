@@ -13,12 +13,12 @@
     {
       "js": [
         "js/superStorage.js",
+        "js/page-injector.js",
         "js/advanced-settings.js",
         "js/url-cleaner.js",
         "js/data-preload.js",
         "js/user-data-utils.js",
-        "js/announcement.js",
-        "js/page-injector.js"
+        "js/announcement.js"
       ],
       "css": [
         "css/NameMC.css",

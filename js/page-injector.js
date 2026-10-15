@@ -3,6 +3,36 @@
     if (window.location.hostname === 'store.namemc.com') return;
 
     const root = document.documentElement;
+    const copyButtonSelector = '.copy-button[data-clipboard-text], #uuid-copy-button';
+
+    // Start watching before the first await so dynamically inserted copy buttons
+    // are converted in the same mutation cycle, before their text is painted.
+    const replaceCopyButton = (copyButton) => {
+        if (!copyButton || copyButton.querySelector('.fa-copy')) return;
+        copyButton.dataset.nmceCopyIcon = 'true';
+
+        const icon = document.createElement('i');
+        icon.className = 'far fa-fw fa-copy';
+        copyButton.replaceChildren(icon);
+        copyButton.classList.add('color-inherit');
+        copyButton.title = 'Copy';
+    };
+
+    const processCopyButtons = (node = document) => {
+        if (node.nodeType === Node.ELEMENT_NODE && node.matches(copyButtonSelector)) {
+            replaceCopyButton(node);
+        }
+        node.querySelectorAll?.(copyButtonSelector).forEach(replaceCopyButton);
+    };
+
+    processCopyButtons();
+    const copyButtonObserver = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            processCopyButtons(mutation.target);
+            mutation.addedNodes.forEach(processCopyButtons);
+        });
+    });
+    copyButtonObserver.observe(root, { childList: true, characterData: true, subtree: true });
 
     await superStorage._ready;
 
@@ -724,7 +754,7 @@ observer.observe(window.top.document.documentElement, {
                     // cross-world messaging so it works in Firefox. System fonts need no load.
                     const renderFontMenu = (filter) => {
                         const q = (filter || "").trim().toLowerCase();
-                        customFontMenu.innerHTML = "";
+                        customFontMenu.replaceChildren();
                         if (!q || "default".includes(q)) {
                             const d = document.createElement("a");
                             d.className = "dropdown-item";
@@ -1291,24 +1321,6 @@ observer.observe(window.top.document.documentElement, {
     ]);
 
     waitForSelector("body", async () => {
-        // REPLACE COPY BUTTON
-        const replaceCopyButton = (copyButton) => {
-            if (!copyButton || copyButton.dataset.nmceCopyIcon === 'true') return;
-            copyButton.dataset.nmceCopyIcon = 'true';
-            copyButton.innerHTML = '<i class="far fa-fw fa-copy"></i>';
-            copyButton.classList.add("color-inherit");
-
-            // NameMC may assign its own title shortly after inserting the button.
-            setTimeout(() => copyButton.title = "Copy", 1000);
-        };
-
-        waitForSelector(".copy-button[data-clipboard-text]", () => {
-            document.querySelectorAll(".copy-button[data-clipboard-text]").forEach(replaceCopyButton);
-        });
-
-        // The UUID control is inserted after the name-history copy buttons.
-        waitForSelector("#uuid-copy-button.copy-button[data-clipboard-text]", replaceCopyButton);
-
         // REMOVE NAME LENGTH RESTRICTIONS
         if (location.pathname === "/minecraft-names") {
             waitForSelector("#name-length", (input) => {
@@ -1343,7 +1355,9 @@ observer.observe(window.top.document.documentElement, {
             markAllRead.title = 'Mark All Read';
             markAllRead.setAttribute('aria-label', 'Mark All Read');
             markAllRead.style.cursor = 'pointer';
-            markAllRead.innerHTML = '<i class="far fa-envelope-open"></i>';
+            const markAllReadIcon = document.createElement('i');
+            markAllReadIcon.className = 'far fa-envelope-open';
+            markAllRead.append(markAllReadIcon);
             header.append(markAllRead);
 
             const activeProfileLink = document.querySelector(

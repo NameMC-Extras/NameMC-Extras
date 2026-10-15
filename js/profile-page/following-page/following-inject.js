@@ -254,7 +254,7 @@ function resetScanner() {
     const summary = document.getElementById("unfollow-results-summary");
     if (summary) summary.textContent = "";
     const listEl = document.getElementById("unfollow-results-list");
-    if (listEl) listEl.innerHTML = "";
+    if (listEl) listEl.replaceChildren();
     const scanBtn = document.getElementById("unfollow-scan-btn");
     if (scanBtn) {
         scanBtn.classList.remove("d-none");
@@ -454,7 +454,7 @@ function resetScanner() {
         execBar.textContent = "0%";
     }
     document.getElementById("unfollow-results-summary").textContent = "";
-    document.getElementById("unfollow-results-list").innerHTML = "";
+    document.getElementById("unfollow-results-list").replaceChildren();
     document.getElementById("unfollow-scan-btn").classList.remove("d-none");
     document.getElementById("unfollow-scan-btn").disabled = false;
     const confirmBtn = document.getElementById("unfollow-confirm-btn");
