@@ -1,15 +1,3 @@
-const waitForModal = function (callback) {
-    if (typeof $ != 'undefined' && typeof $().modal != 'undefined') {
-        setTimeout(() => {
-            callback();
-        });
-    } else {
-        setTimeout(() => {
-            waitForModal(callback);
-        });
-    }
-};
-
 var profileEls = [...document.querySelectorAll('.dropdown-menu a.dropdown-item > img.skin-2d')].map(a => a.parentElement);
 
 var profiles = [...profileEls].map(profile => ({
@@ -41,7 +29,7 @@ if (profiles.length > 0) {
             <div class="modal-content" style="width:fit-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Generated Profiles Image</h5>
-                    <button type="button" class="btn" id="modalClose" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="btn" id="modalClose" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -55,10 +43,6 @@ if (profiles.length > 0) {
     `);
 
     document.documentElement.append(modalHTML);
-
-    waitForModal(() => $("#modalClose").click(() => {
-        $("#profilesImageModal").modal("hide");
-    }));
 
     var ctx = profilesCanvas.getContext("2d");
     ctx.fillStyle = window.getComputedStyle(profileEls[0].closest('.dropdown-menu')).backgroundColor;
@@ -112,9 +96,11 @@ if (profiles.length > 0) {
                         ctx.font = `${textSize}px Helvetica`;
                         ctx.fillText(loadedProfile.name, 60 * i + 125, 100 * j + 90);
 
-                        document.querySelector("#generate-image").onclick = () => {
+                        const generateImageButton = document.querySelector("#generate-image");
+                        generateImageButton.dataset.bsToggle = "modal";
+                        generateImageButton.dataset.bsTarget = "#profilesImageModal";
+                        generateImageButton.onclick = () => {
                             document.querySelector("#profilesImageModal .modal-body").append(profilesCanvas);
-                            $("#profilesImageModal").modal("show");
                         };
                     })
                 }

@@ -66,7 +66,7 @@ const waitForStorage = function (key, callback) {
 };
 
 const waitForTooltip = function (callback) {
-  if (typeof $ != 'undefined' && typeof $().tooltip != 'undefined') {
+  if (window.bootstrap?.Tooltip) {
     setTimeout(() => {
       callback();
     });
@@ -428,15 +428,9 @@ window.addEventListener("superstorage-ready", async () => {
       })
 
       waitForTooltip(() => {
-        var iframeEl = document.createElement("iframe");
-        iframeEl.width = 0;
-        iframeEl.height = 0;
-        iframeEl.style.display = 'none';
-        iframeEl.srcdoc = `<script>
-            window.top.$("[data-note]").tooltip()
-        </script>`;
-        document.documentElement.append(iframeEl);
-        setTimeout(() => iframeEl.remove(), 1000);
+        document.querySelectorAll('[data-note]').forEach(element => {
+          bootstrap.Tooltip.getOrCreateInstance(element);
+        });
       });
     });
   }

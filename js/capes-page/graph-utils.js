@@ -2611,8 +2611,7 @@ function initializeGraph(capeId) {
   function openGraphModal() {
     const modal = document.getElementById('graph-modal');
     if (modal) {
-      modal.style.display = 'block';
-      $('#graph-modal').modal('show');
+      bootstrap.Modal.getOrCreateInstance(modal).show();
     
       if (window.modalCapeGraph) {
         window.modalCapeGraph.resizeCanvas();
@@ -2625,7 +2624,7 @@ function initializeGraph(capeId) {
     closeButton.addEventListener('click', () => {
       const modal = document.getElementById('graph-modal');
       if (modal) {
-        $('#graph-modal').modal('hide');
+        bootstrap.Modal.getOrCreateInstance(modal).hide();
         
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;
@@ -2641,7 +2640,7 @@ function initializeGraph(capeId) {
   if (modal) {
     modal.addEventListener('click', (event) => {
       if (event.target === modal) {
-        $('#graph-modal').modal('hide');
+        bootstrap.Modal.getOrCreateInstance(modal).hide();
         
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;
@@ -2653,8 +2652,8 @@ function initializeGraph(capeId) {
     });
     
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && modal.style.display === 'block') {
-        $('#graph-modal').modal('hide');
+      if (event.key === 'Escape' && modal.classList.contains('show')) {
+        bootstrap.Modal.getOrCreateInstance(modal).hide();
         
         if (window.modalCapeGraph) {
           window.modalCapeGraph.hoverPoint = null;

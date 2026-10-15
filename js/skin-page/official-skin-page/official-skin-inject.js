@@ -100,14 +100,32 @@ window.addEventListener("superstorage-ready", async () => {
   };
 
   const addHolidayTools = () => {
-    waitForSelector('[action*="/transform-skin"]', (form) => {
-      const hasHolidayTools = document.querySelectorAll('[action*="/transform-skin"]').length > 1;
-      if (hasHolidayTools) document.querySelector('[action*="/transform-skin"]').remove();
+    waitForSelector('[action*="/transform-skin"]', () => {
+      if (document.querySelector('[data-nmce-holiday-tools]')) return;
 
-      const skinId = form.querySelector('canvas[data-id]')?.getAttribute('data-id');
+      const transformForms = [...document.querySelectorAll('form[action*="/transform-skin"]')];
+      const standardToolsForm = transformForms.find(form =>
+        form.querySelector('[name="transformation"][value="grayscale"], [name="transformation"][value="invert"], [name="transformation"][value^="rotate-"]')
+      ) || transformForms[0];
+      if (!standardToolsForm) return;
 
-      form.insertAdjacentHTML('beforebegin', `
-      <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="/transform-skin">
+      // NameMC sometimes adds its own seasonal form. Remove only a form made
+      // entirely of hat transformations; never remove the standard skin tools.
+      transformForms.forEach(form => {
+        if (form === standardToolsForm) return;
+        const transformations = [...form.querySelectorAll('[name="transformation"]')];
+        if (transformations.length && transformations.every(button => button.value.startsWith('hat-'))) {
+          form.previousElementSibling?.matches('hr') && form.previousElementSibling.remove();
+          form.remove();
+        }
+      });
+
+      const skinId = standardToolsForm.querySelector('input[name="skin"]')?.value
+        || standardToolsForm.querySelector('canvas[data-id]')?.getAttribute('data-id');
+      if (!skinId) return;
+
+      standardToolsForm.insertAdjacentHTML('beforebegin', `
+      <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="/transform-skin" data-nmce-holiday-tools="pumpkin">
         <input type="hidden" name="skin" value="${skinId}">
         <button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-pumpkin" title="Pumpkin Head">
             <img class="skin-2d" src="https://s.namemc.com/2d/skin/face.png?id=dcec6ffd1405d8cb&scale=4" width="32" height="32">
@@ -139,7 +157,7 @@ window.addEventListener("superstorage-ready", async () => {
         </button>
       </form>
       <hr class="my-0">
-      <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="/transform-skin">
+      <form class="d-flex flex-wrap justify-content-center p-1" method="POST" action="/transform-skin" data-nmce-holiday-tools="winter">
           <input type="hidden" name="skin" value="${skinId}">
           <!--<button class="btn btn-outline-secondary m-1 p-1" style="height: auto" type="submit" name="transformation" value="hat-santa-2" title="Santa Hat">
               <canvas class="skin-2d d-block" data-id="${skinId}" data-head="c0fd0edf3ba58e8a" width="32" height="32"></canvas>
@@ -165,7 +183,7 @@ window.addEventListener("superstorage-ready", async () => {
     });
 
     waitForFunc('nmci', () => {
-      [...document.querySelectorAll('[data-head]')].forEach(head => {
+      [...document.querySelectorAll('[data-nmce-holiday-tools] [data-head]')].forEach(head => {
         const script = document.createElement("script");
         script.src = "https://s.namemc.com/i/" + head.getAttribute("data-head") + ".js";
         script.defer = true;

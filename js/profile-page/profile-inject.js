@@ -169,7 +169,7 @@ const waitForSupabase = (callback) =>
     callback(parseSupabase()));
 
 const waitForTooltip = (callback) =>
-  waitFor(() => typeof $ !== 'undefined' && typeof $().tooltip !== 'undefined', callback);
+  waitFor(() => window.bootstrap?.Tooltip, callback);
 
 /** Misc actions */
 const downloadSkinArt = () => {
@@ -526,11 +526,11 @@ window.addEventListener("superstorage-ready", async () => {
           cdate.textContent = new Date(creationDate).toLocaleDateString() + " ";
           cdate.append(warningCdEl);
 
-          waitForTooltip(() => $('#warningcd').tooltip({
-            "placement": "top",
-            "boundary": "viewport",
-            "title": "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return."
-          }))
+          warningCdEl.title = "Creation dates are inaccurate for a lot of accounts due to a breaking change on Mojang's end. We are currently fetching dates from Ashcon's API. Please yell at Mojang (WEB-3367) in order for accurate creation dates to return.";
+          waitForTooltip(() => bootstrap.Tooltip.getOrCreateInstance(warningCdEl, {
+            placement: "top",
+            boundary: "viewport"
+          }));
         } else if (createdAtNotFound) {
           cdate.classList.remove("saving");
           cdate.textContent = "Not Found";
@@ -636,9 +636,12 @@ window.addEventListener("superstorage-ready", async () => {
     });
 
     waitForTooltip(() => {
-      $('[data-bs-content]').click(function () {
-        $('[data-bs-content]').not(this).popover('hide');
-      });
+      const popoverElements = [...document.querySelectorAll('[data-bs-content]')];
+      popoverElements.forEach(element => element.addEventListener('click', () => {
+        popoverElements.forEach(other => {
+          if (other !== element) bootstrap.Popover.getInstance(other)?.hide();
+        });
+      }));
     });
 
     waitForSelector('.profile-column-right .card-body.py-1 > div:nth-child(2)', (views) => {
@@ -668,11 +671,11 @@ window.addEventListener("superstorage-ready", async () => {
             emojiImg.src = emojiOverride.image_src;
             emojiImg.classList.add("emoji");
             emojiImg.id = "emoji_override";
+            emojiImg.title = emojiOverride.tooltip_text;
             waitForTooltip(() => {
-              $('#emoji_override').tooltip({
-                "placement": "top",
-                "boundary": "viewport",
-                "title": emojiOverride.tooltip_text
+              bootstrap.Tooltip.getOrCreateInstance(emojiImg, {
+                placement: "top",
+                boundary: "viewport"
               });
             });
             usernameEl.append(emojiImg);
@@ -716,15 +719,18 @@ window.addEventListener("superstorage-ready", async () => {
             profileBody.append(badgeCardHTML)
 
             waitForTooltip(() => {
-              $('#badgestitle').tooltip({
-                "placement": "top",
-                "boundary": "viewport",
-                "title": "Badges from NameMC Extras!"
-              })
+              const badgesTitle = document.querySelector('#badgestitle');
+              badgesTitle.title = "Badges from NameMC Extras!";
+              bootstrap.Tooltip.getOrCreateInstance(badgesTitle, {
+                placement: "top",
+                boundary: "viewport"
+              });
 
-              $('[src*=badges]').parent().tooltip({
-                "placement": "top",
-                "boundary": "viewport"
+              document.querySelectorAll('[src*=badges]').forEach(image => {
+                bootstrap.Tooltip.getOrCreateInstance(image.parentElement, {
+                  placement: "top",
+                  boundary: "viewport"
+                });
               });
             })
           }

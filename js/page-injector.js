@@ -1121,19 +1121,26 @@ observer.observe(window.top.document.documentElement, {
                 }
             });
 
-            waitForSelector('a[data-bs-theme-value]',
+            waitForSelector('nav .nav-item [data-bs-theme-value]',
                 /**
                  * @param {HTMLElement} themeButton 
                  */
                 (themeButton) => {
-                    // replace theme button with settings button... should open bootstrap modal
-                    themeButton.parentElement.outerHTML = `
-                        <li class="nav-item">
-                            <a class="nav-link" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#settingsModal">
-                                <i class="fas fa-cog"></i>
-                            </a>
-                        </li>
-                    `;
+                    const navItem = themeButton.closest('.nav-item');
+                    if (!navItem || navItem.querySelector('[data-bs-target="#settingsModal"]')) return;
+
+                    const settingsButton = document.createElement('button');
+                    settingsButton.type = 'button';
+                    settingsButton.className = 'nav-link pe-0';
+                    settingsButton.dataset.bsToggle = 'modal';
+                    settingsButton.dataset.bsTarget = '#settingsModal';
+                    settingsButton.title = 'NameMC Extras Settings';
+                    settingsButton.setAttribute('aria-label', 'NameMC Extras Settings');
+
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-cog';
+                    settingsButton.append(icon);
+                    navItem.replaceChildren(settingsButton);
                 }
             )
         })
@@ -1285,16 +1292,22 @@ observer.observe(window.top.document.documentElement, {
 
     waitForSelector("body", async () => {
         // REPLACE COPY BUTTON
-        waitForSelector("a.copy-button[data-clipboard-text][href*='javascript:']", () => {
-            var copyLinks = [...document.querySelectorAll("a.copy-button[data-clipboard-text][href*='javascript:']")];
-            copyLinks.forEach(copyLink => {
-                copyLink.innerHTML = '<i class="far fa-fw fa-copy"></i>';
-                copyLink.classList.add("color-inherit");
+        const replaceCopyButton = (copyButton) => {
+            if (!copyButton || copyButton.dataset.nmceCopyIcon === 'true') return;
+            copyButton.dataset.nmceCopyIcon = 'true';
+            copyButton.innerHTML = '<i class="far fa-fw fa-copy"></i>';
+            copyButton.classList.add("color-inherit");
 
-                // fix title
-                setTimeout(() => copyLink.title = "Copy", 1000);
-            });
+            // NameMC may assign its own title shortly after inserting the button.
+            setTimeout(() => copyButton.title = "Copy", 1000);
+        };
+
+        waitForSelector(".copy-button[data-clipboard-text]", () => {
+            document.querySelectorAll(".copy-button[data-clipboard-text]").forEach(replaceCopyButton);
         });
+
+        // The UUID control is inserted after the name-history copy buttons.
+        waitForSelector("#uuid-copy-button.copy-button[data-clipboard-text]", replaceCopyButton);
 
         // REMOVE NAME LENGTH RESTRICTIONS
         if (location.pathname === "/minecraft-names") {
@@ -1323,10 +1336,68 @@ observer.observe(window.top.document.documentElement, {
 
         // MARK ALL READ
         waitForSelector('.dropdown-header:nth-child(6)', async (header) => {
-            header.insertAdjacentHTML('beforeend', `<a href="javascript:void 0" id="markAllRead" class="color-inherit" title="Mark All Read"><i class="far fa-envelope-open"></i></a>`);
-            const currProfile = document.querySelector('.dropdown-menu > [style] > .dropdown-item.active')?.href;
-            const profiles = [...document.querySelectorAll('[href*="%2Ffollowers%3Fsort%3Ddate%3Adesc"]')].map(a => a.href);
-            const currURL = document.querySelector('[href*="/followers?sort=date:desc"]').href;
+            const markAllRead = document.createElement('a');
+            markAllRead.href = 'javascript:void(0)';
+            markAllRead.id = 'markAllRead';
+            markAllRead.className = 'color-inherit';
+            markAllRead.title = 'Mark All Read';
+            markAllRead.setAttribute('aria-label', 'Mark All Read');
+            markAllRead.style.cursor = 'pointer';
+            markAllRead.innerHTML = '<i class="far fa-envelope-open"></i>';
+            header.append(markAllRead);
+
+            const activeProfileLink = document.querySelector(
+                '.dropdown-menu .dropdown-item.active[href*="/my-profile/switch"]'
+            );
+            let currProfile = activeProfileLink?.href || null;
+            const profiles = [...new Set(
+                [...document.querySelectorAll('[href*="%2Ffollowers%3Fsort%3Ddate%3Adesc"]')]
+                    .map(link => link.href)
+            )];
+            const currURL = document.querySelector('[href*="/followers?sort=date:desc"]')?.href;
+
+            if (!currURL) {
+                markAllRead.title = 'Unable to identify the active profile';
+                markAllRead.removeAttribute('href');
+                markAllRead.style.cursor = 'not-allowed';
+                return;
+            }
+
+            const resolveCurrentProfile = async () => {
+                if (currProfile) return currProfile;
+
+                // NameMC no longer includes the active account in the switcher. Its
+                // followers URL still contains the exact profile slug, so load that
+                // profile and read the UUID NameMC already renders in #uuid-select.
+                const followersURL = new URL(currURL);
+                const profilePath = followersURL.pathname.replace(/\/followers\/?$/, '');
+                const profileResponse = await fetch(profilePath, {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                });
+                if (!profileResponse.ok) throw new Error(`Could not resolve active profile (${profileResponse.status})`);
+
+                const profileDocument = new DOMParser().parseFromString(
+                    await profileResponse.text(),
+                    'text/html'
+                );
+                const uuid = profileDocument.querySelector('#uuid-select option')?.textContent
+                    ?.trim()
+                    .match(/[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}/i)?.[0];
+                if (!uuid) throw new Error('Could not find the active profile UUID');
+
+                const switchURL = new URL('/my-profile/switch', location.origin);
+                switchURL.searchParams.set('profile', uuid);
+                switchURL.searchParams.set('redirect', '/');
+                currProfile = switchURL.href;
+                return currProfile;
+            };
+
+            const setMarkAllReadBusy = (busy) => {
+                markAllRead.dataset.busy = busy ? 'true' : 'false';
+                markAllRead.setAttribute('aria-disabled', String(busy));
+                markAllRead.style.pointerEvents = busy ? 'none' : '';
+            };
 
             const modalHTML = `
             <div class="modal fade" id="captchaModal" tabindex="-1" role="dialog" aria-labelledby="captchaModalLabel" aria-hidden="true">
@@ -1335,6 +1406,7 @@ observer.observe(window.top.document.documentElement, {
                         <div class="modal-body">
                             <iframe src="${currURL}" id="captchaIf"></iframe>
                         </div>
+                        <button type="button" id="captchaModalClose" class="d-none" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                 </div>
             </div>`;
@@ -1342,50 +1414,77 @@ observer.observe(window.top.document.documentElement, {
             root.insertAdjacentHTML('beforeend', modalHTML);
 
             const fetchAllProfiles = async () => {
-                document.querySelector('#markAllRead').classList.add('disabled');
+                setMarkAllReadBusy(true);
                 root.style.cursor = 'wait';
+                const restoreProfile = await resolveCurrentProfile();
 
-                for (const url of profiles) {
-                    await fetch(url);
+                try {
+                    for (const url of profiles.filter(url => url !== restoreProfile)) {
+                        const response = await fetch(url, {
+                            credentials: 'same-origin',
+                            cache: 'no-store'
+                        });
+                        if (!response.ok) throw new Error(`Mark All Read failed (${response.status})`);
+                    }
+                } finally {
+                    // Switching profiles changes NameMC's server-side active account.
+                    // Always switch back, including when an earlier request fails.
+                    const restoreResponse = await fetch(restoreProfile, {
+                        credentials: 'same-origin',
+                        cache: 'no-store'
+                    });
+                    if (!restoreResponse.ok) throw new Error(`Could not restore active profile (${restoreResponse.status})`);
                 }
-
-                await fetch(currProfile);
             }
 
-            document.querySelector('#markAllRead').onclick = async () => {
-                const curr = await fetch(currURL);
+            const finishMarking = async () => {
+                try {
+                    await fetchAllProfiles();
+                    location.reload();
+                } catch (error) {
+                    console.error(error);
+                    setMarkAllReadBusy(false);
+                    root.style.cursor = '';
+                }
+            };
+
+            markAllRead.onclick = async () => {
+                if (markAllRead.dataset.busy === 'true') return;
+                setMarkAllReadBusy(true);
+                let curr;
+                try {
+                    curr = await fetch(currURL, { credentials: 'same-origin', cache: 'no-store' });
+                } catch (error) {
+                    console.error(error);
+                    setMarkAllReadBusy(false);
+                    return;
+                }
                 if (curr.status === 403) {
-                    var iframeEl = document.createElement("iframe");
-                    iframeEl.width = 0;
-                    iframeEl.height = 0;
-                    iframeEl.style.display = 'none';
-                    iframeEl.srcdoc = `<script>
-                        window.top.captchaModal = new window.top.bootstrap.Modal("#captchaModal");
-                        window.top.captchaModal.show();
-                    </script>`;
-                    root.append(iframeEl);
-                    setTimeout(() => iframeEl.remove(), 1000);
+                    const captchaTrigger = document.createElement('button');
+                    captchaTrigger.type = 'button';
+                    captchaTrigger.className = 'd-none';
+                    captchaTrigger.dataset.bsToggle = 'modal';
+                    captchaTrigger.dataset.bsTarget = '#captchaModal';
+                    root.append(captchaTrigger);
+                    captchaTrigger.click();
+                    captchaTrigger.remove();
 
                     setTimeout(() => {
                         document.querySelector('#captchaIf').contentWindow.addEventListener('visibilitychange', async () => {
-                            var iframeEl = document.createElement("iframe");
-                            iframeEl.width = 0;
-                            iframeEl.height = 0;
-                            iframeEl.style.display = 'none';
-                            iframeEl.srcdoc = `<script>
-                                window.top.captchaModal.hide();
-                            </script>`;
-                            root.append(iframeEl);
-                            setTimeout(() => iframeEl.remove(), 1000);
-                            await fetchAllProfiles();
-                            location.reload();
-                        });
+                            document.querySelector('#captchaModalClose').click();
+                            await finishMarking();
+                        }, { once: true });
                     }, 1000);
                     return;
                 }
 
-                await fetchAllProfiles();
-                location.reload();
+                if (!curr.ok) {
+                    console.error(`Mark All Read failed (${curr.status})`);
+                    setMarkAllReadBusy(false);
+                    return;
+                }
+
+                await finishMarking();
             }
         })
     });

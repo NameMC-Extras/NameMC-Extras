@@ -296,6 +296,10 @@ select * {
     color: inherit;
 }
 
+.copy-button .fa-copy {
+    color: #fff !important;
+}
+
 .mb-3:has(.head-command) {
     display: var(--head-cmd);
 }

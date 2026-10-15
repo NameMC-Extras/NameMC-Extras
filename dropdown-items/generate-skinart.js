@@ -1,17 +1,5 @@
 import { downloadZip } from "../js/client-zip.min.js";
 
-const waitForModal = function (callback) {
-    if (typeof $ != 'undefined' && typeof $().modal != 'undefined') {
-        setTimeout(() => {
-            callback();
-        });
-    } else {
-        setTimeout(() => {
-            waitForModal(callback);
-        });
-    }
-};
-
 var modalRange = document.createRange();
 var modalHTML = modalRange.createContextualFragment(`
     <div class="modal fade" id="skinArtModal" tabindex="-1" role="dialog" aria-labelledby="skinArtModalTitle" aria-hidden="true">
@@ -19,7 +7,7 @@ var modalHTML = modalRange.createContextualFragment(`
             <div class="modal-content" style="width:fit-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Generate Skin Art</h5>
-                    <button type="button" class="btn" id="modalClose2" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="btn" id="modalClose2" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -50,13 +38,9 @@ var modalHTML = modalRange.createContextualFragment(`
 
 document.documentElement.append(modalHTML);
 
-waitForModal(() => $("#modalClose2").click(() => {
-    $("#skinArtModal").modal("hide");
-}));
-
-document.querySelector("#generate-skinart").onclick = () => {
-    $("#skinArtModal").modal("show");
-};
+const generateSkinArtButton = document.querySelector("#generate-skinart");
+generateSkinArtButton.dataset.bsToggle = "modal";
+generateSkinArtButton.dataset.bsTarget = "#skinArtModal";
 
 const baseskin = document.querySelector("#baseskin");
 const art = document.querySelector("#art");
