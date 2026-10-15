@@ -206,7 +206,6 @@ body main {
     --bs-popover-bg: var(--ne-dropdown) !important;
 }
 
-.customTheme a.copy-button:not(.color-inherit),
 .customTheme a:not([class]):not(:has([class*=fa-eye])),
 .customTheme a[class=""],
 .customTheme a[class="fw-bold"],
@@ -225,7 +224,6 @@ body main {
 }
 
 .customTheme .btn-link:hover,
-.customTheme a.copy-button:not(.color-inherit):hover,
 .customTheme a:not([class]):not(:has([class*=fa-eye])):hover,
 .customTheme a[class=""]:hover,
 .customTheme a[class="fw-bold"]:hover,
@@ -297,7 +295,7 @@ select * {
 }
 
 .copy-button .fa-copy {
-    color: #fff !important;
+    color: var(--bs-body-color) !important;
 }
 
 .mb-3:has(.head-command) {
