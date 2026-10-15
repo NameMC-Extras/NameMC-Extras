@@ -228,9 +228,9 @@ window.addEventListener("superstorage-ready", async () => {
     const nameText = `${redirect ? `<a href="${redirect}" target="_blank" rel="nofollow noopener noreferrer">${firstWord}</a>` : firstWord} ${rest.join(" ")}${showAmount ? ` (${capes.length})` : ""}`;
 
     cardDiv.innerHTML = `
-    <div class="card-header py-1" style="display: flex; justify-content: space-between;">
+    <div class="card-header py-1 nmce-tools-header">
       <strong>${nameText}</strong>
-      <div>
+      <div class="nmce-header-controls">
         <a href="javascript:void(0)" class="color-inherit" title="Bedrock Only Capes" id="bedrockBtn">
           <i class="fas fa-fw ${bedrockIcon}"></i>
         </a>
@@ -591,6 +591,29 @@ window.addEventListener("superstorage-ready", async () => {
       linksTextArea = descText;
     }
 
+    const ensureHeaderControls = (header) => {
+      header.classList.add('nmce-tools-header');
+
+      let controls = header.querySelector(':scope > .nmce-header-controls');
+      if (!controls) {
+        controls = document.createElement('div');
+        controls.className = 'nmce-header-controls';
+      }
+
+      let label = header.querySelector(':scope > .nmce-header-label');
+      if (!label) {
+        label = document.createElement('span');
+        label.className = 'nmce-header-label';
+        [...header.childNodes].forEach(node => {
+          if (node !== controls && !controls.contains(node)) label.append(node);
+        });
+        header.append(label);
+      }
+
+      header.append(controls);
+      return controls;
+    };
+
     watchSelector('a[href*="/my-profile/switch"]:not([class])', (editLink) => {
       // Avoid double-processing
       if (editLink.dataset.replaced) return;
@@ -608,12 +631,8 @@ window.addEventListener("superstorage-ready", async () => {
       editLink.classList.add("color-inherit");
       editLink.title = "Edit";
 
-      // move to far right
-      if (editLink.parentElement?.tagName === "STRONG") {
-        const parent = editLink.parentElement.parentElement;
-        parent.append(editLink);
-        editLink.parentElement.style.cssText = "display:flex;justify-content:space-between";
-      }
+      const header = editLink.closest('.card-header');
+      if (header) ensureHeaderControls(header).append(editLink);
     });
 
     waitForTooltip(() => {
@@ -725,11 +744,9 @@ window.addEventListener("superstorage-ready", async () => {
     document.documentElement.append(gadgetIf);
 
     waitForSelector('.profile-column-right .card.mb-3:has(.table > tbody > tr) > .card-header', (historyTitle) => {
-      historyTitle.style.cssText = "display:flex;justify-content:space-between";
-
       const historyCard = historyTitle.parentElement;
       const historyBody = historyCard.querySelector('tbody');
-      const historyButtons = document.createElement('div');
+      const historyButtons = ensureHeaderControls(historyTitle);
       historyButtons.id = 'historyButtons';
 
       const histBtn = document.createElement('a');
@@ -754,8 +771,6 @@ window.addEventListener("superstorage-ready", async () => {
         trash.classList.remove('position-absolute');
         historyButtons.append(trash);
       }
-      historyTitle.append(historyButtons);
-
       const visibleHistoryText = () => [...historyCard.querySelectorAll('tbody tr:not(.d-none):not(.d-lg-none)')]
         .map(row => row.innerText.split("\t").slice(0, 2).join(" "))
         .join("\n");
@@ -850,19 +865,14 @@ window.addEventListener("superstorage-ready", async () => {
       if (hasMultipleSkins) {
         const skinsContainer = document.querySelector('.skin-2d.skin-button').parentElement.parentElement;
         var skinsTitle = skinsContainer.parentElement.parentElement.querySelector('.card-header');
-        var skinEdit = skinsTitle.querySelector(".fa-edit");
+        const skinControls = ensureHeaderControls(skinsTitle);
 
-        skinsTitle.innerHTML += `<div>
+        skinControls.insertAdjacentHTML('afterbegin', `
           <a href="javascript:void(0)" id="skinArtBtn" class="color-inherit" title="Download Skin Art"><i class="fas fa-fw fa-arrow-alt-to-bottom"></i></a>
           <a href="javascript:void(0)" id="borderBtn" class="color-inherit" title="Show/Hide Borders">
             ${skinArt ? '<i class="far fa-fw fa-border-all">' : '<i class="far fa-fw fa-border-style">'}</i>
           </a>
-          ${skinEdit ? skinEdit?.parentElement?.outerHTML : ""}
-        </div>`;
-
-        skinsTitle.querySelector(".fa-edit")?.parentElement?.remove()
-
-        skinsTitle.style.cssText = "display:flex;justify-content:space-between";
+        `);
 
         waitForImage(() => {
           var resizedArt = document.createElement("canvas");

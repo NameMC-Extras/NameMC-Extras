@@ -532,3 +532,21 @@ a:has([class*=fa-eye]) {
 .nmce-hide-no-cape {
   display: none !important;
 }
+
+.card-header.nmce-tools-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+}
+
+.nmce-header-label {
+    min-width: 0;
+}
+
+.nmce-header-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    margin-left: auto;
+}
